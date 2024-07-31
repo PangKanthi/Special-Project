@@ -13,7 +13,7 @@ const Navbar = () => {
   const items = [
     { 
         label: 'หน้าแรก', 
-        icon: 'pi pi-fw pi-home text-white',
+        icon: 'pi pi-fw pi-home',
         command: () => { navigate("/") }},
     { 
       label: 'ประตูบานเลื่อน', 
