@@ -2,7 +2,6 @@ import React from 'react';
 import { Menubar } from 'primereact/menubar';
 import { useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
-import { Dropdown } from 'primereact/dropdown';
 import 'primeflex/primeflex.css';
 
 const Navbar = () => {
