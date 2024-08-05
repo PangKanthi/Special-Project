@@ -60,18 +60,22 @@ const Navbar = () => {
       label: <span className="text-lg">ติดต่อเรา</span>,
       icon: 'pi pi-fw pi-phone',
       command: () => navigate("/contact"),
-    },
+    }
   ];
 
   const start = (
     <img alt="logo" src="../assets/logo.png" height="60" className="mx-8 pr-8" />
   );
+  
   const end = (
-    <Button
-      label="LOGIN"
-      icon="pi pi-sign-in"
-      className="p-button-rounded p-button-info mx-6"
-    />
+    <div className="flex">
+      <Button
+        label="เข้าสู่ระบบ"
+        icon="pi pi-sign-in"
+        className="p-button-rounded p-button-info mx-1"
+        onClick={() => navigate("/login")}
+      />
+    </div>
   );
 
   return (

@@ -10,6 +10,9 @@ import Repair from './Pages/Repair';
 import About from './Pages/About';
 import Portfolio from './Pages/Portfolio';
 import Contact from './Pages/Contact';
+import Login from './Pages/Login';
+import Register from './Pages/Register';
+import Forgotpassword from './Pages/Forgotpassword';
 import 'primeflex/primeflex.css';
 import 'primereact/resources/themes/saga-blue/theme.css'; // หรือธีมอื่นๆ ที่ต้องการ
 import 'primereact/resources/primereact.min.css';
@@ -33,6 +36,9 @@ const App = () => {
             <Route path="/about" element={<About />} />
             <Route path="/portfolio" element={<Portfolio />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/forgotpassword" element={<Forgotpassword />} />
           </Routes>
         </div>
       </div>
