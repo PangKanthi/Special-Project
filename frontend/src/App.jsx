@@ -13,12 +13,12 @@ import Contact from './Pages/Contact';
 import Login from './Pages/Login';
 import Register from './Pages/Register';
 import Forgotpassword from './Pages/Forgotpassword';
+import Footer from './Footer/Foot';
 import 'primeflex/primeflex.css';
-import 'primereact/resources/themes/saga-blue/theme.css'; // หรือธีมอื่นๆ ที่ต้องการ
+import 'primereact/resources/themes/saga-blue/theme.css'; 
 import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
-import 'primeflex/primeflex.css';
-import './index.css'; // หากคุณมี CSS ของคุณเอง
+import './index.css'; 
 
 const App = () => {
   return (
@@ -41,6 +41,7 @@ const App = () => {
             <Route path="/forgotpassword" element={<Forgotpassword />} />
           </Routes>
         </div>
+        <Footer />
       </div>
     </Router>
   );

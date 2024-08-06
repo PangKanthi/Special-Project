@@ -30,7 +30,7 @@ const Login = () => {
     };
 
     return (
-        <card className="flex justify-content-center align-items-center" style={{ height: '80vh' }}>
+        <div className="flex justify-content-center align-items-center" style={{ height: '80vh' }}>
             <div className="surface-card p-6 shadow-2 border-round" style={{ width: '100%', maxWidth: '600px' }}>
                 <h2 className="text-center mb-4 text-blue-600">เข้าสู่ระบบ</h2>
                 <form className="p-fluid" onSubmit={handleSubmit}>
@@ -60,7 +60,12 @@ const Login = () => {
                 </form>
                 {successMessage && <Message severity="success" text={successMessage} className="w-full mb-4" />}
                 <div className="flex align-items-center mb-4">
-                    <Checkbox id="rememberme" onChange={(e) => setChecked(e.checked)} checked={checked} className="mr-2" />
+                    <Checkbox
+                        id="rememberme"
+                        onChange={(e) => setChecked(e.checked)}
+                        checked={checked}
+                        className="mr-2"
+                    />
                     <label htmlFor="rememberme">จดจำฉัน</label>
                 </div>
                 <div className="flex justify-content-between">
@@ -68,7 +73,7 @@ const Login = () => {
                     <a href="/forgotpassword" className="text-primary">ลืมรหัสผ่าน?</a>
                 </div>
             </div>
-        </card>
+        </div>
     );
 };
 
