@@ -23,7 +23,7 @@ const Forgotpassword = () => {
 
     return (
         <div className="flex justify-content-center align-items-center" style={{ height: '80vh' }}>
-            <div className="surface-card p-6 shadow-2 border-round" style={{ width: '100%', maxWidth: '600px' }}>
+            <div className="surface-card p-6 shadow-2 border-round-lg" style={{ width: '100%', maxWidth: '600px' }}>
                 <h2 className="text-center mb-4 text-blue-600">ลืมรหัสผ่าน</h2>
                 <p className="mb-4 font-light text-500">กรอกที่อยู่อีเมลของคุณเพื่อรับรหัสผ่านใหม่</p>
                 <form className="p-fluid" onSubmit={handleSubmit}>
@@ -32,6 +32,7 @@ const Forgotpassword = () => {
                         <InputText
                             id="email"
                             type="text"
+                            placeholder='ที่อยู่อีเมล'
                             className="w-full"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
@@ -40,6 +41,9 @@ const Forgotpassword = () => {
                     </div>
                     <Button label="ยืนยัน" type="submit" className="w-full p-button-info mb-4" />
                 </form>
+                <div className="flex justify-content-center">
+                    <a href="/login" className="text-500">ย้อนกลับ</a>
+                </div>
             </div>
         </div>
     );

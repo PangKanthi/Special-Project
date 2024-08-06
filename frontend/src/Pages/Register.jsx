@@ -52,7 +52,7 @@ const Register = () => {
 
     return (
         <div className="flex justify-content-center align-items-center" style={{ height: '80vh' }}>
-            <div className="surface-card p-6 shadow-2 border-round" style={{ width: '100%', maxWidth: '600px' }}>
+            <div className="surface-card p-6 shadow-2 border-round-lg" style={{ width: '100%', maxWidth: '600px' }}>
                 <h2 className="text-center mb-4 text-blue-600">สมัครสมาชิก</h2>
                 <form className="p-fluid" onSubmit={handleSubmit}>
                     <div className="p-field mb-4">
@@ -61,6 +61,7 @@ const Register = () => {
                             id="name"
                             type="text"
                             className="w-full"
+                            placeholder='ชื่อภาษาไทย'
                             value={formData.name}
                             onChange={handleChange}
                         />
@@ -72,6 +73,7 @@ const Register = () => {
                             id="surname"
                             type="text"
                             className="w-full"
+                            placeholder='นามสกุลภาษาไทย'
                             value={formData.surname}
                             onChange={handleChange}
                         />
@@ -83,6 +85,7 @@ const Register = () => {
                             id="email"
                             type="text"
                             className="w-full"
+                            placeholder='ที่อยู่อีเมล'
                             value={formData.email}
                             onChange={handleChange}
                         />
@@ -94,6 +97,7 @@ const Register = () => {
                             id="password"
                             toggleMask
                             className="w-full"
+                            placeholder='รหัสผ่านภาษาอังกฤษและตัวเลข'
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             promptLabel="กรอกรหัสผ่าน"
@@ -110,6 +114,7 @@ const Register = () => {
                             toggleMask
                             feedback={false}
                             className="w-full"
+                            placeholder='ยืนยันรหัสผ่าน'
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                         />
@@ -117,6 +122,9 @@ const Register = () => {
                     </div>
                     <Button label="สมัครสมาชิก" type="submit" className="w-full p-button-info mb-4" />
                 </form>
+                <div className="flex justify-content-center">
+                    <a href="/login" className="text-500">ย้อนกลับ</a>
+                </div>
             </div>
         </div>
     );

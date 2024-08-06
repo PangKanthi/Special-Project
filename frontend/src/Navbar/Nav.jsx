@@ -64,7 +64,7 @@ const Navbar = () => {
   const navigate = useNavigate();
 
   const start = (
-    <img alt="logo" src="../assets/logo.png" height="60" className="mx-8 pr-8" />
+    <img alt="logo" src="../assets/logo.png" height="60" className="mx-8 pr-8 " onClick={() => navigate("/")} />
   );
   
   const end = (
