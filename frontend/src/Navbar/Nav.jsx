@@ -8,7 +8,7 @@ const menuItems = (navigate) => [
   {
     label: <span className="text-lg">หน้าแรก</span>,
     icon: 'pi pi-fw pi-home',
-    command: () => navigate("/"),
+    command: () => navigate("/home"),
   },
   {
     label: <span className="text-lg">ประตูบานเลื่อน</span>,
@@ -30,11 +30,11 @@ const menuItems = (navigate) => [
     items: [
       {
         label: <span className="text-lg">ชิ้นส่วนทั่วไป</span>,
-        command: () => navigate("/parts/general"),
+        command: () => navigate("/generalparts"),
       },
       {
         label: <span className="text-lg">ชิ้นส่วนพิเศษ</span>,
-        command: () => navigate("/parts/special"),
+        command: () => navigate("/specialparts"),
       },
     ],
   },
@@ -64,7 +64,7 @@ const Navbar = () => {
   const navigate = useNavigate();
 
   const start = (
-    <img alt="logo" src="../assets/logo.png" height="60" className="mx-8 pr-8 " onClick={() => navigate("/")} />
+    <img alt="logo" src="../assets/logo.png" height="60" className="mx-8 pr-8 " onClick={() => navigate("/home")} />
   );
   
   const end = (
@@ -76,6 +76,7 @@ const Navbar = () => {
         onClick={() => navigate("/login")}
       />
     </div>
+    
   );
 
   const navbarStyle = {

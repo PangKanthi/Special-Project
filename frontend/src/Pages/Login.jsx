@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { InputText } from 'primereact/inputtext';
 import { Password } from 'primereact/password';
 import { Button } from 'primereact/button';
@@ -7,47 +8,53 @@ import { Message } from 'primereact/message';
 import 'primeflex/primeflex.css';
 
 const Login = () => {
-    const [email, setEmail] = useState('');
+    const [userid, setUserid] = useState('');
     const [password, setPassword] = useState('');
     const [checked, setChecked] = useState(false);
-    const [emailError, setEmailError] = useState('');
+    const [UseridError, setUseridError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
+    const navigate = useNavigate();
 
-    const validateEmail = (email) => {
-        const regex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-        return regex.test(email);
+    const validateUserid = (userid) => {
+        const regex = /^[a-zA-Z0-9]+$/;
+        return regex.test(userid);
     };
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        if (!validateEmail(email)) {
-            setEmailError('กรุณากรอกอีเมลที่ถูกต้อง');
+        if (!validateUserid(userid)) {
+            setUseridError('กรุณากรอกชื่อผู้ใช้ที่ถูกต้อง (เฉพาะตัวอักษรภาษาอังกฤษและตัวเลข)');
             setSuccessMessage('');
             return;
         }
-        setEmailError('');
+        if (userid === 'admin' && password === '1234') {
+            navigate('/homeadmin');
+            return;
+        }
+        setUseridError('');
         setSuccessMessage('เข้าสู่ระบบสำเร็จ');
     };
 
     return (
-        <div className="flex justify-content-center align-items-center " style={{ height: '80vh' }}>
-            <div className="surface-card p-6 shadow-2 border-round-lg " style={{ width: '100%', maxWidth: '600px' }}>
+        <div className="flex justify-content-center align-items-center" style={{ height: '80vh' }}>
+            <div className="surface-card p-6 shadow-2 border-round-lg" style={{ width: '100%', maxWidth: '600px' }}>
                 <h2 className="text-center mb-4 text-blue-600">เข้าสู่ระบบ</h2>
+                <div className="pages-detail text-center mb-2">กรุณาเข้าสู่ระบบก่อนทำการสั่งซื้อ</div>
                 <form className="p-fluid" onSubmit={handleSubmit}>
                     <div className="p-field mb-4">
-                        <label htmlFor="email" className="block mb-2 font-semibold">อีเมล</label>
+                        <label htmlFor="userid" className="block mb-2 font-semibold pi pi-user "> ชื่อผู้ใช้</label>
                         <InputText
-                            id="email"
+                            id="userid"
                             type="text"
-                            placeholder='ที่อยู่อีเมล'
-                            className="w-full"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder='ชื่อผู้ใช้'
+                            className="w-full "
+                            value={userid}
+                            onChange={(e) => setUserid(e.target.value)}
                         />
-                        {emailError && <Message severity="error" text={emailError} className="mt-2" />}
+                        {UseridError && <Message severity="error" text={UseridError} className="mt-2" />}
                     </div>
                     <div className="p-field mb-4">
-                        <label htmlFor="password" className="block mb-2 font-semibold">รหัสผ่าน</label>
+                        <label htmlFor="password" className="block mb-2 font-semibold pi pi-lock"> รหัสผ่าน</label>
                         <Password
                             id="password"
                             toggleMask

@@ -10,6 +10,7 @@ const Register = () => {
         name: '',
         surname: '',
         email: '',
+        userid: ''
     });
 
     const [password, setPassword] = useState('');
@@ -19,12 +20,14 @@ const Register = () => {
         name: '',
         surname: '',
         email: '',
+        userid: '',
         password: '',
         confirmPassword: ''
     });
 
     const validateName = (name) => /^[\u0E00-\u0E7F\s]{1,50}$/.test(name);
     const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
+    const validateUserid = (userid) => /^[a-zA-Z0-9]+$/.test(userid);
     const validatePassword = (password) => /^[A-Za-z0-9!@#$%^&*()_+]{6,24}$/.test(password);
 
     const handleChange = (e) => {
@@ -39,6 +42,7 @@ const Register = () => {
             name: validateName(formData.name) ? '' : 'ชื่อต้องเป็นภาษาไทย',
             surname: validateName(formData.surname) ? '' : 'นามสกุลต้องเป็นภาษาไทย',
             email: validateEmail(formData.email) ? '' : 'รูปแบบอีเมลไม่ถูกต้อง',
+            userid: validateUserid(formData.userid) ? '' : 'ชื่อผู้ใช้ต้องเป็นตัวอักษรภาษาอังกฤษและตัวเลข',
             password: validatePassword(password) ? '' : 'รหัสผ่านต้องมีความยาว 6-24 ตัวอักษรและประกอบด้วยตัวอักษรและตัวเลข',
             confirmPassword: confirmPassword === password ? '' : 'รหัสผ่านไม่ตรงกัน'
         };
@@ -56,7 +60,19 @@ const Register = () => {
                 <h2 className="text-center mb-4 text-blue-600">สมัครสมาชิก</h2>
                 <form className="p-fluid" onSubmit={handleSubmit}>
                     <div className="p-field mb-4">
-                        <label htmlFor="name" className="block mb-2 font-semibold">ชื่อ</label>
+                        <label htmlFor="userid" className="block mb-2 font-semibold pi pi-user"> ชื่อผู้ใช้</label>
+                        <InputText
+                            id="userid"
+                            type="text"
+                            className="w-full"
+                            placeholder='ชื่อผู้ใช้'
+                            value={formData.userid}
+                            onChange={handleChange}
+                        />
+                        {errors.userid && <Message severity="error" text={errors.userid} className="mt-2"/>}
+                    </div>
+                    <div className="p-field mb-4">
+                        <label htmlFor="name" className="block mb-2 font-semibold pi pi-user-edit"> ชื่อ</label>
                         <InputText
                             id="name"
                             type="text"
@@ -68,7 +84,7 @@ const Register = () => {
                         {errors.name && <Message severity="error" text={errors.name} className="mt-2"/>}
                     </div>
                     <div className="p-field mb-4">
-                        <label htmlFor="surname" className="block mb-2 font-semibold">นามสกุล</label>
+                        <label htmlFor="surname" className="block mb-2 font-semibold pi pi-user-edit"> นามสกุล</label>
                         <InputText
                             id="surname"
                             type="text"
@@ -80,7 +96,7 @@ const Register = () => {
                         {errors.surname && <Message severity="error" text={errors.surname} className="mt-2"/>}
                     </div>
                     <div className="p-field mb-4">
-                        <label htmlFor="email" className="block mb-2 font-semibold">อีเมล</label>
+                        <label htmlFor="email" className="block mb-2 font-semibold pi pi-envelope"> อีเมล</label>
                         <InputText
                             id="email"
                             type="text"
@@ -92,7 +108,7 @@ const Register = () => {
                         {errors.email && <Message severity="error" text={errors.email} className="mt-2"/>}
                     </div>
                     <div className="p-field mb-4">
-                        <label htmlFor="password" className="block mb-2 font-semibold">รหัสผ่าน</label>
+                        <label htmlFor="password" className="block mb-2 font-semibold pi pi-lock"> รหัสผ่าน</label>
                         <Password
                             id="password"
                             toggleMask
@@ -108,7 +124,7 @@ const Register = () => {
                         {errors.password && <Message severity="error" text={errors.password} className="mt-2"/>}
                     </div>
                     <div className="p-field mb-6">
-                        <label htmlFor="confirmPassword" className="block mb-2 font-semibold">ยืนยันรหัสผ่าน</label>
+                        <label htmlFor="confirmPassword" className="block mb-2 font-semibold pi pi-lock"> ยืนยันรหัสผ่าน</label>
                         <Password
                             id="confirmPassword"
                             toggleMask
