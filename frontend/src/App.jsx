@@ -17,10 +17,10 @@ import Footer from './Footer/Foot';
 import Homeadmin from './AdminPages/Homeadmin';
 import Navadmin from './Navbar/Navadmin';
 import 'primeflex/primeflex.css';
-import 'primereact/resources/themes/saga-blue/theme.css'; 
+import 'primereact/resources/themes/saga-blue/theme.css';
 import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
-import './index.css'; 
+import './index.css';
 
 const App = () => {
   const location = useLocation();
@@ -31,7 +31,7 @@ const App = () => {
   return (
     <div className="App">
       {showNavbar && <Navbar />}
-      {!showNavbar && <Navadmin/>}
+      {!showNavbar && <Navadmin />}
       <div className="p-mt-5 p-p-3" style={bodyStyle}>
         <Routes>
           <Route path="/home" element={<Home />} />
@@ -49,7 +49,9 @@ const App = () => {
           <Route path="/homeadmin" element={<Homeadmin />} />
         </Routes>
       </div>
-      <Footer />
+      <div class='pt-8'>
+        <Footer />
+      </div>
     </div>
   );
 };

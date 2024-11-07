@@ -6,56 +6,56 @@ import 'primeflex/primeflex.css';
 
 const menuItems = (navigate) => [
   {
-    label: <span className="text-lg">หน้าแรก</span>,
-    icon: 'pi pi-fw pi-home',
+    label: <span className="text-lg text-gray-900">หน้าแรก</span>,
+    icon: 'pi pi-fw pi-home text-gray-900',
     command: () => navigate("/home"),
   },
   {
-    label: <span className="text-lg">ประตูบานเลื่อน</span>,
-    icon: 'pi pi-fw pi-list',
+    label: <span className="text-lg text-gray-900">ประตูบานเลื่อน</span>,
+    icon: 'pi pi-fw pi-list text-gray-900',
     items: [
       {
-        label: <span className="text-lg">อัตโนมัติ</span>,
+        label: <span className="text-lg text-gray-900">อัตโนมัติ</span>,
         command: () => navigate("/automatic"),
       },
       {
-        label: <span className="text-lg">ธรรมดา</span>,
+        label: <span className="text-lg text-gray-900">ธรรมดา</span>,
         command: () => navigate("/manual"),
       },
     ],
   },
   {
-    label: <span className="text-lg">อะไหล่ประตูบานเลื่อน</span>,
-    icon: 'pi pi-fw pi-cog',
+    label: <span className="text-lg text-gray-900">อะไหล่ประตูบานเลื่อน</span>,
+    icon: 'pi pi-fw pi-cog text-gray-900',
     items: [
       {
-        label: <span className="text-lg">ชิ้นส่วนทั่วไป</span>,
+        label: <span className="text-lg text-gray-900">ชิ้นส่วนทั่วไป</span>,
         command: () => navigate("/generalparts"),
       },
       {
-        label: <span className="text-lg">ชิ้นส่วนพิเศษ</span>,
+        label: <span className="text-lg text-gray-900">ชิ้นส่วนพิเศษ</span>,
         command: () => navigate("/specialparts"),
       },
     ],
   },
   {
-    label: <span className="text-lg">แจ้งซ่อม</span>,
-    icon: 'pi pi-fw pi-wrench',
+    label: <span className="text-lg text-gray-900">แจ้งซ่อม</span>,
+    icon: 'pi pi-fw pi-wrench text-gray-900',
     command: () => navigate("/repair"),
   },
   {
-    label: <span className="text-lg">เกี่ยวกับเรา</span>,
-    icon: 'pi pi-fw pi-info',
+    label: <span className="text-lg text-gray-900">เกี่ยวกับเรา</span>,
+    icon: 'pi pi-fw pi-info text-gray-900',
     command: () => navigate("/about"),
   },
   {
-    label: <span className="text-lg">ผลงานของเรา</span>,
-    icon: 'pi pi-fw pi-thumbs-up',
+    label: <span className="text-lg text-gray-900">ผลงานของเรา</span>,
+    icon: 'pi pi-fw pi-thumbs-up text-gray-900',
     command: () => navigate("/portfolio"),
   },
   {
-    label: <span className="text-lg">ติดต่อเรา</span>,
-    icon: 'pi pi-fw pi-phone',
+    label: <span className="text-lg text-gray-900">ติดต่อเรา</span>,
+    icon: 'pi pi-fw pi-phone text-gray-900',
     command: () => navigate("/contact"),
   }
 ];
@@ -70,10 +70,11 @@ const Navbar = () => {
   const end = (
     <div className="flex">
       <Button
-        label="เข้าสู่ระบบ"
+        label="Login"
         icon="pi pi-sign-in"
-        className="p-button-rounded p-button-info mx-1"
+        className="p-button-rounded p-button-info mx-1 "
         onClick={() => navigate("/login")}
+        style={{backgroundColor: '#000000', borderColor: '#000000'}}
       />
     </div>
     
