@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Navbar from './Navbar/Nav';
 import Home from './Pages/Home';
 import Automatic from './Pages/Automatic';
@@ -28,12 +28,15 @@ const App = () => {
   const bodyStyle = {
     paddingTop: '70px'
   };
+
   return (
     <div className="App">
       {showNavbar && <Navbar />}
       {!showNavbar && <Navadmin />}
       <div className="p-mt-5 p-p-3" style={bodyStyle}>
         <Routes>
+          {/* Default route to redirect to Home page */}
+          <Route path="/" element={<Navigate to="/home" replace />} />
           <Route path="/home" element={<Home />} />
           <Route path="/automatic" element={<Automatic />} />
           <Route path="/manual" element={<Manual />} />
@@ -49,7 +52,7 @@ const App = () => {
           <Route path="/homeadmin" element={<Homeadmin />} />
         </Routes>
       </div>
-      <div class='pt-8'>
+      <div className="pt-8">
         <Footer />
       </div>
     </div>
