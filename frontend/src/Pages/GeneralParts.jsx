@@ -8,45 +8,54 @@ import { Card } from 'primereact/card';
 import { Divider } from 'primereact/divider';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
+import { Link } from 'react-router-dom';
 
-const product = [
+const productGeneral = [
   {
+    id: 1,
     image: spare1,
     name: 'จานเพลาประตูม้วน',
     price: '1,200 บาท ',
   },
   {
+    id: 2,
     image: spare2,
     name: 'ตัวตั้งสปริง',
     price: '750 บาท',
   },
   {
+    id: 3,
     image: spare3,
     name: 'เสารางประตูหรือเสาข้าง',
     price: '1,100 บาท',
   },
   {
+    id: 4,
     image: spare4,
     name: 'หูรับเพลาขวา พร้อมตัวล็อค',
     price: '300 บาท',
   },
 
   {
+    id: 5,
     image: spare1,
     name: 'จานเพลาประตูม้วน',
     price: '1,200 บาท ',
   },
   {
+    id: 6,
     image: spare2,
     name: 'ตัวตั้งสปริง',
     price: '750 บาท',
   },
   {
+    id: 7,
     image: spare3,
     name: 'เสารางประตูหรือเสาข้าง',
     price: '1,100 บาท',
   },
   {
+    id: 8,
     image: spare4,
     name: 'หูรับเพลาขวา พร้อมตัวล็อค',
     price: '300 บาท',
@@ -56,7 +65,7 @@ const product = [
 const GeneralParts = () => {
   const [search, setSearch] = useState('');
 
-  const filterProducts = product.filter(product =>
+  const filterProducts = productGeneral.filter(product =>
     product.name.toLowerCase().includes(search.toLowerCase())
   );
   return (
@@ -100,20 +109,22 @@ const GeneralParts = () => {
         <div className="flex gap-4 justify-content-center flex-wrap pt-4 pl-8" style={{ flex: 1 }}>
           {filterProducts.map((product, index) => (
             <div key={index} style={{ width: '325px' }}>
-              <Card
-                title={product.name}
-                subTitle={product.description}
-                header={
-                  <img
-                    alt={product.name}
-                    src={product.image}
-                    style={{ width: '100%', height: '250px', objectFit: 'cover', borderRadius: '10px' }}
-                  />
-                }
-                footer={<span style={{ color: 'red', fontWeight: 'bold' }}>{product.price}</span>}
-                className="m-2 p-shadow-5"
-                style={{ height: '400px' }}
-              />
+              <Link to={`/productGeneral/${product.id}`} key={product.id} style={{ textDecoration: 'none' }}>
+                <Card
+                  title={product.name}
+                  subTitle={product.description}
+                  header={
+                    <img
+                      alt={product.name}
+                      src={product.image}
+                      style={{ width: '100%', height: '250px', objectFit: 'cover', borderRadius: '10px' }}
+                    />
+                  }
+                  footer={<span style={{ color: 'red', fontWeight: 'bold' }}>{product.price}</span>}
+                  className="m-2 p-shadow-5"
+                  style={{ height: '400px' }}
+                />
+              </Link>
             </div>
           ))}
         </div>
