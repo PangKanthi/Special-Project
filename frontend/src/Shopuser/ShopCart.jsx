@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { Card } from 'primereact/card';
-import { classNames } from 'primereact/utils';
-
 
 function ShopCart() {
   const location = useLocation();
@@ -27,46 +25,51 @@ function ShopCart() {
   if (cart.length === 0) {
     return <p>ไม่มีสินค้าในตะกร้า</p>;
   }
-
-
+  const handleOrder = () => {
+    navigate('/shop-order', {
+      state: {
+        cart
+      }
+    });
+  }
 
   return (
     <div className='pl-8 pr-8'>
       <div className='flex justify-content-between pt-8'>
         <div className='pl-8'>
-            <div className='pl-5'>
-              <h2>ตะกร้าสินค้า</h2>
-            </div>
-            {cart.map((item, index) => (
-              <div key={index} className='flex'>
-                <div>
-                  <img src={item.product.image} alt={item.product.name} style={{ width: '300px', height: '300px', }} />
-                </div>
-                <div>
-                  <h3>{item.product.name}</h3>
-                  <div
-                    style={{
-                      backgroundColor: item.color,
-                      width: '20px',
-                      height: '20px',
-                      borderRadius: '50%',
-                    }}
-                  ></div>
-                  <p>{item.installation}</p>
-                  <p>กว้าง {item.dimensins.width} ตร.ม. | ยาว {item.dimensins.height} ตร.ม. | หนา {item.dimensins.thickness} มม.</p>
-                  <p>ราคา: {item.product.price}</p>
-                  <p>จำนวน: {item.quantity}</p>
-                  <Button
-                    label="ลบออก"
-                    size='small'
-                    className="p-button-danger"
-                    icon="pi pi-trash"
-                    style={{ marginTop: '10px' }}
-                    onClick={() => handleRemoveItem(item.product.id)}
-                  />
-                </div>
+          <div className='pl-5'>
+            <h2>ตะกร้าสินค้า</h2>
+          </div>
+          {cart.map((item, index) => (
+            <div key={index} className='flex'>
+              <div>
+                <img src={item.product.image} alt={item.product.name} style={{ width: '300px', height: '300px', }} />
               </div>
-            ))}
+              <div>
+                <h3>{item.product.name}</h3>
+                <div
+                  style={{
+                    backgroundColor: item.color,
+                    width: '20px',
+                    height: '20px',
+                    borderRadius: '50%',
+                  }}
+                ></div>
+                <p>{item.installation}</p>
+                <p>กว้าง {item.dimensins.width} ตร.ม. | ยาว {item.dimensins.height} ตร.ม. | หนา {item.dimensins.thickness} มม.</p>
+                <p>ราคา: {item.product.price}</p>
+                <p>จำนวน: {item.quantity}</p>
+                <Button
+                  label="ลบออก"
+                  size='small'
+                  className="p-button-danger"
+                  icon="pi pi-trash"
+                  style={{ marginTop: '10px' }}
+                  onClick={() => handleRemoveItem(item.product.id)}
+                />
+              </div>
+            </div>
+          ))}
         </div>
         <div className='pr-8 pt-7'>
           <Card
@@ -105,6 +108,7 @@ function ShopCart() {
             })}
             <Button
               label="สั่งซื้อ"
+              onClick={handleOrder}
               style={{
                 width: '100%',
                 backgroundColor: '#0a74da',

@@ -24,6 +24,8 @@ import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
 import './index.css';
 import ShopCart from './Shopuser/ShopCart';
+import ShopOrder from './Shopuser/ShopOrder';
+import ShopOrderinformation from './Shopuser/ShopOrderinformation';
 
 
 const App = () => {
@@ -42,6 +44,8 @@ const App = () => {
           <Route path="/automatic" element={<Automatic />} />
           <Route path="/productAuto/:id" element={<Automaticinside/>} />
           <Route path="/shop-cart/" element={<ShopCart/>} />
+          <Route path="/shop-order/" element={<ShopOrder/>} />
+          <Route path="/shop-order-info/" element={<ShopOrderinformation/>} />
           <Route path="/manual" element={<Manual />} />
           <Route path="/generalparts" element={<GeneralParts />} />
           <Route path="/productGeneral/:id" element={<GeneralPartsinside/>} />
