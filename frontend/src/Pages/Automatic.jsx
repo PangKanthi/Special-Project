@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import product1 from '../assets/images/product1.png';
 import product2 from '../assets/images/product2.png';
 import product3 from '../assets/images/product3.png';
@@ -9,26 +10,30 @@ import { Divider } from 'primereact/divider';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
 
-const product = [
+const productAuto = [
   {
+    id: 1,
     image: product1,
     name: 'ประตูเหล็กทึบ',
     description: 'กว้างxยาว',
     price: '600,000 บาท',
   },
   {
+    id: 2,
     image: product2,
     name: 'ประตูม้วนอัตโนมัติ',
     description: 'กว้างxยาว',
     price: '850,000 บาท',
   },
   {
+    id: 3,
     image: product3,
     name: 'ประตูม้วนไฮสปีด',
     description: 'กว้างxยาว',
     price: '150,000 บาท',
   },
   {
+    id: 4,
     image: product4,
     name: 'ประตูม้วนลายโป่ง',
     description: 'กว้างxยาว',
@@ -36,24 +41,28 @@ const product = [
   },
 
   {
+    id: 5,
     image: product1,
     name: 'ประตูเหล็กทึบ',
     description: 'กว้างxยาว',
     price: '600,000 บาท',
   },
   {
+    id: 6,
     image: product2,
     name: 'ประตูม้วนอัตโนมัติ',
     description: 'กว้างxยาว',
     price: '850,000 บาท',
   },
   {
+    id: 7,
     image: product3,
     name: 'ประตูม้วนไฮสปีด',
     description: 'กว้างxยาว',
     price: '150,000 บาท',
   },
   {
+    id: 8,
     image: product4,
     name: 'ประตูม้วนลายโป่ง',
     description: 'กว้างxยาว',
@@ -64,7 +73,7 @@ const product = [
 const Automatic = () => {
   const [search, setSearch] = useState('');
 
-  const filterProducts = product.filter(product =>
+  const filterProducts = productAuto.filter(product =>
     product.name.toLowerCase().includes(search.toLowerCase())
   );
   return (
@@ -113,24 +122,26 @@ const Automatic = () => {
         <div className="flex gap-4 justify-content-center flex-wrap pt-4 pl-8" style={{ flex: 1 }}>
           {filterProducts.map((product, index) => (
             <div key={index} style={{ width: '325px' }}>
-              <Card
-                title={product.name}
-                subTitle={product.description}
-                header={
-                  <img
-                    alt={product.name}
-                    src={product.image}
-                    style={{ width: '100%', height: '325px', borderRadius: '10px' }}
-                  />
-                }
-                footer={<span style={{ color: 'red', fontWeight: 'bold' }}>{product.price}</span>}
-                className="m-2 p-shadow-5"
-              />
+              <Link to={`/productAuto/${product.id}`} key={product.id} style={{ textDecoration: 'none' }}>
+                <Card
+                  title={product.name}
+                  subTitle={product.description}
+                  header={
+                    <img
+                      alt={product.name}
+                      src={product.image}
+                      style={{ width: '100%', height: '325px', borderRadius: '10px' }}
+                    />
+                  }
+                  footer={<span style={{ color: 'red', fontWeight: 'bold' }}>{product.price}</span>}
+                  className="m-2 p-shadow-5"
+                />
+              </Link>
             </div>
           ))}
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 

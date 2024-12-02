@@ -16,11 +16,17 @@ import Forgotpassword from './Pages/Forgotpassword';
 import Footer from './Footer/Foot';
 import Homeadmin from './AdminPages/Homeadmin';
 import Navadmin from './Navbar/Navadmin';
+import Automaticinside from './Pagesinside/Automaticinside';
+import GeneralPartsinside from './Pagesinside/GeneralPartsinside';
 import 'primeflex/primeflex.css';
 import 'primereact/resources/themes/saga-blue/theme.css';
 import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
 import './index.css';
+import ShopCart from './Shopuser/ShopCart';
+import ShopOrder from './Shopuser/ShopOrder';
+import ShopOrderinformation from './Shopuser/ShopOrderinformation';
+
 
 const App = () => {
   const location = useLocation();
@@ -39,8 +45,13 @@ const App = () => {
           <Route path="/" element={<Navigate to="/home" replace />} />
           <Route path="/home" element={<Home />} />
           <Route path="/automatic" element={<Automatic />} />
+          <Route path="/productAuto/:id" element={<Automaticinside/>} />
+          <Route path="/shop-cart/" element={<ShopCart/>} />
+          <Route path="/shop-order/" element={<ShopOrder/>} />
+          <Route path="/shop-order-info/" element={<ShopOrderinformation/>} />
           <Route path="/manual" element={<Manual />} />
           <Route path="/generalparts" element={<GeneralParts />} />
+          <Route path="/productGeneral/:id" element={<GeneralPartsinside/>} />
           <Route path="/specialparts" element={<SpecialParts />} />
           <Route path="/repair" element={<Repair />} />
           <Route path="/about" element={<About />} />
