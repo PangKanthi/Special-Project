@@ -1,80 +1,41 @@
 import React, { useState } from 'react';
-import spare1 from '../assets/images/spare1.png';
-import spare2 from '../assets/images/spare2.png';
-import spare3 from '../assets/images/spare3.png';
-import spare4 from '../assets/images/spare4.png';
 import 'primeflex/primeflex.css';
 import { Card } from 'primereact/card';
 import { Divider } from 'primereact/divider';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
 import { Link } from 'react-router-dom';
-
-const productGeneral = [
-  {
-    id: 1,
-    image: spare1,
-    name: 'จานเพลาประตูม้วน',
-    price: '1,200 บาท ',
-  },
-  {
-    id: 2,
-    image: spare2,
-    name: 'ตัวตั้งสปริง',
-    price: '750 บาท',
-  },
-  {
-    id: 3,
-    image: spare3,
-    name: 'เสารางประตูหรือเสาข้าง',
-    price: '1,100 บาท',
-  },
-  {
-    id: 4,
-    image: spare4,
-    name: 'หูรับเพลาขวา พร้อมตัวล็อค',
-    price: '300 บาท',
-  },
-
-  {
-    id: 5,
-    image: spare1,
-    name: 'จานเพลาประตูม้วน',
-    price: '1,200 บาท ',
-  },
-  {
-    id: 6,
-    image: spare2,
-    name: 'ตัวตั้งสปริง',
-    price: '750 บาท',
-  },
-  {
-    id: 7,
-    image: spare3,
-    name: 'เสารางประตูหรือเสาข้าง',
-    price: '1,100 บาท',
-  },
-  {
-    id: 8,
-    image: spare4,
-    name: 'หูรับเพลาขวา พร้อมตัวล็อค',
-    price: '300 บาท',
-  },
-]
+import { Dropdown } from 'primereact/dropdown';
+import useFetchData from '../Hooks/useFetchData';
 
 const GeneralParts = () => {
   const [search, setSearch] = useState('');
+  const [selectedMenu, setSelectedMenu] = useState(null);
+  const { data: GeneralParts, isLoading, error } = useFetchData('/mockData/rollerdoor_parts.json');
 
-  const filterProducts = productGeneral.filter(product =>
+  const menuOptions = [
+
+  ];
+
+  const filterGeneralParts = GeneralParts?.filter(product =>
     product.name.toLowerCase().includes(search.toLowerCase())
   );
+
+  if (isLoading) {
+    return <div className="text-center p-mt-5">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center p-mt-5">Error: {error}</div>;
+  }
+
   return (
-    <div class='pl-8 pr-8'>
-      <div class='text-center pt-4'>
+    <div className='px-4 lg:px-8'>
+      <div className='text-center pt-4'>
         <h1> อะไหล่ประตูม้วน </h1>
       </div>
-      <div className="flex justify-content-end pr-5">
-        <div class='flex' style={{ width: '400px', boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)', padding: '1px', borderRadius: '25px' }}>
+      <div className="flex justify-content-end lg:pr-8">
+        <div className='flex' style={{ width: '400px', boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)', padding: '1px', borderRadius: '25px' }}>
           <InputText
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -100,14 +61,28 @@ const GeneralParts = () => {
           />
         </div>
       </div>
-      <div class='flex'>
-        <div class='pl-5 pt-2' style={{ width: '215px' }}>
-          <h3>ชนิดของอะไหล่</h3>
-          <Divider type="solid" />
+      <div className='flex flex-column lg:flex-row'>
+        <div className="block lg:hidden mt-2">
+          <Dropdown
+            value={selectedMenu}
+            options={menuOptions}
+            onChange={(e) => setSelectedMenu(e.value)}
+            placeholder="เลือกชนิดอะไหล่"
+            className="p-dropdown-compact"
+            style={{ borderRadius: '25px 25px 25px 25px' }}
+          />
         </div>
 
-        <div className="flex gap-4 justify-content-center flex-wrap pt-4 pl-8" style={{ flex: 1 }}>
-          {filterProducts.map((product, index) => (
+        {/* เมนูในจอใหญ่ */}
+        <div className="hidden lg:block pl-5 pt-2">
+          <h3>ชนิดของอะไหล่</h3>
+          {menuOptions.map((option, index) => (
+            <p key={index}>{option.label}</p>
+          ))}
+          <Divider type="solid" />
+        </div>
+        <div className="lg:flex-1 flex gap-4 justify-content-center flex-wrap flex-wrap lg:pt-4">
+          {filterGeneralParts.map((product, index) => (
             <div key={index} style={{ width: '325px' }}>
               <Link to={`/productGeneral/${product.id}`} key={product.id} style={{ textDecoration: 'none' }}>
                 <Card

@@ -1,0 +1,31 @@
+[
+    {
+      "id": 1,
+      "image": "/assets/images/product1.png",
+      "name": "ประตูเหล็กทึบ",
+      "description": "งานติดตั้งประตูเหล็กทึบคุณภาพสูง",
+      "price": "600,000 บาท"
+    },
+    {
+      "id": 2,
+      "image": "/assets/images/product2.png",
+      "name": "ประตูม้วนอัตโนมัติ",
+      "description": "งานติดตั้งประตูม้วนอัตโนมัติ พร้อมระบบมอเตอร์",
+      "price": "850,000 บาท"
+    },
+    {
+      "id": 3,
+      "image": "/assets/images/product3.png",
+      "name": "ประตูม้วนไฮสปีด",
+      "description": "งานติดตั้งประตูม้วนความเร็วสูงในโรงงาน",
+      "price": "150,000 บาท"
+    },
+    {
+      "id": 4,
+      "image": "/assets/images/product4.png",
+      "name": "ประตูม้วนลายโป่ง",
+      "description": "งานติดตั้งประตูม้วนลายโป่งดีไซน์สวยงาม",
+      "price": "250,000 บาท"
+    }
+  ]
+  
