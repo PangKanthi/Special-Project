@@ -1,0 +1,30 @@
+[
+  {
+    "id": 1,
+    "image": "/assets/images/product1.png",
+    "name": "ประตูเหล็กทึบ",
+    "description": "ขนาด 2x3 เมตร",
+    "price": 600000.00
+  },
+  {
+    "id": 2,
+    "image": "/assets/images/product2.png",
+    "name": "ประตูม้วนอัตโนมัติ",
+    "description": "ขนาด 3x4 เมตร พร้อมมอเตอร์",
+    "price": 850000.00
+  },
+  {
+    "id": 3,
+    "image": "/assets/images/product3.png",
+    "name": "ประตูม้วนไฮสปีด",
+    "description": "ขนาด 2.5x3 เมตร สำหรับโรงงาน",
+    "price": 150000.00
+  },
+  {
+    "id": 4,
+    "image": "/assets/images/product4.png",
+    "name": "ประตูม้วนลายโป่ง",
+    "description": "ขนาด 3x5 เมตร สีดำ",
+    "price": 250000.00
+  }
+]

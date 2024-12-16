@@ -1,0 +1,31 @@
+[
+    {
+      "id": 1,
+      "image": "/assets/images/spare1.png",
+      "name": "จานเพลาประตูม้วน",
+      "description": "วัสดุคุณภาพสูงใช้สำหรับติดตั้งประตูม้วน",
+      "price": "1,200 บาท"
+    },
+    {
+      "id": 2,
+      "image": "/assets/images/spare2.png",
+      "name": "ตัวตั้งสปริง",
+      "description": "ชิ้นส่วนสำหรับการปรับตั้งสปริงในประตูม้วน",
+      "price": "750 บาท"
+    },
+    {
+      "id": 3,
+      "image": "/assets/images/spare3.png",
+      "name": "เสารางประตูหรือเสาข้าง",
+      "description": "เสารองรับโครงสร้างหลักของประตูม้วน",
+      "price": "1,100 บาท"
+    },
+    {
+      "id": 4,
+      "image": "/assets/images/spare4.png",
+      "name": "หูรับเพลาขวา",
+      "description": "หูรับเพลาคุณภาพสูง มาพร้อมตัวล็อค",
+      "price": "300 บาท"
+    }
+  ]
+  

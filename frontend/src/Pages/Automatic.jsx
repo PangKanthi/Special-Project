@@ -1,128 +1,106 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import product1 from '../assets/images/product1.png';
-import product2 from '../assets/images/product2.png';
-import product3 from '../assets/images/product3.png';
-import product4 from '../assets/images/product4.png';
 import 'primeflex/primeflex.css';
 import { Card } from 'primereact/card';
 import { Divider } from 'primereact/divider';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
-
-const productAuto = [
-  {
-    id: 1,
-    image: product1,
-    name: 'ประตูเหล็กทึบ',
-    description: 'กว้างxยาว',
-    price: '600,000 บาท',
-  },
-  {
-    id: 2,
-    image: product2,
-    name: 'ประตูม้วนอัตโนมัติ',
-    description: 'กว้างxยาว',
-    price: '850,000 บาท',
-  },
-  {
-    id: 3,
-    image: product3,
-    name: 'ประตูม้วนไฮสปีด',
-    description: 'กว้างxยาว',
-    price: '150,000 บาท',
-  },
-  {
-    id: 4,
-    image: product4,
-    name: 'ประตูม้วนลายโป่ง',
-    description: 'กว้างxยาว',
-    price: '250,000 บาท',
-  },
-
-  {
-    id: 5,
-    image: product1,
-    name: 'ประตูเหล็กทึบ',
-    description: 'กว้างxยาว',
-    price: '600,000 บาท',
-  },
-  {
-    id: 6,
-    image: product2,
-    name: 'ประตูม้วนอัตโนมัติ',
-    description: 'กว้างxยาว',
-    price: '850,000 บาท',
-  },
-  {
-    id: 7,
-    image: product3,
-    name: 'ประตูม้วนไฮสปีด',
-    description: 'กว้างxยาว',
-    price: '150,000 บาท',
-  },
-  {
-    id: 8,
-    image: product4,
-    name: 'ประตูม้วนลายโป่ง',
-    description: 'กว้างxยาว',
-    price: '250,000 บาท',
-  }
-]
+import { Dropdown } from 'primereact/dropdown';
+import useFetchData from '../Hooks/useFetchData';
 
 const Automatic = () => {
   const [search, setSearch] = useState('');
+  const [selectedMenu, setSelectedMenu] = useState(null);
+  const { data: productAuto, isLoading, error } = useFetchData('/mockData/rollerdoor_products.json');
 
-  const filterProducts = productAuto.filter(product =>
+  const menuOptions = [
+    { label: 'ประตูม้วน แบบไฟฟ้า', value: 'manual' },
+    { label: 'ประตูม้วน แบบรอกโซ่', value: 'chain' },
+    { label: 'ประตูม้วน แบบสปริง', value: 'motor' },
+  ];
+
+  const filterProducts = productAuto?.filter(product =>
     product.name.toLowerCase().includes(search.toLowerCase())
   );
+
+  if (isLoading) {
+    return <div className="text-center p-mt-5">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center p-mt-5">Error: {error}</div>;
+  }
+
   return (
-    <div class='pl-8 pr-8'>
-      <div class='text-center pt-4'>
+    <div className="px-4 lg:px-8">
+      <div className="text-center pt-4">
         <h1> ประตูม้วน </h1>
       </div>
-      <div className="flex justify-content-end pr-5">
-        <div class='flex' style={{ width: '400px', boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)', padding: '1px', borderRadius: '25px' }}>
+      <div className="flex justify-content-end lg:pr-8">
+        <div
+          className="flex"
+          style={{
+            width: '400px',
+            boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
+            padding: '1px',
+            borderRadius: '25px',
+          }}
+        >
           <InputText
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder='ค้นหา'
+            placeholder="ค้นหา"
             style={{
               width: '100%',
               border: 'none',
               outline: 'none',
               paddingLeft: '10px',
-              borderRadius: '25px 0 0 25px'
+              borderRadius: '25px 0 0 25px',
             }}
           />
           <Button
             icon="pi pi-search"
-            className='p-button-secondary'
+            className="p-button-secondary"
             style={{
               borderRadius: '0px 25px 25px 0px',
               backgroundColor: '#0a74da',
               border: 'none',
               width: '40px',
-              height: '40px'
+              height: '40px',
             }}
           />
         </div>
       </div>
-      <div class='flex'>
-        <div class='pl-5 pt-2' style={{ width: '215px' }}>
-          <h3>ชนิดของประตูม้วน</h3>
-          <p>ประตูม้วนแบบมือดึง</p>
-          <p>ประตูม้วนแบบรอกโซ่</p>
-          <p>ประตูม้วนแบบมอเตอร์</p>
-          <Divider type="solid" />
-          <h3>ไซส์ของประตู</h3>
-          <p>กว้างxยาว cm</p>
+
+      <div className="flex flex-column lg:flex-row">
+        <div className="block lg:hidden mt-2">
+          <Dropdown
+            value={selectedMenu}
+            options={menuOptions}
+            onChange={(e) => setSelectedMenu(e.value)}
+            placeholder="เลือกชนิดประตูม้วน"
+            className="p-dropdown-compact"
+            style={{ borderRadius: '25px 25px 25px 25px' }}
+          />
         </div>
 
-        <div className="flex gap-4 justify-content-center flex-wrap pt-4 pl-8" style={{ flex: 1 }}>
+        {/* เมนูในจอใหญ่ */}
+        <div className="hidden lg:block pl-5 pt-2">
+          <h3>ชนิดของประตูม้วน</h3>
+          {menuOptions.map((option, index) => (
+            <p key={index}>{option.label}</p>
+          ))}
+          <Divider type="solid" />
+        </div>
+
+        <div className="lg:flex-1 flex gap-4 justify-content-center flex-wrap flex-wrap lg:pt-4">
           {filterProducts.map((product, index) => (
             <div key={index} style={{ width: '325px' }}>
-              <Link to={`/productAuto/${product.id}`} key={product.id} style={{ textDecoration: 'none' }}>
+              <Link
+                to={`/productAuto/${product.id}`}
+                key={product.id}
+                style={{ textDecoration: 'none' }}
+              >
                 <Card
                   title={product.name}
                   subTitle={product.description}
@@ -130,10 +108,15 @@ const Automatic = () => {
                     <img
                       alt={product.name}
                       src={product.image}
+                      className="w-full"
                       style={{ width: '100%', height: '325px', borderRadius: '10px' }}
                     />
                   }
-                  footer={<span style={{ color: 'red', fontWeight: 'bold' }}>{product.price}</span>}
+                  footer={
+                    <span style={{ color: 'red', fontWeight: 'bold' }}>
+                      {Number(product.price).toLocaleString()} บาท
+                    </span>
+                  }
                   className="m-2 p-shadow-5"
                 />
               </Link>
@@ -141,7 +124,7 @@ const Automatic = () => {
           ))}
         </div>
       </div>
-    </div >
+    </div>
   );
 };
 
