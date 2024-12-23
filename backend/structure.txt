@@ -1,0 +1,20 @@
+project-root/
+├── prisma/schema.prisma
+├── src/
+│   ├── config/
+│   │   └── exampledb.js
+│   ├── controllers/
+│   │   └── exampleController.js
+│   ├── models/
+│   │   └── exampleModel.js
+│   ├── routes/
+│   │   └── exampleRoutes.js
+│   ├── services/
+│   │   └── exampleService.js
+│   ├── utils/
+│   │   └── responseUtil.js
+│   ├── app.js
+│   └── server.js
+├── .env
+├── package.json
+└── README.md
