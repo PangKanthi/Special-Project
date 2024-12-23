@@ -3,66 +3,13 @@ import { useParams } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
 import { Dialog } from 'primereact/dialog';
-import spare1 from '../assets/images/spare1.png';
-import spare2 from '../assets/images/spare2.png';
-import spare3 from '../assets/images/spare3.png';
-import spare4 from '../assets/images/spare4.png';
-
-const productData = [
-    {
-        id: 1,
-        image: spare1,
-        name: 'จานเพลาประตูม้วน',
-        price: '1,200 บาท ',
-    },
-    {
-        id: 2,
-        image: spare2,
-        name: 'ตัวตั้งสปริง',
-        price: '750 บาท',
-    },
-    {
-        id: 3,
-        image: spare3,
-        name: 'เสารางประตูหรือเสาข้าง',
-        price: '1,100 บาท',
-    },
-    {
-        id: 4,
-        image: spare4,
-        name: 'หูรับเพลาขวา พร้อมตัวล็อค',
-        price: '300 บาท',
-    },
-
-    {
-        id: 5,
-        image: spare1,
-        name: 'จานเพลาประตูม้วน',
-        price: '1,200 บาท ',
-    },
-    {
-        id: 6,
-        image: spare2,
-        name: 'ตัวตั้งสปริง',
-        price: '750 บาท',
-    },
-    {
-        id: 7,
-        image: spare3,
-        name: 'เสารางประตูหรือเสาข้าง',
-        price: '1,100 บาท',
-    },
-    {
-        id: 8,
-        image: spare4,
-        name: 'หูรับเพลาขวา พร้อมตัวล็อค',
-        price: '300 บาท',
-    },
-]
+import useFetchData from '../Hooks/useFetchData';
+import Loading from '../Component/Loading';
 
 function GeneralPartsinside() {
     const { id } = useParams();
-    const product = productData.find((item) => item.id === parseInt(id));
+    const { data: GeneralParts, isLoading, error } = useFetchData('/mockData/rollerdoor_parts.json');
+    const product = GeneralParts?.find((item) => item.id === parseInt(id));
     const [quantity, setQuantity] = useState(1);
     const [showDialog, setShowDialog] = useState(false);
 
@@ -73,6 +20,10 @@ function GeneralPartsinside() {
     const handleDecrease = () => {
         setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
     };
+
+    if (isLoading) {
+        return <Loading />;
+    }
 
     return (
         <div className="pl-8 pr-8">
@@ -155,7 +106,7 @@ function GeneralPartsinside() {
                         </div>
 
                     </Dialog>
-                    
+
                     <Button
                         label='ซื้อ'
                         raised
