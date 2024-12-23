@@ -9,7 +9,7 @@ import Loading from '../Component/Loading';
 
 function Automaticinside() {
   const { id } = useParams();
-  const { data: productAuto, isLoading, error } = useFetchData('/mockData/rollerdoor_products.json');
+  const { data: productAuto, isLoading } = useFetchData('/mockData/rollerdoor_products.json');
   const product = productAuto?.find((item) => item.id === parseInt(id));
   const [selectedColor, setSelectedColor] = useState('default');
   const [quantity, setQuantity] = useState(1);
