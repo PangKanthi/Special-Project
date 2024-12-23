@@ -4,30 +4,35 @@ import { Password } from 'primereact/password';
 import { Button } from 'primereact/button';
 import { Message } from 'primereact/message';
 import 'primeflex/primeflex.css';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const Register = () => {
+
+    const navigate = useNavigate();
+
     const [formData, setFormData] = useState({
-        name: '',
-        surname: '',
+        firstname: '',
+        lastname: '',
         email: '',
-        userid: ''
+        username: ''
     });
 
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
 
     const [errors, setErrors] = useState({
-        name: '',
-        surname: '',
+        firstname: '',
+        lastname: '',
         email: '',
-        userid: '',
+        username: '',
         password: '',
         confirmPassword: ''
     });
 
-    const validateName = (name) => /^[\u0E00-\u0E7F\s]{1,50}$/.test(name);
+    const validateName = (firstname) => /^[\u0E00-\u0E7F\s]{1,50}$/.test(firstname);
     const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
-    const validateUserid = (userid) => /^[a-zA-Z0-9]+$/.test(userid);
+    const validateUserid = (username) => /^[a-zA-Z0-9]+$/.test(username);
     const validatePassword = (password) => /^[A-Za-z0-9!@#$%^&*()_+]{6,24}$/.test(password);
 
     const handleChange = (e) => {
@@ -35,14 +40,15 @@ const Register = () => {
         setFormData({ ...formData, [id]: value });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
+
         e.preventDefault();
 
         const newErrors = {
-            name: validateName(formData.name) ? '' : 'ชื่อต้องเป็นภาษาไทย',
-            surname: validateName(formData.surname) ? '' : 'นามสกุลต้องเป็นภาษาไทย',
+            firstname: validateName(formData.firstname) ? '' : 'ชื่อต้องเป็นภาษาไทย',
+            lastname: validateName(formData.lastname) ? '' : 'นามสกุลต้องเป็นภาษาไทย',
             email: validateEmail(formData.email) ? '' : 'รูปแบบอีเมลไม่ถูกต้อง',
-            userid: validateUserid(formData.userid) ? '' : 'ชื่อผู้ใช้ต้องเป็นตัวอักษรภาษาอังกฤษและตัวเลข',
+            username: validateUserid(formData.username) ? '' : 'ชื่อผู้ใช้ต้องเป็นตัวอักษรภาษาอังกฤษและตัวเลข',
             password: validatePassword(password) ? '' : 'รหัสผ่านต้องมีความยาว 6-24 ตัวอักษรและประกอบด้วยตัวอักษรและตัวเลข',
             confirmPassword: confirmPassword === password ? '' : 'รหัสผ่านไม่ตรงกัน'
         };
@@ -51,6 +57,21 @@ const Register = () => {
 
         if (!Object.values(newErrors).some(error => error)) {
             console.log('Form submitted successfully:', { ...formData, password });
+
+            let url = 'http://localhost:1234/api/auth/register';
+
+            try {
+                const response = await axios.post(url, { ...formData, password });
+                if (response.data.success) {
+                    alert(response.data.message);
+                    navigate("/login");
+                }
+                else {
+                    alert(response.data.message);
+                }
+            } catch (error) {
+                alert(error);
+            }
         }
     };
 
@@ -59,41 +80,44 @@ const Register = () => {
             <div className="surface-card p-6 shadow-2 border-round-lg" style={{ width: '100%', maxWidth: '600px' }}>
                 <h2 className="text-center mb-4 text-blue-600">สมัครสมาชิก</h2>
                 <form className="p-fluid" onSubmit={handleSubmit}>
+
                     <div className="p-field mb-4">
-                        <label htmlFor="userid" className="block mb-2 font-semibold pi pi-user"> ชื่อผู้ใช้</label>
+                        <label htmlFor="username" className="block mb-2 font-semibold pi pi-user"> ชื่อผู้ใช้</label>
                         <InputText
-                            id="userid"
+                            id="username"
                             type="text"
                             className="w-full"
                             placeholder='ชื่อผู้ใช้'
-                            value={formData.userid}
+                            value={formData.username}
                             onChange={handleChange}
                         />
-                        {errors.userid && <Message severity="error" text={errors.userid} className="mt-2"/>}
+                        {errors.username && <Message severity="error" text={errors.username} className="mt-2" />}
                     </div>
+
                     <div className="p-field mb-4">
-                        <label htmlFor="name" className="block mb-2 font-semibold pi pi-user-edit"> ชื่อ</label>
+                        <label htmlFor="firstname" className="block mb-2 font-semibold pi pi-user-edit"> ชื่อ</label>
                         <InputText
-                            id="name"
+                            id="firstname"
                             type="text"
                             className="w-full"
                             placeholder='ชื่อภาษาไทย'
-                            value={formData.name}
+                            value={formData.firstname}
                             onChange={handleChange}
                         />
-                        {errors.name && <Message severity="error" text={errors.name} className="mt-2"/>}
+                        {errors.firstname && <Message severity="error" text={errors.firstname} className="mt-2" />}
                     </div>
+
                     <div className="p-field mb-4">
-                        <label htmlFor="surname" className="block mb-2 font-semibold pi pi-user-edit"> นามสกุล</label>
+                        <label htmlFor="lastname" className="block mb-2 font-semibold pi pi-user-edit"> นามสกุล</label>
                         <InputText
-                            id="surname"
+                            id="lastname"
                             type="text"
                             className="w-full"
                             placeholder='นามสกุลภาษาไทย'
-                            value={formData.surname}
+                            value={formData.lastname}
                             onChange={handleChange}
                         />
-                        {errors.surname && <Message severity="error" text={errors.surname} className="mt-2"/>}
+                        {errors.lastname && <Message severity="error" text={errors.lastname} className="mt-2" />}
                     </div>
                     <div className="p-field mb-4">
                         <label htmlFor="email" className="block mb-2 font-semibold pi pi-envelope"> อีเมล</label>
@@ -105,7 +129,7 @@ const Register = () => {
                             value={formData.email}
                             onChange={handleChange}
                         />
-                        {errors.email && <Message severity="error" text={errors.email} className="mt-2"/>}
+                        {errors.email && <Message severity="error" text={errors.email} className="mt-2" />}
                     </div>
                     <div className="p-field mb-4">
                         <label htmlFor="password" className="block mb-2 font-semibold pi pi-lock"> รหัสผ่าน</label>
@@ -121,7 +145,7 @@ const Register = () => {
                             mediumLabel="ปลอดภัย"
                             strongLabel="ปลอดภัยมาก"
                         />
-                        {errors.password && <Message severity="error" text={errors.password} className="mt-2"/>}
+                        {errors.password && <Message severity="error" text={errors.password} className="mt-2" />}
                     </div>
                     <div className="p-field mb-6">
                         <label htmlFor="confirmPassword" className="block mb-2 font-semibold pi pi-lock"> ยืนยันรหัสผ่าน</label>
@@ -134,7 +158,7 @@ const Register = () => {
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                         />
-                        {errors.confirmPassword && <Message severity="error" text={errors.confirmPassword} className="mt-2"/>}
+                        {errors.confirmPassword && <Message severity="error" text={errors.confirmPassword} className="mt-2" />}
                     </div>
                     <Button label="สมัครสมาชิก" type="submit" className="w-full p-button-info mb-4" />
                 </form>

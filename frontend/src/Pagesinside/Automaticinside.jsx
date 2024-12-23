@@ -4,73 +4,13 @@ import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
 import { Dialog } from 'primereact/dialog';
 import { useNavigate } from 'react-router-dom';
-import product1 from '../assets/images/product1.png';
-import product2 from '../assets/images/product2.png';
-import product3 from '../assets/images/product3.png';
-import product4 from '../assets/images/product4.png';
-
-const InsideproductAuto = [
-  {
-    id: 1,
-    image: product1,
-    name: 'ประตูเหล็กทึบ',
-    description: 'รายละเอียดสินค้า: กว้างxยาว',
-    price: '600,000 บาท',
-  },
-  {
-    id: 2,
-    image: product2,
-    name: 'ประตูม้วนอัตโนมัติ',
-    description: 'รายละเอียดสินค้า: กว้างxยาว',
-    price: '850,000 บาท',
-  },
-  {
-    id: 3,
-    image: product3,
-    name: 'ประตูม้วนไฮสปีด',
-    description: 'รายละเอียดสินค้า: กว้างxยาว',
-    price: '150,000 บาท',
-  },
-  {
-    id: 4,
-    image: product4,
-    name: 'ประตูม้วนลายโป่ง',
-    description: 'รายละเอียดสินค้า: กว้างxยาว',
-    price: '250,000 บาท',
-  },
-  {
-    id: 5,
-    image: product1,
-    name: 'ประตูเหล็กทึบ',
-    description: 'รายละเอียดสินค้า: กว้างxยาว',
-    price: '600,000 บาท',
-  },
-  {
-    id: 6,
-    image: product2,
-    name: 'ประตูม้วนอัตโนมัติ',
-    description: 'รายละเอียดสินค้า: กว้างxยาว',
-    price: '850,000 บาท',
-  },
-  {
-    id: 7,
-    image: product3,
-    name: 'ประตูม้วนไฮสปีด',
-    description: 'รายละเอียดสินค้า: กว้างxยาว',
-    price: '150,000 บาท',
-  },
-  {
-    id: 8,
-    image: product4,
-    name: 'ประตูม้วนลายโป่ง',
-    description: 'รายละเอียดสินค้า: กว้างxยาว',
-    price: '250,000 บาท',
-  },
-];
+import useFetchData from '../Hooks/useFetchData';
+import Loading from '../Component/Loading';
 
 function Automaticinside() {
   const { id } = useParams();
-  const product = InsideproductAuto.find((item) => item.id === parseInt(id));
+  const { data: productAuto, isLoading } = useFetchData('/mockData/rollerdoor_products.json');
+  const product = productAuto?.find((item) => item.id === parseInt(id));
   const [selectedColor, setSelectedColor] = useState('default');
   const [quantity, setQuantity] = useState(1);
   const [showDialog, setShowDialog] = useState(false);
@@ -113,6 +53,10 @@ function Automaticinside() {
   const handleDecrease = () => {
     setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
   };
+
+  if (isLoading) {
+    return <Loading />;
+  }
 
   return (
     <div className="pl-8 pr-8">

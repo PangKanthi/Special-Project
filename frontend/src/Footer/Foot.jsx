@@ -1,5 +1,4 @@
 import React from 'react';
-import { Divider } from 'primereact/divider';
 import 'primeflex/primeflex.css';
 
 const Footer = () => {

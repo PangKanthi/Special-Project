@@ -19,10 +19,6 @@ function ShopOrder() {
         return <p>ไม่มีสินค้าในตะกร้า</p>
     }
 
-    const handlePayment = () => {
-        alert('ทำการชำระเงินสำเร็จ!');
-    };
-
     const handleOrderConfirmation = () => {
         const orderDetails = {
             mockAddress,

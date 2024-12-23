@@ -26,6 +26,7 @@ import './index.css';
 import ShopCart from './Shopuser/ShopCart';
 import ShopOrder from './Shopuser/ShopOrder';
 import ShopOrderinformation from './Shopuser/ShopOrderinformation';
+import ProtectedRoute from './protectedRoute/protectedRoute';
 
 
 const App = () => {
@@ -41,26 +42,26 @@ const App = () => {
       {!showNavbar && <Navadmin />}
       <div className="p-mt-5 p-p-3" style={bodyStyle}>
         <Routes>
-          {/* Default route to redirect to Home page */}
-          <Route path="/" element={<Navigate to="/home" replace />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/" element={<Home />} />
           <Route path="/home" element={<Home />} />
           <Route path="/automatic" element={<Automatic />} />
-          <Route path="/productAuto/:id" element={<Automaticinside/>} />
-          <Route path="/shop-cart/" element={<ShopCart/>} />
-          <Route path="/shop-order/" element={<ShopOrder/>} />
-          <Route path="/shop-order-info/" element={<ShopOrderinformation/>} />
+          <Route path="/productAuto/:id" element={<Automaticinside />} />
+          <Route path="/shop-cart/" element={<ShopCart />} />
+          <Route path="/shop-order/" element={<ShopOrder />} />
+          <Route path="/shop-order-info/" element={<ShopOrderinformation />} />
           <Route path="/manual" element={<Manual />} />
           <Route path="/generalparts" element={<GeneralParts />} />
-          <Route path="/productGeneral/:id" element={<GeneralPartsinside/>} />
+          <Route path="/productGeneral/:id" element={<GeneralPartsinside />} />
           <Route path="/specialparts" element={<SpecialParts />} />
           <Route path="/repair" element={<Repair />} />
           <Route path="/about" element={<About />} />
           <Route path="/portfolio" element={<Portfolio />} />
           <Route path="/contact" element={<Contact />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
           <Route path="/forgotpassword" element={<Forgotpassword />} />
           <Route path="/homeadmin" element={<Homeadmin />} />
+
         </Routes>
       </div>
       <div className="pt-8">

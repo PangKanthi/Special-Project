@@ -6,33 +6,50 @@ import { Button } from 'primereact/button';
 import { Checkbox } from 'primereact/checkbox';
 import { Message } from 'primereact/message';
 import 'primeflex/primeflex.css';
+import axios from 'axios';
 
 const Login = () => {
-    const [userid, setUserid] = useState('');
+    const [username, setUserid] = useState('');
     const [password, setPassword] = useState('');
     const [checked, setChecked] = useState(false);
     const [UseridError, setUseridError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
     const navigate = useNavigate();
 
-    const validateUserid = (userid) => {
+    const validateUserid = (username) => {
         const regex = /^[a-zA-Z0-9]+$/;
-        return regex.test(userid);
+        return regex.test(username);
     };
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault();
-        if (!validateUserid(userid)) {
+        if (!validateUserid(username)) {
             setUseridError('กรุณากรอกชื่อผู้ใช้ที่ถูกต้อง (เฉพาะตัวอักษรภาษาอังกฤษและตัวเลข)');
             setSuccessMessage('');
             return;
         }
-        if (userid === 'admin' && password === '1234') {
+        if (username === 'admin' && password === '1234') {
             navigate('/homeadmin');
             return;
         }
         setUseridError('');
         setSuccessMessage('เข้าสู่ระบบสำเร็จ');
+
+        let url = 'http://localhost:1234/api/auth/login';
+
+        try {
+            const response = await axios.post(url, { username, password });
+            if (response.data.success) {
+                alert(response.data.message);
+                localStorage.setItem('token', response.data.data);
+                navigate("/home");
+            }
+            else {
+                alert(response.data.message);
+            }
+        } catch (error) {
+            alert(error);
+        }
     };
 
     return (
@@ -42,13 +59,13 @@ const Login = () => {
                 <div className="pages-detail text-center mb-2">กรุณาเข้าสู่ระบบก่อนทำการสั่งซื้อ</div>
                 <form className="p-fluid" onSubmit={handleSubmit}>
                     <div className="p-field mb-4">
-                        <label htmlFor="userid" className="block mb-2 font-semibold pi pi-user "> ชื่อผู้ใช้</label>
+                        <label htmlFor="username" className="block mb-2 font-semibold pi pi-user "> ชื่อผู้ใช้</label>
                         <InputText
-                            id="userid"
+                            id="username"
                             type="text"
                             placeholder='ชื่อผู้ใช้'
                             className="w-full "
-                            value={userid}
+                            value={username}
                             onChange={(e) => setUserid(e.target.value)}
                         />
                         {UseridError && <Message severity="error" text={UseridError} className="mt-2" />}

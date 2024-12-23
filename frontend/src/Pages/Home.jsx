@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Galleria } from 'primereact/galleria';
 import { Card } from 'primereact/card';
 import 'primeflex/primeflex.css';
