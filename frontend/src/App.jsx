@@ -28,10 +28,10 @@ import ShopOrder from './Shopuser/ShopOrder';
 import ShopOrderinformation from './Shopuser/ShopOrderinformation';
 import ProtectedRoute from './protectedRoute/protectedRoute';
 
-
 const App = () => {
   const location = useLocation();
   const showNavbar = location.pathname !== '/homeadmin';
+  const showFooter = !['/productAuto/', '/productGeneral/'].some(path => location.pathname.startsWith(path));
   const bodyStyle = {
     paddingTop: '70px'
   };
@@ -61,12 +61,9 @@ const App = () => {
           <Route path="/contact" element={<Contact />} />
           <Route path="/forgotpassword" element={<Forgotpassword />} />
           <Route path="/homeadmin" element={<Homeadmin />} />
-
         </Routes>
       </div>
-      <div className="pt-8">
-        <Footer />
-      </div>
+      {showFooter && <div className="pt-8"><Footer /></div>}
     </div>
   );
 };

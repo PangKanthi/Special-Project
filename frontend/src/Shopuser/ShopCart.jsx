@@ -7,8 +7,6 @@ function ShopCart() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // const { product, quantity, color, dimensins, installation } = location.state || {}; แบบเก่าแยก prop เป็นหลายตัว
-
   // แบบใหม่ดึงมาใช้แบบนี้ได้ใช้แบบนี้ได้เลยไม่ต้องระบุ
   const initialCart = location.state ? [location.state] : [];
   const [cart, setCart] = useState(initialCart);
@@ -82,7 +80,11 @@ function ShopCart() {
             }}
           >
             {cart.map((item, index) => {
-              const totalPrice = parseInt(item.product.price.replace(/,| บาท/g, '')) * item.quantity;
+              const totalPrice =
+                typeof item.product.price === "number"
+                  ? item.product.price * item.quantity
+                  : parseInt(item.product.price.replace(/,| บาท/g, ''), 10) * item.quantity;
+
               const installationFee = item.installation === 'ติดตั้ง' ? 150 : 0;
               const finalPrice = totalPrice + installationFee;
 
@@ -90,18 +92,18 @@ function ShopCart() {
                 <div key={index}>
                   <div className="flex justify-content-between">
                     <p>ยอดรวม</p>
-                    <p>฿{totalPrice}</p>
+                    <p>฿{totalPrice.toLocaleString()}</p>
                   </div>
                   <div className="flex justify-content-between mb-2">
                     <p>ค่าธรรมเนียมการติดตั้ง</p>
-                    <p>฿{installationFee}</p>
+                    <p>฿{installationFee.toLocaleString()}</p>
                   </div>
                   <div
                     className="flex justify-content-between mb-3"
                     style={{ borderTop: '1px solid #ddd', paddingTop: '15px' }}
                   >
                     <strong>ยอดรวม</strong>
-                    <strong>฿{finalPrice}</strong>
+                    <strong>฿{finalPrice.toLocaleString()}</strong>
                   </div>
                 </div>
               );

@@ -1,5 +1,5 @@
 import React from 'react'
-import { useLocation, useNavigate  } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Button } from 'primereact/button';
 import { Card } from 'primereact/card';
 
@@ -111,7 +111,11 @@ function ShopOrder() {
                     }}
                 >
                     {cart.map((item, index) => {
-                        const totalPrice = parseInt(item.product.price.replace(/,| บาท/g, '')) * item.quantity;
+                        const totalPrice =
+                            typeof item.product.price === "number"
+                                ? item.product.price * item.quantity
+                                : parseInt(item.product.price.replace(/,| บาท/g, ''), 10) * item.quantity;
+
                         const installationFee = item.installation === 'ติดตั้ง' ? 150 : 0;
                         const finalPrice = totalPrice + installationFee;
 
@@ -119,22 +123,23 @@ function ShopOrder() {
                             <div key={index}>
                                 <div className="flex justify-content-between">
                                     <p>ยอดรวม</p>
-                                    <p>฿{totalPrice}</p>
+                                    <p>฿{totalPrice.toLocaleString()}</p>
                                 </div>
                                 <div className="flex justify-content-between mb-2">
                                     <p>ค่าธรรมเนียมการติดตั้ง</p>
-                                    <p>฿{installationFee}</p>
+                                    <p>฿{installationFee.toLocaleString()}</p>
                                 </div>
                                 <div
                                     className="flex justify-content-between mb-3 text-xl"
                                     style={{ borderTop: '1px solid #ddd', paddingTop: '15px' }}
                                 >
                                     <strong>ยอดรวม</strong>
-                                    <strong>฿{finalPrice}</strong>
+                                    <strong>฿{finalPrice.toLocaleString()}</strong>
                                 </div>
                             </div>
                         );
                     })}
+
                 </Card>
             </div>
         </div>

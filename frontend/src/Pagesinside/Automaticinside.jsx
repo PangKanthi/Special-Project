@@ -63,7 +63,7 @@ function Automaticinside() {
       <div className="lg:flex-1 flex justify-content-center flex-wrap  lg:pt-8">
         <div className="pt-6 lg:pr-8">
           <div className="border-round-lg bg-white shadow-2">
-            <img src={product.image} alt={product.name} style={{ width: '400px', height: '400px' }} />
+            <img src={product.image} alt={product.name} style={{ width: '380px', height: '400px' }} />
           </div>
         </div>
         <div className="tx-center">
@@ -131,10 +131,9 @@ function Automaticinside() {
             <InputText
               keyfilter="int"
               placeholder='ยาว = ตร.ม.'
-              className="p-inputtext-sm mr-1"
+              className="p-inputtext-sm m-1"
               onChange={(e) => handleDimensionChange('height', e.target.value)}
               style={{
-                marginLeft: '5px',
                 backgroundColor: '#F0F0F0',
                 color: '#000000',
                 width: '100px',
@@ -154,7 +153,7 @@ function Automaticinside() {
               }}
             />
           </div>
-          <p style={{ color: 'red', fontWeight: 'blod', fontSize: '20px' }}>{product.price}</p>
+          <p style={{ color: 'red', fontWeight: 'blod', fontSize: '20px' }}>{product.price.toLocaleString()} บาท</p>
           <p>จำนวน</p>
           <div className="flex align-items-center">
             <Button
@@ -211,9 +210,9 @@ function Automaticinside() {
             style={{ width: '1080px', height: '840px' }}
             onHide={() => setShowDialog(false)}
           >
-            <div className='flex flex-colum justify-content-center'>
+            <div className='lg:flex-1 flex justify-content-center flex-wrap'>
               <img src={product.image} alt={product.name} style={{ width: '300px', marginBottom: '10px' }} />
-              <div className='pt-8'>
+              <div className='lg:pt-8'>
                 <h1>{product.name}</h1>
               </div>
             </div>
@@ -227,6 +226,7 @@ function Automaticinside() {
             </div>
 
           </Dialog>
+          <div className='flex'>
             <Button
               label='ซื้อ'
               raised
@@ -250,6 +250,7 @@ function Automaticinside() {
                 border: '1px solid #ffffff'
               }}
             />
+          </div>
         </div>
       </div>
 
