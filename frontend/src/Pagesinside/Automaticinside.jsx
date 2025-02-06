@@ -60,13 +60,13 @@ function Automaticinside() {
 
   return (
     <div className="pl-8 pr-8">
-      <div className="flex justify-content-center pt-8">
-        <div className="pt-6">
+      <div className="lg:flex-1 flex justify-content-center flex-wrap  lg:pt-8">
+        <div className="pt-6 lg:pr-8">
           <div className="border-round-lg bg-white shadow-2">
-            <img src={product.image} alt={product.name} style={{ width: '400px', height: '400px' }} />
+            <img src={product.image} alt={product.name} style={{ width: '380px', height: '400px' }} />
           </div>
         </div>
-        <div className='pl-8'>
+        <div className="tx-center">
           <h1>{product.name}</h1>
           <div className="flex gap-2">
             <button
@@ -131,10 +131,9 @@ function Automaticinside() {
             <InputText
               keyfilter="int"
               placeholder='ยาว = ตร.ม.'
-              className="p-inputtext-sm"
+              className="p-inputtext-sm m-1"
               onChange={(e) => handleDimensionChange('height', e.target.value)}
               style={{
-                marginLeft: '5px',
                 backgroundColor: '#F0F0F0',
                 color: '#000000',
                 width: '100px',
@@ -147,7 +146,6 @@ function Automaticinside() {
               className="p-inputtext-sm"
               onChange={(e) => handleDimensionChange('thickness', e.target.value)}
               style={{
-                marginLeft: '5px',
                 backgroundColor: '#F0F0F0',
                 color: '#000000',
                 width: '100px',
@@ -155,7 +153,7 @@ function Automaticinside() {
               }}
             />
           </div>
-          <p style={{ color: 'red', fontWeight: 'blod', fontSize: '20px' }}>{product.price}</p>
+          <p style={{ color: 'red', fontWeight: 'blod', fontSize: '20px' }}>{product.price.toLocaleString()} บาท</p>
           <p>จำนวน</p>
           <div className="flex align-items-center">
             <Button
@@ -212,9 +210,9 @@ function Automaticinside() {
             style={{ width: '1080px', height: '840px' }}
             onHide={() => setShowDialog(false)}
           >
-            <div className='flex flex-colum justify-content-center'>
+            <div className='lg:flex-1 flex justify-content-center flex-wrap'>
               <img src={product.image} alt={product.name} style={{ width: '300px', marginBottom: '10px' }} />
-              <div className='pt-8'>
+              <div className='lg:pt-8'>
                 <h1>{product.name}</h1>
               </div>
             </div>
@@ -228,29 +226,31 @@ function Automaticinside() {
             </div>
 
           </Dialog>
-          <Button
-            label='ซื้อ'
-            raised
-            onClick={handleBuy}
-            style={{
-              backgroundColor: '#0a74da',
-              color: '#ffffff',
-              textAlign: 'center',
-              width: '150px'
-            }}
-          />
-          <Button
-            label='เพิ่มลงตะกล้า'
-            raised
-            style={{
-              marginLeft: '5px',
-              backgroundColor: '#ffffff',
-              color: '#000000',
-              textAlign: 'center',
-              width: '150px',
-              border: '1px solid #ffffff'
-            }}
-          />
+          <div className='flex'>
+            <Button
+              label='ซื้อ'
+              raised
+              className='mr-2'
+              onClick={handleBuy}
+              style={{
+                backgroundColor: '#0a74da',
+                color: '#ffffff',
+                textAlign: 'center',
+                width: '150px'
+              }}
+            />
+            <Button
+              label='เพิ่มลงตะกล้า'
+              raised
+              style={{
+                backgroundColor: '#ffffff',
+                color: '#000000',
+                textAlign: 'center',
+                width: '150px',
+                border: '1px solid #ffffff'
+              }}
+            />
+          </div>
         </div>
       </div>
 

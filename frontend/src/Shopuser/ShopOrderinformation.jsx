@@ -72,9 +72,13 @@ function ShopOrderInformation() {
             <p>หมายเลขคำสั่งซื้อ: <strong>{orderNumber}</strong></p>
             <p>วันที่สั่งซื้อ: <strong>{orderDate}</strong></p>
             {cart.map((item, index) => {
-              const totalPrice = parseInt(item.product.price.replace(/,| บาท/g, '')) * item.quantity;
+              const totalPrice =
+                typeof item.product.price === "number"
+                  ? item.product.price * item.quantity
+                  : parseInt(item.product.price.replace(/,| บาท/g, ''), 10) * item.quantity;
+
               const installationFee = item.installation === 'ติดตั้ง' ? 150 : 0;
-              const deliveryFee = 150; // Mock delivery fee
+              const deliveryFee = 150; // ค่าจัดส่ง
               const vat = ((totalPrice + installationFee + deliveryFee) * 7) / 100;
               const finalPrice = totalPrice + installationFee + deliveryFee + vat;
 

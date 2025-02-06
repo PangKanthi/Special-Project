@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
 import { Dialog } from 'primereact/dialog';
+import { useNavigate } from 'react-router-dom';
 import useFetchData from '../Hooks/useFetchData';
 import Loading from '../Component/Loading';
 
@@ -12,6 +13,16 @@ function GeneralPartsinside() {
     const product = GeneralParts?.find((item) => item.id === parseInt(id));
     const [quantity, setQuantity] = useState(1);
     const [showDialog, setShowDialog] = useState(false);
+    const navigate = useNavigate();
+
+    const handleBuy = () => {
+        navigate('/shop-cart', {
+            state: {
+                product: product,
+                quantity: quantity,
+            },
+        });
+    };
 
     const handleIncrease = () => {
         setQuantity((prev) => prev + 1);
@@ -27,13 +38,15 @@ function GeneralPartsinside() {
 
     return (
         <div className="pl-8 pr-8">
-            <div className="flex justify-content-center pt-8">
-                <div className="border-round-lg bg-white shadow-2">
-                    <img src={product.image} alt={product.name} style={{ width: '350px', height: '350px' }} />
+            <div className="lg:flex-1 flex justify-content-center flex-wrap  lg:pt-8">
+                <div className="pt-6 lg:pr-8">
+                    <div className="border-round-lg bg-white shadow-2">
+                        <img src={product.image} alt={product.name} style={{ width: '380px', height: '400px' }} />
+                    </div>
                 </div>
-                <div className='pl-8 pt-2'>
+                <div className="tx-center lg:pt-8">
                     <h1>{product.name}</h1>
-                    <p style={{ color: 'red', fontWeight: 'blod', fontSize: '20px' }}>{product.price}</p>
+                    <p style={{ color: 'red', fontWeight: 'blod', fontSize: '20px' }}>{product.price.toLocaleString()} บาท</p>
                     <p>จำนวน</p>
                     <div className="flex align-items-center">
                         <Button
@@ -90,9 +103,9 @@ function GeneralPartsinside() {
                         style={{ width: '1080px', height: '840px' }}
                         onHide={() => setShowDialog(false)}
                     >
-                        <div className='flex flex-colum justify-content-center'>
-                            <img src={product.image} alt={product.name} style={{ width: '300px', marginBottom: '10px' }} />
-                            <div className='pt-8'>
+                        <div className='lg:flex-1 flex justify-content-center flex-wrap'>
+                            <img src={product.image} alt={product.name} style={{ width: '300px' }} />
+                            <div className='lg:pt-8'>
                                 <h1>{product.name}</h1>
                             </div>
                         </div>
@@ -106,29 +119,31 @@ function GeneralPartsinside() {
                         </div>
 
                     </Dialog>
-
-                    <Button
-                        label='ซื้อ'
-                        raised
-                        style={{
-                            backgroundColor: '#0a74da',
-                            color: '#ffffff',
-                            textAlign: 'center',
-                            width: '150px'
-                        }}
-                    />
-                    <Button
-                        label='เพิ่มลงตะกล้า'
-                        raised
-                        style={{
-                            marginLeft: '5px',
-                            backgroundColor: '#ffffff',
-                            color: '#000000',
-                            textAlign: 'center',
-                            width: '150px',
-                            border: '1px solid #ffffff'
-                        }}
-                    />
+                    <div className='flex'>
+                        <Button
+                            label='ซื้อ'
+                            raised
+                            className='mr-2'
+                            onClick={handleBuy}
+                            style={{
+                                backgroundColor: '#0a74da',
+                                color: '#ffffff',
+                                textAlign: 'center',
+                                width: '150px'
+                            }}
+                        />
+                        <Button
+                            label='เพิ่มลงตะกล้า'
+                            raised
+                            style={{
+                                backgroundColor: '#ffffff',
+                                color: '#000000',
+                                textAlign: 'center',
+                                width: '150px',
+                                border: '1px solid #ffffff'
+                            }}
+                        />
+                    </div>
                 </div>
             </div>
 
