@@ -1,55 +1,32 @@
-import React from 'react';
-import product1 from '../assets/images/product1.png';
-import product2 from '../assets/images/product2.png';
-import product3 from '../assets/images/product3.png';
-import product4 from '../assets/images/product4.png';
+import React, { useState } from 'react';
+import useFetchData from '../Hooks/useFetchData';
 import 'primeflex/primeflex.css';
 import { Card } from 'primereact/card';
 
-const product = [
-  {
-    image: product1,
-    name: 'ประตูเหล็กทึบ',
-  },
-  {
-    image: product2,
-    name: 'ประตูม้วนอัตโนมัติ',
-  },
-  {
-    image: product3,
-    name: 'ประตูม้วนไฮสปีด',
-  },
-  {
-    image: product4,
-    name: 'ประตูม้วนลายโป่ง',
-  },
-
-  {
-    image: product1,
-    name: 'ประตูเหล็กทึบ',
-  },
-  {
-    image: product2,
-    name: 'ประตูม้วนอัตโนมัติ',
-  },
-  {
-    image: product3,
-    name: 'ประตูม้วนไฮสปีด',
-  },
-  {
-    image: product4,
-    name: 'ประตูม้วนลายโป่ง',
-  }
-]
-
 const Portfolio = () => {
+  const [search, setSearch] = useState('');
+  const [selectedMenu, setSelectedMenu] = useState(null);
+  const { data: productAuto, isLoading, error } = useFetchData('/mockData/rollerdoor_products.json');
+
+  const filterProducts = productAuto?.filter(product =>
+    product.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  if (isLoading) {
+    return <div className="text-center p-mt-5">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center p-mt-5">Error: {error}</div>;
+  }
+
   return (
     <div className='pl-8 pr-8'>
       <div style={{ textAlign: 'center' }}>
         <h1>ผลงาน</h1>
       </div>
       <div className="flex gap-4 justify-content-center flex-wrap pt-4 pl-8" style={{ flex: 1 }}>
-        {product.map((product, index) => (
+        {filterProducts.map((product, index) => (
           <div key={index} style={{ width: '325px' }}>
             <Card
               title={product.name}

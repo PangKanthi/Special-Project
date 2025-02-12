@@ -18,6 +18,7 @@ import Homeadmin from './AdminPages/Homeadmin';
 import Navadmin from './Navbar/Navadmin';
 import Automaticinside from './Pagesinside/Automaticinside';
 import GeneralPartsinside from './Pagesinside/GeneralPartsinside';
+import Manageorders from './AdminPages/Manageorders';
 import 'primeflex/primeflex.css';
 import 'primereact/resources/themes/saga-blue/theme.css';
 import 'primereact/resources/primereact.min.css';
@@ -30,7 +31,12 @@ import ProtectedRoute from './protectedRoute/protectedRoute';
 
 const App = () => {
   const location = useLocation();
-  const showNavbar = location.pathname !== '/homeadmin';
+  const isAdminPage = location.pathname.startsWith('/homeadmin') || 
+                      location.pathname.startsWith('/manageorders') ||
+                      location.pathname.startsWith('/homeadmin') || 
+                      location.pathname.startsWith('/manageorders') ||
+                      location.pathname.startsWith('/manageusers') || 
+                      location.pathname.startsWith('/salesreport');
   const showFooter = !['/productAuto/', '/productGeneral/'].some(path => location.pathname.startsWith(path));
   const bodyStyle = {
     paddingTop: '70px'
@@ -38,8 +44,8 @@ const App = () => {
 
   return (
     <div className="App">
-      {showNavbar && <Navbar />}
-      {!showNavbar && <Navadmin />}
+      {!isAdminPage && <Navbar />}
+      {isAdminPage && <Navadmin />}
       <div className="p-mt-5 p-p-3" style={bodyStyle}>
         <Routes>
           <Route path="/login" element={<Login />} />
@@ -61,6 +67,7 @@ const App = () => {
           <Route path="/contact" element={<Contact />} />
           <Route path="/forgotpassword" element={<Forgotpassword />} />
           <Route path="/homeadmin" element={<Homeadmin />} />
+          <Route path="/manageorders" element={<Manageorders />} />
         </Routes>
       </div>
       {showFooter && <div className="pt-8"><Footer /></div>}

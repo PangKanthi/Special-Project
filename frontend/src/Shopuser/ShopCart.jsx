@@ -32,44 +32,43 @@ function ShopCart() {
   }
 
   return (
-    <div className='pl-8 pr-8'>
-      <div className='flex justify-content-between pt-8'>
-        <div className='pl-8'>
-          <div className='pl-5'>
+    <div className='px-4 sm:px-6 md:px-8 lg:pl-8 pr-8'>
+      <div className='lg:flex-1 flex justify-content-between flex-wrap pt-8'>
+        <div className='lg:pl-8'>
+          <div className='lg:pl-5'>
             <h2>ตะกร้าสินค้า</h2>
           </div>
           {cart.map((item, index) => (
             <div key={index} className='flex'>
               <div>
-                <img src={item.product.image} alt={item.product.name} style={{ width: '300px', height: '300px', }} />
+                <img
+                  src={item.product.image}
+                  alt={item.product.name}
+                  style={{ width: '300px', height: '300px', }}
+                  className="w-[120px] sm:w-[150px] md:w-[200px] max-w-full h-auto object-contain"
+                />
               </div>
-              <div>
-                <h3>{item.product.name}</h3>
-                <div
-                  style={{
-                    backgroundColor: item.color,
-                    width: '20px',
-                    height: '20px',
-                    borderRadius: '50%',
-                  }}
-                ></div>
-                <p>{item.installation}</p>
-                <p>กว้าง {item.dimensins.width} ตร.ม. | ยาว {item.dimensins.height} ตร.ม. | หนา {item.dimensins.thickness} มม.</p>
-                <p>ราคา: {item.product.price}</p>
-                <p>จำนวน: {item.quantity}</p>
+              <div className='lg:pt-4'>
+                <div className="flex-1 text-left">
+                  <h3 className="text-sm lg:text-xl">{item.product.name}</h3>
+                  <p className="text-xs lg:text-base">{item.installation}</p>
+                  <p className="text-xs lg:text-base sm:text-sm">
+                    กว้าง {item.dimensins?.width || '-'} ตร.ม. | ยาว {item.dimensins?.height || '-'} ตร.ม. | หนา {item.dimensins?.thickness || '-'} มม.
+                  </p>
+                  <p className="text-sm font-bold text-red-500 lg:text-lg">฿{item.product.price.toLocaleString()}</p>
+                </div>
                 <Button
                   label="ลบออก"
                   size='small'
-                  className="p-button-danger"
                   icon="pi pi-trash"
-                  style={{ marginTop: '10px' }}
+                  className="p-button-danger text-xs lg:mt-2"
                   onClick={() => handleRemoveItem(item.product.id)}
                 />
               </div>
             </div>
           ))}
         </div>
-        <div className='pr-8 pt-7'>
+        <div className="w-full lg:w-auto pt-7 flex justify-end">
           <Card
             style={{
               width: '500px',
@@ -99,7 +98,7 @@ function ShopCart() {
                     <p>฿{installationFee.toLocaleString()}</p>
                   </div>
                   <div
-                    className="flex justify-content-between mb-3"
+                    className="flex justify-content-between mb-3 border-t border-gray-300 pt-3"
                     style={{ borderTop: '1px solid #ddd', paddingTop: '15px' }}
                   >
                     <strong>ยอดรวม</strong>
@@ -111,15 +110,7 @@ function ShopCart() {
             <Button
               label="สั่งซื้อ"
               onClick={handleOrder}
-              style={{
-                width: '100%',
-                backgroundColor: '#0a74da',
-                color: '#ffffff',
-                padding: '10px',
-                fontSize: '16px',
-                fontWeight: 'bold',
-                borderRadius: '5px',
-              }}
+              className="w-full bg-blue-600 text-white py-2 text-lg font-bold rounded"
             />
           </Card>
         </div>
