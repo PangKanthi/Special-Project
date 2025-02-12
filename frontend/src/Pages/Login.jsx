@@ -41,7 +41,7 @@ const Login = () => {
             const response = await axios.post(url, { username, password });
             if (response.data.success) {
                 alert(response.data.message);
-                localStorage.setItem('token', response.data.data);
+                localStorage.setItem('token', response.data.token);
                 navigate("/home");
             }
             else {
