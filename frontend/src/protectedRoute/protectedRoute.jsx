@@ -1,13 +1,13 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 
-function ProtectedRoute({ children }) {
-    const token = localStorage.getItem('token'); // Check for authentication token
-    if (!token) {
-        // Redirect to login if token does not exist
+function ProtectedRoute({ children, requiredRole }) {
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('role');
+    if (!token || (requiredRole && role !== requiredRole)) {
         return <Navigate to="/login" replace />;
     }
-    // Render the children (protected components) if authenticated
+
     return children;
 }
 

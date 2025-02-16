@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './Navbar/Nav';
 import Home from './Pages/Home';
 import Automatic from './Pages/Automatic';
@@ -60,7 +60,11 @@ const App = () => {
           <Route path="/portfolio" element={<Portfolio />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/forgotpassword" element={<Forgotpassword />} />
-          <Route path="/homeadmin" element={<Homeadmin />} />
+          <Route path="/homeadmin" element={
+            <ProtectedRoute requiredrole="A">
+              <Homeadmin />
+            </ProtectedRoute>
+          } />
         </Routes>
       </div>
       {showFooter && <div className="pt-8"><Footer /></div>}

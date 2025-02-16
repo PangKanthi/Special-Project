@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import prisma from '../config/db.js'
+import prisma from '../config/db.js';
 import ResponseModel from '../utils/responseModel.js';
 
 const register = async (data) => {
@@ -14,7 +14,7 @@ const register = async (data) => {
 
         if (existingUser) {
             response.success = false;
-            response.message = 'Username already in use';
+            response.message = 'Username ถูกใช้แล้ว';
             return response;
         }
 
@@ -33,7 +33,7 @@ const register = async (data) => {
         });
 
         response.success = true;
-        response.message = 'Registration successfull';
+        response.message = 'ลงทะเบียนสำเร็จ';
         response.data = newUser;
         response.total = 1;
 
@@ -52,15 +52,23 @@ const login = async (username, password) => {
 
         if (!user) {
             response.success = false;
-            response.message = 'User not found';
+            response.message = 'ไม่พบผู้ใช้';
             return response;
         }
 
         const isValidPassword = await bcrypt.compare(password, user.password);
         if (!isValidPassword) {
             response.success = false;
-            response.message = 'Invalid password';
+            response.message = 'รหัสผ่านไม่ถูกต้อง';
             return response;
+        }
+
+        if (user.role === 'A') {
+            response.success = true;
+            response.message = 'เข้าสู่ระบบแอดมินสำเร็จ';
+        } else {
+            response.success = true;
+            response.message = 'เข้าสู่ระบบผู้ใช้สำเร็จ';
         }
 
         const SECRET_KEY = process.env.SECRET_KEY;
@@ -75,8 +83,6 @@ const login = async (username, password) => {
             role: user.role
         }
 
-        response.success = true;
-        response.message = 'Login successfull';
         response.data = data;
         response.total = 1;
 
@@ -85,7 +91,7 @@ const login = async (username, password) => {
         throw new Error(error.message);
     }
 
-    return response
+    return response;
 };
 
 export default { register, login };
