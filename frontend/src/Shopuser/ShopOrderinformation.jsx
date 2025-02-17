@@ -12,48 +12,38 @@ function ShopOrderInformation() {
   }
 
   return (
-    <div className="pl-8 pr-8 pt-7">
-      <div className='pl-6'>
-        <h1>รายละเอียด</h1>
-      </div>
-      <div className="flex justify-content-between gap-8">
-        {/* ส่วนซ้าย: สินค้า */}
-        <div style={{ width: '65%' }}>
-          {cart.map((item, index) => (
-            <div key={index}>
-              <div className="flex gap-4">
+    <div className="px-4 sm:px-6 md:px-8 lg:pl-8 pr-8">
+      <div className="lg:flex-1 flex justify-content-between flex-wrap pt-8">
+        <div className='lg:pl-8'>
+          <div className='lg:pl-5'>
+            <h1>รายละเอียด</h1>
+          </div>
+            {cart.map((item, index) => (
+              <div key={index} className='flex'>
                 <div>
                   <img
                     src={item.product.image}
                     alt={item.product.name}
-                    style={{ width: '300px', height: '300px' }}
+                    style={{ width: '300px', height: '300px', }}
+                    className="w-[120px] sm:w-[150px] md:w-[200px] max-w-full h-auto object-contain"
                   />
                 </div>
-                <div className='pt-3'>
-                  <h3>{item.product.name}</h3>
-                  <div
-                    style={{
-                      backgroundColor: item.color,
-                      width: '20px',
-                      height: '20px',
-                      borderRadius: '50%',
-                    }}
-                  ></div>
-                  <p>{item.installation}</p>
-                  <p>
-                    กว้าง {item.dimensins.width} ตร.ม. | ยาว {item.dimensins.height} ตร.ม. | หนา{' '}
-                    {item.dimensins.thickness} มม.
-                  </p>
-                  <p>ราคา: {item.product.price}</p>
-                  <p>จำนวน: {item.quantity}</p>
+                <div className='lg:pt-4'>
+                  <div className="flex-1 text-left">
+                    <h3 className="text-sm lg:text-xl">{item.product.name}</h3>
+                    <p className="text-xs lg:text-base">{item.installation}</p>
+                    <p className="text-xs lg:text-base sm:text-sm">
+                    กว้าง {item.dimensins?.width || '-'} ตร.ม. | ยาว {item.dimensins?.height || '-'} ตร.ม. | หนา {item.dimensins?.thickness || '-'} มม.
+                    </p>
+                    <p className="text-sm lg:text-lg">฿{item.product.price.toLocaleString()}</p>
+                  </div>
+                  <p className='text-xs lg:text-base'>จำนวน: {item.quantity}</p>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
 
-        {/* ส่วนขวา: ข้อมูลจัดส่งและสรุปยอด */}
-        <div style={{ width: '30%' }}>
+        <div className='lg:pr-7'>
           <Card
             style={{
               padding: '20px',
@@ -102,7 +92,7 @@ function ShopOrderInformation() {
                   </div>
                   <div
                     className="flex justify-content-between text-xl"
-                    style={{ borderTop: '1px solid #ddd', marginTop: '15px', paddingTop: '15px' }}
+                    style={{ borderTop: '1px solid #ddd', marginTop: '20px', paddingTop: '20px' }}
                   >
                     <strong>ยอดรวม</strong>
                     <strong>฿{finalPrice.toLocaleString()}</strong>
