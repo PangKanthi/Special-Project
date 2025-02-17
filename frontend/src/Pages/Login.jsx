@@ -55,9 +55,7 @@ const Login = () => {
                     localStorage.setItem('username', username);
                 }
 
-                const userRole = response.data.role;
-                console.log(response.data);
-                console.log(userRole)
+                const userRole = response.data.data.role;
                 if (userRole === 'A') {
                     setTimeout(() => navigate("/homeadmin"), 1000);
                 } else {
