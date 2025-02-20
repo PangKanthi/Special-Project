@@ -8,18 +8,18 @@ import {
   addProductToKit,
   removeProductFromKit
 } from "../controllers/productController.js";
-import { verifyToken, isAdmin } from "../middlewares/authMiddleware.js";
+import authMiddleware from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
 router.get("/", getAllProducts);
 router.get("/:id", getProductById);
 
-router.post("/", verifyToken, isAdmin, createProduct);
-router.put("/:id", verifyToken, isAdmin, updateProduct);
-router.delete("/:id", verifyToken, isAdmin, deleteProduct);
+router.post("/", authMiddleware.verifyToken, authMiddleware.isAdmin, createProduct);
+router.put("/:id", authMiddleware.verifyToken, authMiddleware.isAdmin, updateProduct);
+router.delete("/:id", authMiddleware.verifyToken, authMiddleware.isAdmin, deleteProduct);
 
-router.post("/:id/add-to-kit", verifyToken, isAdmin, addProductToKit);
-router.post("/:id/remove-from-kit", verifyToken, isAdmin, removeProductFromKit);
+router.post("/:id/add-to-kit", authMiddleware.verifyToken, authMiddleware.isAdmin, addProductToKit);
+router.post("/:id/remove-from-kit", authMiddleware.verifyToken, authMiddleware.isAdmin, removeProductFromKit);
 
 export default router;

@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 
-export const verifyToken = (req, res, next) => {
+const verifyToken = (req, res, next) => {
     const token = req.header("Authorization");
 
     if (!token) return res.status(401).json({ error: "Access Denied, Token Required" });
@@ -14,9 +14,12 @@ export const verifyToken = (req, res, next) => {
     }
 };
 
-export const isAdmin = (req, res, next) => {
+const isAdmin = (req, res, next) => {
     if (req.user.role !== "A") {
         return res.status(403).json({ error: "Forbidden: Admins only" });
     }
     next();
 };
+
+
+export default { verifyToken, isAdmin };

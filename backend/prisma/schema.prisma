@@ -18,9 +18,9 @@ model product {
   stock_quantity           Int?                       @default(0)
   created_at               DateTime?                  @default(now()) @db.Timestamp(6)
   updated_at               DateTime?                  @default(now()) @db.Timestamp(6)
-  
+
   installation_kit_product installation_kit_product[]
-  images product_image[] // ✅ เพิ่มความสัมพันธ์สำหรับเก็บรูปภาพของสินค้า
+  images product_image[] 
 }
 
 model product_image {
@@ -39,9 +39,9 @@ model installation_kit {
   warranty                 String?                    @db.VarChar(50)
   created_at               DateTime?                  @default(now()) @db.Timestamp(6)
   updated_at               DateTime?                  @default(now()) @db.Timestamp(6)
-  
+
   installation_kit_product installation_kit_product[]
-  images installation_kit_image[] // ✅ เพิ่มความสัมพันธ์สำหรับเก็บรูปภาพของชุดติดตั้ง
+  images installation_kit_image[]
 }
 
 model installation_kit_image {
@@ -69,4 +69,22 @@ model user {
   email     String  @db.VarChar(50)
   phone     String? @db.VarChar(10)
   role      String? @db.Char(1)
+
+  addresses Address[]
+}
+
+model Address {
+  id           Int     @id @default(autoincrement())
+  addressLine  String  @db.Text                 
+  city         String  @db.VarChar(100)   
+  state        String? @db.VarChar(100)         
+  postalCode   String  @db.VarChar(10)           
+  userId       Int                                 
+  isPrimary    Boolean @default(false)             
+  isShipping   Boolean @default(true)               
+
+
+  user         user    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("addresses")
 }

@@ -9,6 +9,7 @@ import bodyParser from "body-parser";
 import authRoute from "./routes/authRoute.js";
 import productRoutes from "./routes/productRoute.js";
 import uploadRoutes from "./routes/uploadRoute.js";
+import addressRoute from "./routes/addressRoute.js";
 import errorMiddleware from "./middlewares/errorMiddleware.js";
 
 const app = express();
@@ -37,6 +38,7 @@ app.use('/uploads', express.static('uploads'));
 app.use("/api/auth", authRoute);
 app.use("/api/products", productRoutes);
 app.use("/api/upload", uploadRoutes);
+app.use("/api/addresses", addressRoute);
 
 app.use(errorMiddleware);
 
