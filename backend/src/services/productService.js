@@ -2,15 +2,15 @@ import prisma from "../config/db.js";
 
 class ProductService {
   static async getAllProducts() {
-    return await prisma.product.findMany({
-      include: { installationKits: true },
-    });
+      return await prisma.product.findMany({
+          include: { installation_kit_product: { include: { installation_kit: true } }, images: true }
+      });
   }
 
   static async getProductById(id) {
     return await prisma.product.findUnique({
-      where: { id: Number(id) },
-      include: { installationKits: true },
+        where: { id: Number(id) },
+        include: { installation_kit_product: { include: { installation_kit: true } }, images: true }
     });
   }
 
