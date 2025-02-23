@@ -14,7 +14,7 @@ import repairRequestRoute from './routes/repairRequestRoute.js';
 import reviewRoute from './routes/reviewRoute.js';
 import workSampleRoute from './routes/workSampleRoute.js';
 import installationKitRoute from './routes/installationKitRoute.js';
-import addressRoutes from "./routes/addressRoute.js";
+import addressRoute from "./routes/addressRoute.js";
 
 import errorMiddleware from './middlewares/errorMiddleware.js';
 
@@ -49,7 +49,7 @@ app.use('/api/repair-requests', repairRequestRoute);
 app.use('/api/reviews', reviewRoute);
 app.use('/api/work-samples', workSampleRoute);
 app.use('/api/installation-kits', installationKitRoute);
-app.use("/addresses", addressRoutes);
+app.use("/api/addresses", addressRoute);
 
 app.use(errorMiddleware);
 
