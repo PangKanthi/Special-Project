@@ -13,3 +13,23 @@ export const createOrder = async (req, res, next) => {
         next(error);
     }
 };
+
+export const getUserOrders = async (req, res, next) => {
+    try {
+        const orders = await OrderService.getUserOrders(req.user.id);
+        res.status(200).json({ message: "Get data successfully", data: orders });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const getOrderById = async (req, res, next) => {
+    try {
+        const order = await OrderService.getOrderById(req.params.id);
+        if (!order) return res.status(404).json({ error: "Order not found" });
+        res.status(200).json({ message: "Get data successfully", data: order });
+    } catch (error) {
+        next(error);
+    }
+};
+

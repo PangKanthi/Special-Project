@@ -30,9 +30,16 @@ class OrderService {
         });
     }
 
-    static async getOrdersByUser(userId) {
+    static async getUserOrders(userId) {
         return await prisma.order.findMany({
             where: { userId },
+            include: { order_items: true }
+        });
+    }
+
+    static async getOrderById(orderId) {
+        return await prisma.order.findUnique({
+            where: { id: orderId },
             include: { order_items: true }
         });
     }

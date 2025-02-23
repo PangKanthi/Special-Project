@@ -23,7 +23,7 @@ export const createWorkSample = async (req, res, next) => {
 export const getAllWorkSamples = async (req, res, next) => {
     try {
         const workSamples = await WorkSampleService.getAllWorkSamples();
-        res.json(workSamples);
+        res.status(200).json({ message: "Get data successfully", data: workSamples });
     } catch (error) {
         next(error);
     }

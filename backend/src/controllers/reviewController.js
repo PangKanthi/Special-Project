@@ -24,7 +24,7 @@ export const createReview = async (req, res, next) => {
 export const getProductReviews = async (req, res, next) => {
     try {
         const reviews = await ReviewService.getProductReviews(req.params.productId);
-        res.json(reviews);
+        res.status(200).json({ message: "Get data successfully", data: reviews });
     } catch (error) {
         next(error);
     }
@@ -33,7 +33,7 @@ export const getProductReviews = async (req, res, next) => {
 export const getUserReviews = async (req, res, next) => {
     try {
         const reviews = await ReviewService.getUserReviews(req.user.id);
-        res.json(reviews);
+        res.status(200).json({ message: "Get data successfully", data: reviews });
     } catch (error) {
         next(error);
     }

@@ -25,7 +25,7 @@ export const createRepairRequest = async (req, res, next) => {
 export const getUserRepairRequests = async (req, res, next) => {
     try {
         const repairRequests = await RepairRequestService.getUserRepairRequests(req.user.id);
-        res.json(repairRequests);
+        res.status(200).json({ message: "Get data successfully", data: repairRequests });
     } catch (error) {
         next(error);
     }
@@ -35,7 +35,7 @@ export const getRepairRequestById = async (req, res, next) => {
     try {
         const repairRequest = await RepairRequestService.getRepairRequestById(req.params.id);
         if (!repairRequest) return res.status(404).json({ error: "ไม่พบคำขอซ่อม" });
-        res.json(repairRequest);
+        res.status(200).json({ message: "Get data successfully", data: repairRequest });
     } catch (error) {
         next(error);
     }
