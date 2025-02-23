@@ -25,6 +25,12 @@ class ReviewService {
             include: { product: true }
         });
     }
+
+    static async deleteReview(id) {
+        return await prisma.review.delete({
+            where: { id: Number(id) },
+        });
+    }    
 }
 
 export default ReviewService;

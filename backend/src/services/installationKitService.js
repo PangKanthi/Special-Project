@@ -37,6 +37,19 @@ class InstallationKitService {
             }
         });
     }
+
+    static async updateInstallationKit(id, data) {
+        return await prisma.installation_kit.update({
+            where: { id: Number(id) },
+            data,
+        });
+    }
+    
+    static async deleteInstallationKit(id) {
+        return await prisma.installation_kit.delete({
+            where: { id: Number(id) },
+        });
+    }    
 }
 
 export default InstallationKitService;

@@ -38,3 +38,12 @@ export const getUserReviews = async (req, res, next) => {
         next(error);
     }
 };
+
+export const deleteReview = async (req, res, next) => {
+    try {
+        await ReviewService.deleteReview(req.params.id);
+        res.json({ message: "ลบรีวิวเรียบร้อยแล้ว" });
+    } catch (error) {
+        next(error);
+    }
+};

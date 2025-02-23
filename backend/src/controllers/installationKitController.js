@@ -18,3 +18,21 @@ export const getInstallationKitById = async (req, res, next) => {
         next(error);
     }
 };
+
+export const updateInstallationKit = async (req, res, next) => {
+    try {
+        const updatedKit = await InstallationKitService.updateInstallationKit(req.params.id, req.body);
+        res.json(updatedKit);
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const deleteInstallationKit = async (req, res, next) => {
+    try {
+        await InstallationKitService.deleteInstallationKit(req.params.id);
+        res.json({ message: "ลบชุดติดตั้งเรียบร้อยแล้ว" });
+    } catch (error) {
+        next(error);
+    }
+};
