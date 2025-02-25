@@ -7,13 +7,169 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model product {
+  id             Int       @id @default(autoincrement())
+  name           String    @db.VarChar(100)
+  description    String?   @db.Text
+  price          Decimal   @db.Decimal(10, 2)
+  category       String    @db.VarChar(50)
+  warranty       String?   @db.VarChar(50)
+  is_part        Boolean?  @default(false)
+  stock_quantity Int?      @default(0)
+  created_at     DateTime? @default(now()) @db.Timestamp(6)
+  updated_at     DateTime? @default(now()) @db.Timestamp(6)
+
+  installation_kit_product installation_kit_product[]
+  images                   product_image[]
+  order_items              order_item[]
+  reviews                  review[]
+}
+
+model product_image {
+  id        Int    @id @default(autoincrement())
+  productId Int
+  imageUrl  String @db.Text
+
+  product product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model installation_kit {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(100)
+  description String?   @db.Text
+  price       Decimal   @db.Decimal(10, 2)
+  warranty    String?   @db.VarChar(50)
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  updated_at  DateTime? @default(now()) @db.Timestamp(6)
+
+  installation_kit_product installation_kit_product[]
+  images                   installation_kit_image[]
+  order_items              order_item[]
+}
+
+model installation_kit_image {
+  id                Int    @id @default(autoincrement())
+  installationKitId Int
+  imageUrl          String @db.Text
+
+  installationKit installation_kit @relation(fields: [installationKitId], references: [id], onDelete: Cascade)
+}
+
+model installation_kit_product {
+  id                  Int              @id @default(autoincrement())
+  installation_kit_id Int
+  product_id          Int
+  installation_kit    installation_kit @relation(fields: [installation_kit_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  product             product          @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
 model user {
   id        Int     @id @default(autoincrement())
-  username  String  @db.VarChar(20)
+  username  String  @unique @db.VarChar(20)
   firstname String  @db.VarChar(50)
   lastname  String  @db.VarChar(50)
   password  String  @db.VarChar(100)
-  email     String  @db.VarChar(50)
+  email     String  @unique @db.VarChar(50)
   phone     String? @db.VarChar(10)
-  role      String? @db.Char(1)
+  role      String  @default("U") @db.Char(1)
+
+  addresses      Address[]
+  orders         order[]
+  reviews        review[]
+  repair_request repair_request[]
+}
+
+model Address {
+  id          Int     @id @default(autoincrement())
+  addressLine String  @db.Text
+  city        String  @db.VarChar(100)
+  state       String? @db.VarChar(100)
+  postalCode  String  @db.VarChar(10)
+  userId      Int
+  isPrimary   Boolean @default(false)
+  isShipping  Boolean @default(true)
+
+  user           user             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders         order[]
+  repair_request repair_request[]
+
+  @@map("addresses")
+}
+
+model order {
+  id             Int      @id @default(autoincrement())
+  order_date     DateTime @default(now()) @db.Timestamp(6)
+  status         String   @db.VarChar(20)
+  total_amount   Decimal  @db.Decimal(10, 2)
+  userId         Int
+  addressId      Int
+  payment_status String   @db.VarChar(20)
+
+  user           user             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  address        Address          @relation(fields: [addressId], references: [id], onDelete: Cascade)
+  order_items    order_item[]
+  repair_request repair_request[]
+
+  @@map("orders")
+}
+
+model order_item {
+  id                Int     @id @default(autoincrement())
+  orderId           Int
+  productId         Int
+  installationKitId Int?
+  quantity          Int
+  price             Decimal @db.Decimal(10, 2)
+
+  order           order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product         product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+  installationKit installation_kit? @relation(fields: [installationKitId], references: [id], onDelete: SetNull)
+
+  @@map("order_items")
+}
+
+model review {
+  id        Int    @id @default(autoincrement())
+  content   String @db.Text
+  rating    Int    @default(0)
+  userId    Int
+  productId Int
+
+  user    user    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("reviews")
+}
+
+model admin {
+  id       Int    @id @default(autoincrement())
+  username String @unique @db.VarChar(20)
+  password String @db.VarChar(100)
+
+  work_samples work_sample[]
+}
+
+model work_sample {
+  id          Int    @id @default(autoincrement())
+  description String @db.Text
+  image_url   String @db.Text
+  adminId     Int
+
+  admin admin @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@map("work_samples")
+}
+
+model repair_request {
+  id                  Int      @id @default(autoincrement())
+  problem_description String   @db.Text
+  service_type        String   @db.VarChar(50)
+  request_date        DateTime @default(now()) @db.Timestamp(6)
+  userId              Int
+  addressId           Int
+  orderId             Int
+
+  user    user    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  address Address @relation(fields: [addressId], references: [id], onDelete: Cascade)
+  order   order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }

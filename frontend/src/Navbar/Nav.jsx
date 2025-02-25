@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Menubar } from 'primereact/menubar';
 import { useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
@@ -62,22 +62,54 @@ const menuItems = (navigate) => [
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const checkLoginStatus = () => {
+      if (localStorage.getItem('token')) {
+        setIsLoggedIn(true);
+      } else {
+        setIsLoggedIn(false);
+      }
+    };
+
+    checkLoginStatus(); // Check login status when the component mounts
+
+    const intervalId = setInterval(checkLoginStatus, 1000); // Check every second for updates
+
+    return () => clearInterval(intervalId); // Cleanup the interval on component unmount
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setIsLoggedIn(false);
+    navigate("/home");
+  };
 
   const start = (
     <img alt="logo" src="../assets/logo.png" height="60" className="mx-8 pr-8 " onClick={() => navigate("/home")} />
   );
-  
+
   const end = (
     <div className="flex">
-      <Button
-        label="Login"
-        icon="pi pi-sign-in"
-        className="p-button-rounded p-button-info mx-1 "
-        onClick={() => navigate("/login")}
-        style={{backgroundColor: '#000000', borderColor: '#000000'}}
-      />
+      {!isLoggedIn ? (
+        <Button
+          label="Login"
+          icon="pi pi-sign-in"
+          className="p-button-rounded p-button-info mx-1 "
+          onClick={() => navigate("/login")}
+          style={{ backgroundColor: '#000000', borderColor: '#000000' }}
+        />
+      ) : (
+        <Button
+          label="Logout"
+          icon="pi pi-sign-out"
+          className="p-button-rounded p-button-danger mx-1"
+          onClick={handleLogout}
+          style={{ backgroundColor: '#d9534f', borderColor: '#d9534f' }}
+        />
+      )}
     </div>
-    
   );
 
   const navbarStyle = {

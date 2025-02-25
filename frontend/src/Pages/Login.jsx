@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { InputText } from 'primereact/inputtext';
 import { Password } from 'primereact/password';
@@ -9,67 +9,86 @@ import 'primeflex/primeflex.css';
 import axios from 'axios';
 
 const Login = () => {
-    const [username, setUserid] = useState('');
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [checked, setChecked] = useState(false);
-    const [UseridError, setUseridError] = useState('');
+    const [usernameError, setUsernameError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
     const navigate = useNavigate();
 
-    const validateUserid = (username) => {
+    useEffect(() => {
+        if (localStorage.getItem('token')) {
+            setIsLoggedIn(true);
+            navigate("/home");
+        }
+    }, [navigate]);
+
+    const validateUsername = (username) => {
         const regex = /^[a-zA-Z0-9]+$/;
         return regex.test(username);
     };
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-        if (!validateUserid(username)) {
-            setUseridError('กรุณากรอกชื่อผู้ใช้ที่ถูกต้อง (เฉพาะตัวอักษรภาษาอังกฤษและตัวเลข)');
-            setSuccessMessage('');
+        setErrorMessage('');
+        setSuccessMessage('');
+
+        if (!validateUsername(username)) {
+            setUsernameError('กรุณากรอกชื่อผู้ใช้ที่ถูกต้อง (เฉพาะตัวอักษรภาษาอังกฤษและตัวเลข)');
             return;
         }
-        if (username === 'admin' && password === '1234') {
-            navigate('/homeadmin');
-            return;
-        }
-        setUseridError('');
-        setSuccessMessage('เข้าสู่ระบบสำเร็จ');
+
+        setUsernameError('');
 
         let url = 'http://localhost:1234/api/auth/login';
 
         try {
             const response = await axios.post(url, { username, password });
+
             if (response.data.success) {
-                alert(response.data.message);
                 localStorage.setItem('token', response.data.token);
-                navigate("/home");
-            }
-            else {
-                alert(response.data.message);
+                setIsLoggedIn(true);
+                setSuccessMessage(response.data.message);
+                if (checked) {
+                    localStorage.setItem('username', username);
+                }
+
+                const userRole = response.data.data.role;
+                if (userRole === 'A') {
+                    setTimeout(() => navigate("/homeadmin"), 1000);
+                } else {
+                    setTimeout(() => navigate("/home"), 1000);
+                }
+            } else {
+                setErrorMessage(response.data.message);
             }
         } catch (error) {
-            alert(error);
+            setErrorMessage(error.response?.data?.message || 'เกิดข้อผิดพลาดในการเชื่อมต่อ');
         }
     };
 
     return (
-        <div className="flex justify-content-center align-items-center" style={{ height: '80vh' }}>
+        <div className="flex justify-content-center align-items-center" style={{ minHeight: '50vh', padding: '1rem' }}>
             <div className="surface-card p-6 shadow-2 border-round-lg" style={{ width: '100%', maxWidth: '600px' }}>
                 <h2 className="text-center mb-4 text-blue-600">เข้าสู่ระบบ</h2>
                 <div className="pages-detail text-center mb-2">กรุณาเข้าสู่ระบบก่อนทำการสั่งซื้อ</div>
                 <form className="p-fluid" onSubmit={handleSubmit}>
                     <div className="p-field mb-4">
-                        <label htmlFor="username" className="block mb-2 font-semibold pi pi-user "> ชื่อผู้ใช้</label>
+                        <label htmlFor="username" className="block mb-2 font-semibold pi pi-user"> ชื่อผู้ใช้</label>
                         <InputText
                             id="username"
                             type="text"
                             placeholder='ชื่อผู้ใช้'
-                            className="w-full "
+                            className="w-full"
                             value={username}
-                            onChange={(e) => setUserid(e.target.value)}
+                            onChange={(e) => setUsername(e.target.value)}
+                            disabled={isLoggedIn}
                         />
-                        {UseridError && <Message severity="error" text={UseridError} className="mt-2" />}
+                        {usernameError && <Message severity="error" text={usernameError} className="mt-2" />}
                     </div>
+
                     <div className="p-field mb-4">
                         <label htmlFor="password" className="block mb-2 font-semibold pi pi-lock"> รหัสผ่าน</label>
                         <Password
@@ -80,24 +99,36 @@ const Login = () => {
                             className="w-full"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
+                            disabled={isLoggedIn}
                         />
                     </div>
-                    <Button label="เข้าสู่ระบบ" type="submit" className="w-full p-button-info mb-4" />
+
+                    {!isLoggedIn && (
+                        <Button label="เข้าสู่ระบบ" type="submit" className="w-full p-button-info mb-4" />
+                    )}
+
+                    {successMessage && <Message severity="success" text={successMessage} className="w-full mb-4" />}
+                    {errorMessage && <Message severity="error" text={errorMessage} className="w-full mb-4" />}
                 </form>
-                {successMessage && <Message severity="success" text={successMessage} className="w-full mb-4" />}
-                <div className="flex align-items-center mb-4">
-                    <Checkbox
-                        id="rememberme"
-                        onChange={(e) => setChecked(e.checked)}
-                        checked={checked}
-                        className="mr-2"
-                    />
-                    <label htmlFor="rememberme">จดจำฉัน</label>
-                </div>
-                <div className="flex justify-content-between">
-                    <a href="/register" className="text-primary">สมัครสมาชิก?</a>
-                    <a href="/forgotpassword" className="text-primary">ลืมรหัสผ่าน?</a>
-                </div>
+
+                {!isLoggedIn && (
+                    <div className="flex align-items-center mb-4">
+                        <Checkbox
+                            id="rememberme"
+                            onChange={(e) => setChecked(e.checked)}
+                            checked={checked}
+                            className="mr-2"
+                        />
+                        <label htmlFor="rememberme">จดจำฉัน</label>
+                    </div>
+                )}
+
+                {!isLoggedIn && (
+                    <div className="flex justify-content-between">
+                        <a href="/register" className="text-primary">สมัครสมาชิก?</a>
+                        <a href="/forgotpassword" className="text-primary">ลืมรหัสผ่าน?</a>
+                    </div>
+                )}
             </div>
         </div>
     );

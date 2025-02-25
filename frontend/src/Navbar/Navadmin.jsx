@@ -48,29 +48,6 @@ export default function Navbar() {
       <Menu model={items} popup ref={menu} id="popup_menu" />
     </div>
   );
+};
 
-  return (
-    <>
-      <Menubar
-        start={start}
-        end={end}
-        className="p-3 w-full fixed top-0 left-0 z-[9999]"
-        style={{ backgroundColor: '#026DCA', border: 'none' }}
-      />
-      <Sidebar visible={visible} onHide={() => setVisible(false)} className="p-sidebar-sm">
-        <div className="flex flex-column align-items-start p-3" style={{ textAlign: 'left' }}>
-          <div className="w-full flex justify-content-center pb-3 border-bottom-1 border-gray-300">
-            <img src="../assets/logo.png" alt="Logo" width="137" height="96" />
-          </div>
-          <div className="w-full pt-3">
-            {sidebarItems.map((item, index) => (
-              <div key={index} className={`p-3 cursor-pointer w-full ${item.className || ''}`} onClick={item.action}>
-                <i className={`pi ${item.icon} mr-2`} /> {item.label}
-              </div>
-            ))}
-          </div>
-        </div>
-      </Sidebar>
-    </>
-  );
-}
+export default Navadmin;

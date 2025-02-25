@@ -1,9 +1,19 @@
 class ResponseModel {
-    constructor() {
-        this.success = false;
-        this.message = '';
-        this.data = null;
-        this.total = 0;
+    static success(message = "Success", data = null, total = 0) {
+        return {
+            success: true,
+            message,
+            data,
+            total
+        };
+    }
+
+    static error(message = "Something went wrong", statusCode = 500) {
+        return {
+            success: false,
+            message,
+            statusCode
+        };
     }
 }
 

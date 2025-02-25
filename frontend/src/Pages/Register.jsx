@@ -7,6 +7,7 @@ import 'primeflex/primeflex.css';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
+
 const Register = () => {
 
     const navigate = useNavigate();
@@ -30,10 +31,18 @@ const Register = () => {
         confirmPassword: ''
     });
 
+    const [errorMessage, setErrorMessage] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
+    const [isRegistered, setIsRegistered] = useState(false);
+
     const validateName = (firstname) => /^[\u0E00-\u0E7F\s]{1,50}$/.test(firstname);
     const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
     const validateUserid = (username) => /^[a-zA-Z0-9]+$/.test(username);
-    const validatePassword = (password) => /^[A-Za-z0-9!@#$%^&*()_+]{6,24}$/.test(password);
+
+    const validatePassword = (password) => {
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,24}$/;
+        return passwordRegex.test(password);
+    };
 
     const handleChange = (e) => {
         const { id, value } = e.target;
@@ -62,23 +71,33 @@ const Register = () => {
 
             try {
                 const response = await axios.post(url, { ...formData, password });
+                
                 if (response.data.success) {
-                    alert(response.data.message);
-                    navigate("/login");
-                }
-                else {
-                    alert(response.data.message);
+                    setSuccessMessage(response.data.message);
+                    setErrorMessage('');
+                    setIsRegistered(true);
+                    setTimeout(() => navigate("/login"), 1000);
+                } else {
+                    setErrorMessage(response.data.message);
+                    setSuccessMessage('');
+                    setIsRegistered(false);
                 }
             } catch (error) {
-                alert(error);
+                setErrorMessage('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
+                setSuccessMessage('');
+                setIsRegistered(false);
             }
         }
     };
 
     return (
-        <div className="flex justify-content-center align-items-center" style={{ height: '80vh' }}>
+        <div className="flex justify-content-center align-items-center" style={{ height: '100vh' }}>
             <div className="surface-card p-6 shadow-2 border-round-lg" style={{ width: '100%', maxWidth: '600px' }}>
                 <h2 className="text-center mb-4 text-blue-600">สมัครสมาชิก</h2>
+                
+                {successMessage && <Message severity="success" text={successMessage} className="w-full mb-4" />}
+                {errorMessage && <Message severity="error" text={errorMessage} className="w-full mb-4" />}
+
                 <form className="p-fluid" onSubmit={handleSubmit}>
 
                     <div className="p-field mb-4">
@@ -119,6 +138,7 @@ const Register = () => {
                         />
                         {errors.lastname && <Message severity="error" text={errors.lastname} className="mt-2" />}
                     </div>
+
                     <div className="p-field mb-4">
                         <label htmlFor="email" className="block mb-2 font-semibold pi pi-envelope"> อีเมล</label>
                         <InputText
@@ -131,6 +151,7 @@ const Register = () => {
                         />
                         {errors.email && <Message severity="error" text={errors.email} className="mt-2" />}
                     </div>
+
                     <div className="p-field mb-4">
                         <label htmlFor="password" className="block mb-2 font-semibold pi pi-lock"> รหัสผ่าน</label>
                         <Password
@@ -147,6 +168,7 @@ const Register = () => {
                         />
                         {errors.password && <Message severity="error" text={errors.password} className="mt-2" />}
                     </div>
+
                     <div className="p-field mb-6">
                         <label htmlFor="confirmPassword" className="block mb-2 font-semibold pi pi-lock"> ยืนยันรหัสผ่าน</label>
                         <Password
@@ -160,8 +182,14 @@ const Register = () => {
                         />
                         {errors.confirmPassword && <Message severity="error" text={errors.confirmPassword} className="mt-2" />}
                     </div>
-                    <Button label="สมัครสมาชิก" type="submit" className="w-full p-button-info mb-4" />
+
+                    {isRegistered ? (
+                        <Button label="ลงทะเบียนสำเร็จ" className="w-full p-button-success mb-4" disabled />
+                    ) : (
+                        <Button label="สมัครสมาชิก" type="submit" className="w-full p-button-info mb-4" />
+                    )}
                 </form>
+
                 <div className="flex justify-content-center">
                     <a href="/login" className="text-500">ย้อนกลับ</a>
                 </div>

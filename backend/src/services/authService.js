@@ -1,20 +1,20 @@
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import prisma from '../config/db.js'
-import ResponseModel from '../utils/responseModel.js';
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import prisma from "../config/db.js";
+import ResponseModel from "../utils/responseModel.js";
 
 const register = async (data) => {
     let response = new ResponseModel();
     try {
-
         const { username, password, email, firstname, lastname, phone } = data;
+
         const existingUser = await prisma.user.findFirst({
-            where: { username },
+            where: { OR: [{ username }, { email }] },
         });
 
         if (existingUser) {
             response.success = false;
-            response.message = 'Username already in use';
+            response.message = "Username หรือ Email ถูกใช้แล้ว";
             return response;
         }
 
@@ -22,18 +22,18 @@ const register = async (data) => {
 
         const newUser = await prisma.user.create({
             data: {
-                username: username,
-                firstname: firstname,
-                lastname: lastname,
+                username,
+                firstname,
+                lastname,
                 password: hashedPassword,
-                email: email,
+                email,
                 phone: phone || null,
-                role: 'U',
+                role: "U",
             },
         });
 
         response.success = true;
-        response.message = 'Registration successfull';
+        response.message = "ลงทะเบียนสำเร็จ";
         response.data = newUser;
         response.total = 1;
 
@@ -52,32 +52,25 @@ const login = async (username, password) => {
 
         if (!user) {
             response.success = false;
-            response.message = 'User not found';
+            response.message = "ไม่พบผู้ใช้";
             return response;
         }
 
         const isValidPassword = await bcrypt.compare(password, user.password);
         if (!isValidPassword) {
             response.success = false;
-            response.message = 'Invalid password';
+            response.message = "รหัสผ่านไม่ถูกต้อง";
             return response;
         }
 
-        const SECRET_KEY = process.env.SECRET_KEY;
+        response.success = true;
+        response.message = user.role === "A" ? "เข้าสู่ระบบแอดมินสำเร็จ" : "เข้าสู่ระบบผู้ใช้สำเร็จ";
 
-        const token = jwt.sign({ id: user.id, role: user.role }, SECRET_KEY, {
-            expiresIn: '1h',
+        const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, {
+            expiresIn: "2h",
         });
 
-        const data = {
-            token: token,
-            username: username,
-            role: user.role
-        }
-
-        response.success = true;
-        response.message = 'Login successfull';
-        response.data = data;
+        response.data = { token, username, role: user.role };
         response.total = 1;
 
     } catch (error) {
@@ -85,7 +78,7 @@ const login = async (username, password) => {
         throw new Error(error.message);
     }
 
-    return response
+    return response;
 };
 
 export default { register, login };
