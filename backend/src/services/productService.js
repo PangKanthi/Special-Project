@@ -2,84 +2,73 @@ import prisma from "../config/db.js";
 
 class ProductService {
   static async getAllProducts() {
-      return await prisma.product.findMany({
-          include: { installation_kit_product: { include: { installation_kit: true } }, images: true }
-      });
+    return await prisma.product.findMany();
   }
 
   static async getProductById(id) {
     return await prisma.product.findUnique({
-        where: { id: Number(id) },
-        include: { installation_kit_product: { include: { installation_kit: true } }, images: true }
+      where: { id: Number(id) }
     });
   }
 
-  static async createProduct(data) {
-    return await prisma.product.create({ data });
+  static async createProduct(data, imageUrls) {
+    return await prisma.product.create({
+      data: {
+        ...data,
+        images: imageUrls,
+        colors: data.colors || []
+      }
+    });
   }
 
-  static async updateProduct(id, data) {
+  static async updateProduct(id, data, newImages) {
+    const product = await prisma.product.findUnique({
+      where: { id: Number(id) }
+    });
+
+    if (!product) throw new Error("Product not found");
+
+    let updatedColors = product.colors;
+    if (data.colors) {
+      updatedColors = JSON.parse(data.colors);
+    }
+
+    let updatedImages = [...product.images];
+    if (newImages.length > 0) {
+      updatedImages = [...updatedImages, ...newImages];
+    }
+
+    if (data.removeImages) {
+      const removeList = JSON.parse(data.removeImages);
+      updatedImages = updatedImages.filter(img => !removeList.includes(img));
+    }
+
     return await prisma.product.update({
       where: { id: Number(id) },
-      data,
+      data: {
+        ...data,
+        colors: updatedColors, 
+        images: updatedImages 
+      }
     });
   }
-  
+
   static async deleteProduct(id) {
+    const product = await prisma.product.findUnique({
+      where: { id: Number(id) }
+    });
+
+    if (!product) throw new Error("Product not found");
+
+    product.images.forEach(imagePath => {
+      const filePath = `.${imagePath}`;
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    });
+
     return await prisma.product.delete({ where: { id: Number(id) } });
   }
-
-  static async addProductToKit(productId, kitId) {
-    return await prisma.installationKitProduct.create({
-      data: {
-        productId: Number(productId),
-        installationKitId: Number(kitId),
-      },
-    });
-  }
-
-  static async removeProductFromKit(productId, kitId) {
-    return await prisma.installationKitProduct.deleteMany({
-      where: {
-        productId: Number(productId),
-        installationKitId: Number(kitId),
-      },
-    });
-  }
-
-  static async uploadProductImages(req, res){
-      try {
-          if (!req.files || req.files.length === 0) {
-              return res.status(400).json({ success: false, message: 'กรุณาอัปโหลดอย่างน้อย 1 รูป' });
-          }
-  
-          const productId = req.body.productId;
-          if (!productId) {
-              return res.status(400).json({ success: false, message: 'กรุณาระบุรหัสสินค้า' });
-          }
-  
-          const imageUrls = req.files.map(file => `/uploads/${file.filename}`);
-  
-          await saveProductImages(productId, imageUrls);
-  
-          return res.status(200).json({
-              success: true,
-              message: 'อัปโหลดรูปสินค้าเรียบร้อย',
-              data: { imageUrls }
-          });
-      } catch (error) {
-          res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการอัปโหลด' });
-      }
-  };
-
-  static async saveProductImages(productId, imageUrls) {
-    return await prisma.product_image.createMany({
-        data: imageUrls.map(imageUrl => ({
-            productId: parseInt(productId),
-            imageUrl
-        }))
-    });
-};
 }
 
 export default ProductService;

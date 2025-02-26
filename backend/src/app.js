@@ -4,7 +4,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
-import bodyParser from 'body-parser';
+import path from 'path';
 
 import authRoute from './routes/authRoute.js';
 import orderRoute from './routes/orderRoute.js';
@@ -28,8 +28,15 @@ app.use(cors());
 app.use(helmet());
 app.use(compression());
 app.use(limiter);
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.use((req, res, next) => {
+    res.setHeader('Cross-Origin-Resource-Policy', 'same-site');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    next();
+});
 
 if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'));
@@ -37,7 +44,7 @@ if (process.env.NODE_ENV === 'development') {
     app.use(morgan('combined'));
 }
 
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 app.use('/api/auth', authRoute);
 app.use('/api/orders', orderRoute);
