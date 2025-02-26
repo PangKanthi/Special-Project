@@ -8,12 +8,3 @@ export const saveProductImages = async (productId, imageUrls) => {
         }))
     });
 };
-
-export const saveKitImages = async (installationKitId, imageUrls) => {
-    return await prisma.installation_kit_image.createMany({
-        data: imageUrls.map(imageUrl => ({
-            installationKitId: parseInt(installationKitId),
-            imageUrl
-        }))
-    });
-};

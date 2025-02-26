@@ -22,6 +22,8 @@ export const getProductById = async (req, res, next) => {
 export const createProduct = async (req, res, next) => {
   try {
     const newProduct = await ProductService.createProduct(req.body);
+    
+    
     res.status(201).json(newProduct);
   } catch (error) {
     next(error);
