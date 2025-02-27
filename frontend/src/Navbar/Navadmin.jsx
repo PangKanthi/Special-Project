@@ -16,7 +16,7 @@ export default function Navbar() {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    
+
     // ใช้ setTimeout เพื่อให้แน่ใจว่า localStorage เคลียร์ก่อนเปลี่ยนหน้า
     setTimeout(() => {
       navigate("/home");
@@ -30,8 +30,8 @@ export default function Navbar() {
   const sidebarItems = [
     { label: 'หน้าแรก', icon: PrimeIcons.HOME, action: () => navigate('/homeadmin'), className: pathname === '/homeadmin' ? 'font-bold text-black' : '' },
     { label: 'จัดการออเดอร์', icon: PrimeIcons.SHOPPING_CART, action: () => navigate('/manageorders'), className: pathname === '/manageorders' ? 'font-bold text-black' : '' },
-    { label: 'จัดการสินค้า', icon: PrimeIcons.BOX, action: () => navigate('/products'), className: pathname === '/products' ? 'font-bold text-black' : '' },
-    { label: 'จัดการสมาชิก', icon: PrimeIcons.USERS, action: () => navigate('/members'), className: pathname === '/members' ? 'font-bold text-black' : '' },
+    { label: 'จัดการสินค้า', icon: PrimeIcons.BOX, action: () => navigate('/manageproducts'), className: pathname === '/manageproducts' ? 'font-bold text-black' : '' },
+    { label: 'จัดการสมาชิก', icon: PrimeIcons.USERS, action: () => navigate('/manageusers'), className: pathname === '/manageusers' ? 'font-bold text-black' : '' },
     { label: 'จัดการโปรโมชั่น', icon: PrimeIcons.TAG, action: () => navigate('/promotions'), className: pathname === '/promotions' ? 'font-bold text-black' : '' },
     { label: 'จัดการผลงาน', icon: PrimeIcons.BRIEFCASE, action: () => navigate('/projects'), className: pathname === '/projects' ? 'font-bold text-black' : '' },
     { label: 'ประวัติ', icon: PrimeIcons.BOOK, action: () => navigate('/history'), className: pathname === '/history' ? 'font-bold text-black' : '' }
@@ -48,7 +48,7 @@ export default function Navbar() {
         <Badge value="6" severity="danger" className="absolute top-0 right-0" />
       </div>
       <div className="flex align-items-center gap-2 cursor-pointer" onClick={(e) => menu.current.toggle(e)}>
-        <Avatar image="https://via.placeholder.com/40" shape="circle" />
+        <Avatar image="https://placehold.co/150x150" shape="circle" />
         <div className="text-white">
           <div className="font-bold">Moni Roy</div>
           <div className="text-sm">Admin</div>
@@ -63,8 +63,8 @@ export default function Navbar() {
       <Menubar
         start={start}
         end={end}
-        className="p-3 w-full fixed top-0 left-0 z-[9999]"
-        style={{ backgroundColor: '#026DCA', border: 'none' }}
+        className="p-3 w-full fixed top-0 left-0"
+        style={{ backgroundColor: '#026DCA', border: 'none', zIndex: 1 }}
       />
       <Sidebar visible={visible} onHide={() => setVisible(false)} className="p-sidebar-sm">
         <div className="flex flex-column align-items-start p-3" style={{ textAlign: 'left' }}>

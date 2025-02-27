@@ -20,6 +20,7 @@ import Automaticinside from './Pagesinside/Automaticinside';
 import GeneralPartsinside from './Pagesinside/GeneralPartsinside';
 import Manageorders from './AdminPages/Manageorders';
 import Manageproducts from './AdminPages/Manageproducts';
+import Manageusers from './AdminPages/Manageusers';
 import 'primeflex/primeflex.css';
 import 'primereact/resources/themes/saga-blue/theme.css';
 import 'primereact/resources/primereact.min.css';
@@ -29,6 +30,7 @@ import ShopCart from './Shopuser/ShopCart';
 import ShopOrder from './Shopuser/ShopOrder';
 import ShopOrderinformation from './Shopuser/ShopOrderinformation';
 import ProtectedRoute from './protectedRoute/protectedRoute';
+
 
 const App = () => {
   const location = useLocation();
@@ -75,6 +77,7 @@ const App = () => {
           } />
           <Route path="/manageorders" element={<Manageorders />} />
           <Route path="/manageproducts" element={<Manageproducts />} />
+          <Route path="/manageusers" element={<Manageusers />} />
         </Routes>
       </div>
       {showFooter && <div className="pt-8"><Footer /></div>}

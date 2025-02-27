@@ -103,6 +103,7 @@ model order {
   total_amount   Decimal  @db.Decimal(10, 2)
   userId         Int
   addressId      Int
+  type           String   @db.VarChar(50)
   payment_status String   @db.VarChar(20)
 
   user           user             @relation(fields: [userId], references: [id], onDelete: Cascade)

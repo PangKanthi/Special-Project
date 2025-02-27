@@ -35,21 +35,21 @@ const Manageorders = () => {
     return (
         <div className="p-5">
             <h2 className="text-2xl font-bold mb-4">Order List</h2>
-            <Card className="p-4 mb-4 flex flex-wrap items-center gap-3">
-                <div className="flex items-center gap-2 ">
+            <div className="p-4 mb-4 flex flex-wrap items-center gap-3 bg-white shadow-md rounded-lg">
+                <div className="flex items-center gap-2 flex-wrap flex-grow">
                     <Button icon="pi pi-filter" label="Filter By" className="p-button-outlined p-button-secondary" />
                     <Dropdown options={["14 Feb 2019", "28 May 2019", "05 Feb 2019"]} placeholder="14 Feb 2019" />
                     <Dropdown options={["ซ่อม", "ติดตั้ง", "เช็ครายปี"]} placeholder="Order Type" />
                     <Dropdown options={["ทั้งหมด", "สำเร็จ", "กำลังทำ", "ยกเลิก"]} placeholder="Order Status" />
                     <Button icon="pi pi-refresh" label="Reset Filter" className="p-button-danger p-button-outlined" />
-                    <div className="ml-auto">
-                        <span className="p-input-icon-left ">
-                            <i className="pi pi-search pl-2" />
-                            <InputText value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search Order" className="w-72" />
-                        </span>
-                    </div>
                 </div>
-            </Card>
+                <div className="ml-auto w-72">
+                    <span className="p-input-icon-left w-full flex items-center">
+                        <i className="pi pi-search pl-3 text-gray-500" />
+                        <InputText value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search Order" className="w-full pl-8" />
+                    </span>
+                </div>
+            </div>
 
             <Card>
                 <DataTable value={orders} paginator rows={9}>
