@@ -17,50 +17,12 @@ model product {
   is_part        Boolean?  @default(false)
   stock_quantity Int?      @default(0)
   created_at     DateTime? @default(now()) @db.Timestamp(6)
-  updated_at     DateTime? @default(now()) @db.Timestamp(6)
+  updated_at     DateTime  @updatedAt
+  colors         String[]  
+  images         String[]  
 
-  installation_kit_product installation_kit_product[]
-  images                   product_image[]
-  order_items              order_item[]
-  reviews                  review[]
-}
-
-model product_image {
-  id        Int    @id @default(autoincrement())
-  productId Int
-  imageUrl  String @db.Text
-
-  product product @relation(fields: [productId], references: [id], onDelete: Cascade)
-}
-
-model installation_kit {
-  id          Int       @id @default(autoincrement())
-  name        String    @db.VarChar(100)
-  description String?   @db.Text
-  price       Decimal   @db.Decimal(10, 2)
-  warranty    String?   @db.VarChar(50)
-  created_at  DateTime? @default(now()) @db.Timestamp(6)
-  updated_at  DateTime? @default(now()) @db.Timestamp(6)
-
-  installation_kit_product installation_kit_product[]
-  images                   installation_kit_image[]
-  order_items              order_item[]
-}
-
-model installation_kit_image {
-  id                Int    @id @default(autoincrement())
-  installationKitId Int
-  imageUrl          String @db.Text
-
-  installationKit installation_kit @relation(fields: [installationKitId], references: [id], onDelete: Cascade)
-}
-
-model installation_kit_product {
-  id                  Int              @id @default(autoincrement())
-  installation_kit_id Int
-  product_id          Int
-  installation_kit    installation_kit @relation(fields: [installation_kit_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  product             product          @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  order_items    order_item[]
+  reviews        review[]
 }
 
 model user {
@@ -105,6 +67,7 @@ model order {
   addressId      Int
   type           String   @db.VarChar(50)
   payment_status String   @db.VarChar(20)
+  payment_slip   String?
 
   user           user             @relation(fields: [userId], references: [id], onDelete: Cascade)
   address        Address          @relation(fields: [addressId], references: [id], onDelete: Cascade)
@@ -124,7 +87,6 @@ model order_item {
 
   order           order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product         product           @relation(fields: [productId], references: [id], onDelete: Cascade)
-  installationKit installation_kit? @relation(fields: [installationKitId], references: [id], onDelete: SetNull)
 
   @@map("order_items")
 }
@@ -142,21 +104,10 @@ model review {
   @@map("reviews")
 }
 
-model admin {
-  id       Int    @id @default(autoincrement())
-  username String @unique @db.VarChar(20)
-  password String @db.VarChar(100)
-
-  work_samples work_sample[]
-}
-
 model work_sample {
   id          Int    @id @default(autoincrement())
   description String @db.Text
-  image_url   String @db.Text
-  adminId     Int
-
-  admin admin @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  images      String[] 
 
   @@map("work_samples")
 }

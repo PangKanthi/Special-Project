@@ -33,3 +33,30 @@ export const getOrderById = async (req, res, next) => {
     }
 };
 
+export const uploadPaymentSlip = async (req, res, next) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: "กรุณาอัปโหลดไฟล์สลิปโอนเงิน" });
+        }
+
+        const slipPath = `/uploads/slips/${req.file.filename}`;
+        const updatedOrder = await OrderService.uploadPaymentSlip(req.params.id, slipPath);
+
+        res.status(200).json({ message: "อัปโหลดสลิปสำเร็จ", order: updatedOrder });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const getPaymentSlip = async (req, res, next) => {
+    try {
+        const slipPath = await OrderService.getPaymentSlip(req.params.id);
+        if (!slipPath) {
+            return res.status(404).json({ error: "ไม่พบสลิปโอนเงิน" });
+        }
+
+        res.status(200).json({ payment_slip: slipPath });
+    } catch (error) {
+        next(error);
+    }
+};

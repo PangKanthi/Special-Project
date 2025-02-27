@@ -1,3 +1,4 @@
+import fs from 'fs';
 import prisma from '../config/db.js';
 
 class OrderService {
@@ -42,6 +43,40 @@ class OrderService {
             where: { id: orderId },
             include: { order_items: true }
         });
+    }
+
+    static async uploadPaymentSlip(orderId, slipPath) {
+        const order = await prisma.order.findUnique({
+            where: { id: Number(orderId) }
+        });
+
+        if (!order) throw new Error("Order not found");
+
+        if (order.payment_slip) {
+            const oldFilePath = `.${order.payment_slip}`;
+            if (fs.existsSync(oldFilePath)) {
+                fs.unlinkSync(oldFilePath);
+            }
+        }
+
+        return await prisma.order.update({
+            where: { id: Number(orderId) },
+            data: {
+                payment_slip: slipPath,
+                payment_status: 'pending'
+            }
+        });
+    }
+
+    static async getPaymentSlip(orderId) {
+        const order = await prisma.order.findUnique({
+            where: { id: Number(orderId) },
+            select: { payment_slip: true }
+        });
+
+        if (!order) throw new Error("Order not found");
+
+        return order.payment_slip;
     }
 }
 
