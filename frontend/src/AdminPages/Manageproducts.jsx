@@ -22,15 +22,6 @@ const colorOptions = [
   { label: "ขาว (White)", value: "white" }
 ];
 
-const products = Array(9).fill({
-  image: "",
-  name: "xxxxxxxxxxxxx",
-  category: "xxxxxxxxxxxxx",
-  price: 9999.0,
-  piece: Math.floor(Math.random() * 700),
-  colors: ["black", "gray", "pink"],
-});
-
 const categoryOptions = [
   { label: "ประตูม้วน", value: "shutter" },
   { label: "อะไหล่ประตูม้วน", value: "shutter_parts" }
@@ -38,18 +29,21 @@ const categoryOptions = [
 
 const ManageProducts = () => {
   const [search, setSearch] = useState("");
+  const [products, setProducts] = useState([]);
   const [visible, setVisible] = useState(false);
+  const token = localStorage.getItem("token");
+
   const fileUploadRef = useRef(null);
+
   const [newProduct, setNewProduct] = useState({
     name: "",
     category: "",
-    type: "",
     price: "",
-    piece: "",
+    stock_quantity: "",
     colors: [],
-    details: "",
+    description: "",
     warranty: "",
-    image: [],
+    images: []
   });
 
   useEffect(() => {
@@ -57,13 +51,12 @@ const ManageProducts = () => {
       setNewProduct({
         name: "",
         category: "",
-        type: "",
         price: "",
-        piece: "",
-        colors: "",
-        details: "",
+        stock_quantity: "",
+        colors: [],
+        description: "",
         warranty: "",
-        image: "",
+        images: [],
       });
     }
   }, [visible]);
@@ -73,65 +66,85 @@ const ManageProducts = () => {
     setNewProduct((prev) => ({ ...prev, [name]: value }));
   };
 
+  console.log("JWT Token:", localStorage.getItem("token"));
+
   const onImageUpload = (event) => {
-    const files = event.files; // รับหลายไฟล์
-    const newImages = [];
+    const uploadedFiles = event.files.map((file) => ({
+      file,
+      previewUrl: URL.createObjectURL(file),
+    }));
 
-    for (let file of files) {
-      if (!["image/png", "image/jpeg"].includes(file.type)) {
-        alert("Only PNG and JPG files are allowed!");
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        newImages.push(e.target.result);
-        if (newImages.length === files.length) {
-          setNewProduct((prev) => ({ ...prev, images: [...prev.images, ...newImages] }));
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const removeImage = (index) => {
     setNewProduct((prev) => ({
       ...prev,
-      images: prev.images.filter((_, i) => i !== index),
+      images: [...(prev.images ?? []), ...uploadedFiles],
     }));
+  };
+
+  const handleRemoveImage = (event) => {
+    setNewProduct((prev) => {
+      const updatedImages = prev.images.filter(
+        (image) => image.file.name !== event.file.name
+      );
+
+      return { ...prev, images: updatedImages };
+    });
   };
 
 
   const handleSubmit = async (event) => {
-    event.preventDefault(); // ป้องกันการโหลดหน้าใหม่
+    event.preventDefault();
+
+    if (!newProduct.name || !newProduct.category || !newProduct.price || !newProduct.stock_quantity) {
+      alert("กรุณากรอกข้อมูลให้ครบก่อนทำการเพิ่มสินค้า");
+      console.log(newProduct);
+      return;
+    }
 
     const formData = new FormData();
     formData.append("name", newProduct.name);
-    formData.append("is_part", newProduct.type);
-    formData.append("price", newProduct.price);
-    formData.append("stock_quantity", newProduct.piece);
-    formData.append("colors", JSON.stringify(newProduct.colors));
-    formData.append("description", newProduct.details);
-    formData.append("warranty", newProduct.warranty);
+    formData.append("description", newProduct.description || "");
+    formData.append("price", newProduct.price ? parseFloat(newProduct.price) : 0);
+    formData.append("is_part", newProduct.type === "อะไหล่ประตูม้วน" ? "true" : "false");
+    formData.append("category", newProduct.category);
+    formData.append("warranty", newProduct.warranty || "");
+    formData.append("stock_quantity", newProduct.stock_quantity ? Number(newProduct.stock_quantity) : 0);
+    formData.append("colors", JSON.stringify(Array.isArray(newProduct.colors) ? newProduct.colors : []));
 
-    // // ถ้ามีภาพ ให้แปลง Base64 เป็นไฟล์แล้วส่งไป
-    // if (newProduct.image) {
-    //   const response = await fetch(newProduct.image);
-    //   const blob = await response.blob();
-    //   formData.append("image", blob, "product_image.png");
-    // }
+    (newProduct.images ?? []).forEach(({ file }) => formData.append("images", file));
 
     try {
-      const response = await axios.post("http://localhost:1234/api/products", {
-        method: "POST",
-        body: formData,
+      const response = await axios.post("http://localhost:1234/api/products", formData, {
+        headers: { 
+          "Content-Type": "multipart/form-data",
+          "Authorization": `Bearer ${token}`
+        },
       });
 
-      const result = await response.json();
-      console.log("✅ Success:", result);
+      console.log("✅ Success:", response.data);
       setVisible(false);
+      setTimeout(fetchProducts, 500);
     } catch (error) {
       console.error("❌ Error submitting form:", error);
+      alert("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
+    }
+  };
+
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      const response = await axios.get("http://localhost:1234/api/products");
+      if (response.data) {
+        setProducts(response.data);
+      } else {
+        console.warn("⚠️ No products found in the database.");
+      }
+    } catch (error) {
+      console.error("❌ Error fetching products:", error);
+      alert("ไม่สามารถโหลดข้อมูลสินค้าได้ กรุณาตรวจสอบการเชื่อมต่อ");
     }
   };
 
@@ -178,7 +191,7 @@ const ManageProducts = () => {
           <Column field="name" header="Product Name" />
           <Column field="category" header="Type" />
           <Column field="price" header="Price" body={(rowData) => `$${rowData.price.toFixed(2)}`} />
-          <Column field="piece" header="Piece" />
+          <Column field="stock_quantity" header="Piece" />
           <Column
             header="Available Color"
             body={(rowData) => (
@@ -205,23 +218,11 @@ const ManageProducts = () => {
         <form onSubmit={handleSubmit} encType="multipart/form-data">
           <div className="p-4 grid grid-cols-2 gap-6 justify-content-center">
             <div className="flex-col items-center">
-              <div
-                style={{ width: "400px", height: "400px" }}
-                className="border justify-content-center border-gray-300 rounded-lg flex items-center mb-4 relative overflow-hidden"
-              >
-                {newProduct.image ? (
+              <div className="border border-gray-300 rounded-lg flex items-center justify-center mb-4 relative overflow-hidden"
+                style={{ width: "400px", height: "400px" }}>
+                {(newProduct.images ?? []).length > 0 ? (
                   <>
-                    <img
-                      src={newProduct.image}
-                      alt="Product"
-                      className="w-full h-full"
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                    />
-                    <Button
-                      icon="pi pi-times"
-                      className="p-button-rounded p-button-danger absolute top-0 right-0"
-                      onClick={() => removeImage()}
-                    />
+                    <img src={newProduct.images[0].previewUrl} alt="Product Preview" className="w-full h-full object-cover" />
                   </>
                 ) : (
                   <span className="text-gray-400">No Image</span>
@@ -230,7 +231,6 @@ const ManageProducts = () => {
               <div className="w-full text-center mt-3">
                 <FileUpload
                   ref={fileUploadRef}
-                  mode="basic"
                   accept="image/png, image/jpeg"
                   maxFileSize={1000000}
                   multiple={true}
@@ -238,6 +238,7 @@ const ManageProducts = () => {
                   customUpload
                   uploadHandler={onImageUpload}
                   chooseLabel="Upload Images"
+                  onRemove={handleRemoveImage}
                 />
               </div>
             </div>
@@ -254,13 +255,13 @@ const ManageProducts = () => {
                 <label className="block">Product Type</label>
                 <div className="pt-2">
                   <Dropdown
-                    name="type"
-                    value={newProduct.type}
+                    name="is_part"
+                    value={newProduct.is_part}
                     options={[
-                      { label: "ประตูม้วน", value: "ประตูม้วน" },
-                      { label: "อะไหล่ประตูม้วน", value: "อะไหล่ประตูม้วน" }
+                      { label: "ประตูม้วน", value: false },
+                      { label: "อะไหล่ประตูม้วน", value: true }
                     ]}
-                    onChange={handleInputChange}
+                    onChange={(e) => setNewProduct({ ...newProduct, is_part: e.value })}
                     className="w-full"
                     placeholder="Select Product Type"
                   />
@@ -289,9 +290,9 @@ const ManageProducts = () => {
               </div>
 
               <div className="mb-3">
-                <label className="block">Piece</label>
+                <label className="block">Stock Quantity</label>
                 <div className="pt-2">
-                  <InputText name="piece" value={newProduct.piece} onChange={handleInputChange} className="w-full" required />
+                  <InputText name="stock_quantity" value={newProduct.stock_quantity} onChange={handleInputChange} className="w-full" required />
                 </div>
               </div>
 
@@ -308,46 +309,14 @@ const ManageProducts = () => {
                     placeholder="Select Colors"
                     display="chip"
                     maxSelectedLabels={2}
-                    style={{
-                      maxWidth: "100%",
-                      overflowX: "auto",
-                      whiteSpace: "nowrap"
-                    }}
-                    panelHeaderTemplate={
-                      <div className="p-2 border-b flex items-center bg-white" style={{ fontSize: "14px", padding: "10px" }}>
-                        <div className="flex items-center w-full p-2 hover:bg-gray-200 rounded cursor-pointer"
-                          style={{ fontSize: "14px", borderRadius: "6px", padding: "8px" }}>
-                          <input
-                            type="checkbox"
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setNewProduct({ ...newProduct, colors: colorOptions.map(c => c.value) });
-                              } else {
-                                setNewProduct({ ...newProduct, colors: [] });
-                              }
-                            }}
-                            checked={newProduct.colors.length === colorOptions.length}
-                            className="mr-2 cursor-pointer"
-                            style={{ width: "18px", height: "18px" }}
-                          />
-                          <span className="text-sm font-medium">เลือกทั้งหมด</span>
-                        </div>
-                        <Button
-                          icon="pi pi-times"
-                          className="p-button-text p-button-sm"
-                          style={{ fontSize: "14px", marginLeft: "8px", borderRadius: "6px", padding: "5px 8px" }}
-                          onClick={() => setNewProduct({ ...newProduct, colors: [] })}
-                        />
-
-                      </div>
-                    }
                   />
                 </div>
               </div>
+
               <div className="mb-3">
-                <label className="block">Detail</label>
+                <label className="block">Description</label>
                 <div className="pt-2">
-                  <InputText name="details" value={newProduct.details} onChange={handleInputChange} className="w-full" />
+                  <InputText name="description" value={newProduct.description} onChange={handleInputChange} className="w-full" />
                 </div>
               </div>
 
@@ -368,6 +337,7 @@ const ManageProducts = () => {
           </div>
         </form>
       </Dialog>
+
     </div>
   );
 };

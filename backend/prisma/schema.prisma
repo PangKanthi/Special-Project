@@ -20,7 +20,6 @@ model product {
   updated_at     DateTime  @updatedAt
   colors         String[]  
   images         String[]  
-
   order_items    order_item[]
   reviews        review[]
 }
