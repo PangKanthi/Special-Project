@@ -39,3 +39,22 @@ export const deleteWorkSample = async (req, res, next) => {
         next(error);
     }
 };
+
+export const getAllWorkSamples = async (req, res, next) => {
+    try {
+      const workSamples = await WorkSampleService.getAllWorkSamples();
+      res.json(workSamples);
+    } catch (error) {
+      next(error);
+    }
+  };
+  
+  export const getWorkSampleById = async (req, res, next) => {
+    try {
+      const workSample = await WorkSampleService.getWorkSampleById(req.params.id);
+      if (!workSample) return res.status(404).json({ message: "Work Sample not found" });
+      res.json(workSample);
+    } catch (error) {
+      next(error);
+    }
+  };
