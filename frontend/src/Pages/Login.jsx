@@ -48,7 +48,8 @@ const Login = () => {
             const response = await axios.post(url, { username, password });
 
             if (response.data.success) {
-                localStorage.setItem('token', response.data.token);
+                localStorage.setItem('token', response.data.data.token);
+                console.log(response.data)
                 setIsLoggedIn(true);
                 setSuccessMessage(response.data.message);
                 if (checked) {

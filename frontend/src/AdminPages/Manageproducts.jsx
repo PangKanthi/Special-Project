@@ -31,7 +31,6 @@ const ManageProducts = () => {
   const [search, setSearch] = useState("");
   const [products, setProducts] = useState([]);
   const [visible, setVisible] = useState(false);
-  const token = localStorage.getItem("token");
 
   const fileUploadRef = useRef(null);
 
@@ -60,6 +59,7 @@ const ManageProducts = () => {
       });
     }
   }, [visible]);
+  
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -100,23 +100,26 @@ const ManageProducts = () => {
       return;
     }
 
-    const formData = new FormData();
-    formData.append("name", newProduct.name);
-    formData.append("description", newProduct.description || "");
-    formData.append("price", newProduct.price ? parseFloat(newProduct.price) : 0);
-    formData.append("is_part", newProduct.type === "อะไหล่ประตูม้วน" ? "true" : "false");
-    formData.append("category", newProduct.category);
-    formData.append("warranty", newProduct.warranty || "");
-    formData.append("stock_quantity", newProduct.stock_quantity ? Number(newProduct.stock_quantity) : 0);
-    formData.append("colors", JSON.stringify(Array.isArray(newProduct.colors) ? newProduct.colors : []));
+    // ✅ สร้าง JSON Object เพื่อส่งไป Backend
+    const productData = {
+      name: newProduct.name,
+      description: newProduct.description || "",
+      price: newProduct.price ? parseFloat(newProduct.price) : 0,
+      is_part: newProduct.type === "อะไหล่ประตูม้วน",  // ✅ Boolean
+      category: newProduct.category,
+      warranty: newProduct.warranty || "",
+      stock_quantity: newProduct.stock_quantity ? Number(newProduct.stock_quantity) : 0,
+      colors: Array.isArray(newProduct.colors) ? newProduct.colors : [],
+      images: newProduct.images.map(img => img.previewUrl) // ✅ ส่ง URL หรือ Base64
+    };
 
-    (newProduct.images ?? []).forEach(({ file }) => formData.append("images", file));
+    console.log("📦 JSON Data Before Sending:", productData);
 
     try {
-      const response = await axios.post("http://localhost:1234/api/products", formData, {
-        headers: { 
-          "Content-Type": "multipart/form-data",
-          "Authorization": `Bearer ${token}`
+      const response = await axios.post("http://localhost:1234/api/products", productData, {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
         },
       });
 
@@ -128,6 +131,7 @@ const ManageProducts = () => {
       alert("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
     }
   };
+
 
 
   useEffect(() => {
@@ -190,7 +194,7 @@ const ManageProducts = () => {
           />
           <Column field="name" header="Product Name" />
           <Column field="category" header="Type" />
-          <Column field="price" header="Price" body={(rowData) => `$${rowData.price.toFixed(2)}`} />
+          <Column field="price" header="Price" body={(rowData) => `$${rowData.price}`} />
           <Column field="stock_quantity" header="Piece" />
           <Column
             header="Available Color"

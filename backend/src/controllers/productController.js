@@ -3,7 +3,7 @@ import ProductService from "../services/productService.js";
 export const createProduct = async (req, res, next) => {
   try {
     const imageUrls = req.files ? req.files.map(file => `/uploads/products/${file.filename}`) : [];
-    const colors = req.body.colors ? JSON.parse(req.body.colors) : [];
+    const colors = req.body.colors;
 
     const newProduct = await ProductService.createProduct(
       { ...req.body, colors },
