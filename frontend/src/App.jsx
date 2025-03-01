@@ -21,6 +21,9 @@ import GeneralPartsinside from './Pagesinside/GeneralPartsinside';
 import Manageorders from './AdminPages/Manageorders';
 import Manageproducts from './AdminPages/Manageproducts';
 import Manageusers from './AdminPages/Manageusers';
+import Managepromotions from './AdminPages/Managepromotions';
+import Manageportfolios from './AdminPages/Manageportfolios';
+import History from './AdminPages/History';
 import 'primeflex/primeflex.css';
 import 'primereact/resources/themes/saga-blue/theme.css';
 import 'primereact/resources/primereact.min.css';
@@ -40,7 +43,7 @@ const App = () => {
                       location.pathname.startsWith('/manageusers') || 
                       location.pathname.startsWith('/managepromotions') || 
                       location.pathname.startsWith('/manageportfolios') || 
-                      location.pathname.startsWith('/salesreport');
+                      location.pathname.startsWith('/history');
   const showFooter = !['/productAuto/', '/productGeneral/'].some(path => location.pathname.startsWith(path));
   const bodyStyle = {
     paddingTop: '70px'
@@ -78,6 +81,9 @@ const App = () => {
           <Route path="/manageorders" element={<Manageorders />} />
           <Route path="/manageproducts" element={<Manageproducts />} />
           <Route path="/manageusers" element={<Manageusers />} />
+          <Route path="/managepromotions" element={<Managepromotions />} />
+          <Route path="/manageportfolios" element={<Manageportfolios />} />
+          <Route path="/history" element={<History />} />
         </Routes>
       </div>
       {showFooter && <div className="pt-8"><Footer /></div>}
