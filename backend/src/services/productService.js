@@ -1,5 +1,7 @@
+import { PrismaClient, Prisma } from "@prisma/client"; // ✅ Import PrismaClient & Prisma
 import fs from "fs";
-import prisma from "../config/db.js";
+
+const prisma = new PrismaClient(); // ✅ สร้าง instance Prisma
 
 class ProductService {
   static async getAllProducts() {
@@ -37,28 +39,42 @@ class ProductService {
 
     let updatedColors = product.colors;
     if (data.colors) {
-      updatedColors = JSON.parse(data.colors);
+        updatedColors = Array.isArray(data.colors) ? data.colors : JSON.parse(data.colors);
     }
 
     let updatedImages = [...product.images];
     if (newImages.length > 0) {
-      updatedImages = [...updatedImages, ...newImages];
+        updatedImages = [...updatedImages, ...newImages];
     }
 
-    if (data.removeImages) {
-      const removeList = JSON.parse(data.removeImages);
-      updatedImages = updatedImages.filter(img => !removeList.includes(img));
+    if (data.removeImages && data.removeImages !== "null") {
+      try {
+          const removeList = JSON.parse(data.removeImages);
+          updatedImages = updatedImages.filter(img => !removeList.includes(img));
+      } catch (err) {
+          console.error("❌ JSON parsing error for removeImages:", err);
+      }
     }
 
     return await prisma.product.update({
-      where: { id: Number(id) },
-      data: {
-        ...data,
-        colors: updatedColors,
-        images: updatedImages
-      }
+        where: { id: Number(id) },
+        data: {
+            name: data.name,
+            description: data.description || null,
+            price: data.price ? new Prisma.Decimal(data.price) : null,
+            is_part: data.is_part === "true" || data.is_part === true,
+            category: data.category,
+            warranty: data.warranty || null,
+            stock_quantity: data.stock_quantity ? parseInt(data.stock_quantity, 10) : 0,
+            colors: updatedColors,
+            images: updatedImages
+        }
     });
-  }
+}
+
+
+
+
 
   static async deleteProduct(id) {
     const product = await prisma.product.findUnique({

@@ -36,7 +36,6 @@ const ManageProducts = () => {
   const [editMode, setEditMode] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
 
-
   const fileUploadRef = useRef(null);
 
   const [newProduct, setNewProduct] = useState({
@@ -65,7 +64,6 @@ const ManageProducts = () => {
     }
   }, [visible]);
 
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewProduct((prev) => ({ ...prev, [name]: value }));
@@ -87,10 +85,19 @@ const ManageProducts = () => {
 
   const handleRemoveImage = (event) => {
     setNewProduct((prev) => {
-      const updatedImages = prev.images.filter(
-        (image) => image.file.name !== event.file.name
-      );
-
+      let updatedImages;
+      
+      if (event.file) {
+        updatedImages = prev.images.filter(
+          (image) => image.file && image.file.name !== event.file.name
+        );
+      } 
+      else {
+        updatedImages = prev.images.filter(
+          (image) => image.previewUrl !== event.previewUrl
+        );
+      }
+  
       return { ...prev, images: updatedImages };
     });
   };
@@ -107,18 +114,16 @@ const ManageProducts = () => {
       return;
     }
 
-    // ✅ สร้าง FormData
     const formData = new FormData();
     formData.append("name", newProduct.name);
     formData.append("description", newProduct.description || "");
     formData.append("price", newProduct.price);
-    formData.append("is_part", newProduct.is_part);
+    formData.append("is_part", newProduct.is_part ? true : false);
     formData.append("category", newProduct.category);
     formData.append("warranty", newProduct.warranty || "");
     formData.append("stock_quantity", newProduct.stock_quantity);
-    formData.append("colors", JSON.stringify(newProduct.colors)); // แปลง array เป็น JSON string
+    formData.append("colors", JSON.stringify(newProduct.colors));
 
-    // ✅ เพิ่มไฟล์รูปภาพลงใน FormData
     newProduct.images.forEach((img) => {
       formData.append("images", img.file);
     });
@@ -190,6 +195,7 @@ const ManageProducts = () => {
   //edit
   const handleEdit = (product) => {
     setEditingProduct(product);
+
     setNewProduct({
       name: product.name,
       category: product.category,
@@ -198,8 +204,13 @@ const ManageProducts = () => {
       colors: Array.isArray(product.colors) ? product.colors : [],
       description: product.description || "",
       warranty: product.warranty || "",
-      images: product.images ? product.images.map(img => ({ previewUrl: img })) : [], // ✅ ให้โหลดภาพเก่าด้วย
+      images: product.images
+        ? product.images.map((img) => ({
+            previewUrl: `http://localhost:1234${img}`,
+          })) // ✅ โหลดรูปทั้งหมด
+        : [],
     });
+
     setEditMode(true);
     setVisible(true);
   };
@@ -212,23 +223,33 @@ const ManageProducts = () => {
       return;
     }
 
-    // ✅ สร้าง FormData
+    const removeImageList = editingProduct.images
+      ? editingProduct.images.map((img) => img.previewUrl)
+      : [];
+
     const formData = new FormData();
     formData.append("name", newProduct.name);
     formData.append("description", newProduct.description || "");
-    formData.append("price", newProduct.price);
-    formData.append("is_part", newProduct.is_part);
+    formData.append(
+      "price",
+      newProduct.price ? parseFloat(newProduct.price).toFixed(2) : null
+    );
+    formData.append("is_part", JSON.stringify(newProduct.is_part === true));
     formData.append("category", newProduct.category);
     formData.append("warranty", newProduct.warranty || "");
-    formData.append("stock_quantity", newProduct.stock_quantity);
-    formData.append("colors", JSON.stringify(newProduct.colors)); // ✅ ต้องเป็น JSON String ที่ถูกต้อง
+    formData.append(
+      "stock_quantity",
+      newProduct.stock_quantity ? parseInt(newProduct.stock_quantity, 10) : 0
+    );
+    formData.append("colors", JSON.stringify(newProduct.colors));
 
-    // ✅ ตรวจสอบการอัปโหลดรูปภาพ
     if (newProduct.images.length > 0) {
       newProduct.images.forEach((img) => {
         if (img.file) formData.append("images", img.file);
       });
     }
+
+    console.log("📦 FormData ก่อนส่ง:", [...formData.entries()]);
 
     try {
       const response = await axios.put(
@@ -247,11 +268,13 @@ const ManageProducts = () => {
       setEditMode(false);
       fetchProducts();
     } catch (error) {
-      console.error("❌ เกิดข้อผิดพลาดในการแก้ไขสินค้า:", error);
+      console.error(
+        "❌ เกิดข้อผิดพลาดในการแก้ไขสินค้า:",
+        error.response?.data || error
+      );
       alert("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
     }
   };
-
 
   return (
     <div className="p-6 min-h-screen">
@@ -264,7 +287,7 @@ const ManageProducts = () => {
               <InputText
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search Order"
+                placeholder="Search Product"
                 className="w-full pl-8"
               />
             </span>
@@ -275,8 +298,8 @@ const ManageProducts = () => {
               icon="pi pi-plus"
               className="p-button-primary"
               onClick={() => {
-                setEditMode(false);  // รีเซ็ตเป็นโหมดเพิ่มสินค้า
-                setEditingProduct(null); // ล้างค่า editingProduct
+                setEditMode(false);
+                setEditingProduct(null);
                 setNewProduct({
                   name: "",
                   category: "",
@@ -301,7 +324,7 @@ const ManageProducts = () => {
             body={(rowData) =>
               rowData.images && rowData.images.length > 0 ? (
                 <img
-                  src={`http://localhost:1234${rowData.images[0]}`} // ปรับ URL ตาม backend ของคุณ
+                  src={`http://localhost:1234${rowData.images[0]}`}
                   alt="Product"
                   style={{ width: "50px", height: "50px", objectFit: "cover" }}
                 />
@@ -362,28 +385,15 @@ const ManageProducts = () => {
         style={{ width: "50vw" }}
         onHide={() => setVisible(false)}
       >
-        <form onSubmit={(e) => {
-          e.preventDefault();
-          editMode ? handleSaveEdit(e) : handleSubmit(e);
-        }}>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            editMode ? handleSaveEdit(e) : handleSubmit(e);
+          }}
+        >
           <div className="p-4 grid grid-cols-2 gap-6 justify-content-center">
             <div className="flex-col items-center">
-              <div
-                className="border border-gray-300 rounded-lg flex items-center justify-center mb-4 relative overflow-hidden"
-                style={{ width: "400px", height: "400px" }}
-              >
-                {(newProduct.images ?? []).length > 0 ? (
-                  <>
-                    <img
-                      src={newProduct.images[0].previewUrl}
-                      alt="Product Preview"
-                      className="w-full h-full object-cover"
-                    />
-                  </>
-                ) : (
-                  <span className="text-gray-400">No Image</span>
-                )}
-              </div>
+
               <div className="w-full text-center mt-3">
                 <FileUpload
                   ref={fileUploadRef}
@@ -399,6 +409,7 @@ const ManageProducts = () => {
               </div>
             </div>
 
+            {/* ✅ ฟอร์มกรอกข้อมูลสินค้า */}
             <div>
               <div className="mb-3">
                 <label className="block">Product Name</label>
@@ -406,7 +417,9 @@ const ManageProducts = () => {
                   <InputText
                     name="name"
                     value={newProduct.name}
-                    onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+                    onChange={(e) =>
+                      setNewProduct({ ...newProduct, name: e.target.value })
+                    }
                     className="w-full"
                     required
                   />
@@ -454,7 +467,9 @@ const ManageProducts = () => {
                   <InputText
                     name="price"
                     value={newProduct.price}
-                    onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
+                    onChange={(e) =>
+                      setNewProduct({ ...newProduct, price: e.target.value })
+                    }
                     className="w-full"
                     required
                   />
@@ -519,6 +534,7 @@ const ManageProducts = () => {
             </div>
           </div>
 
+          {/* ✅ ปุ่มบันทึกและยกเลิก */}
           <div className="flex justify-content-center mt-4">
             <div className="mr-3">
               <Button
