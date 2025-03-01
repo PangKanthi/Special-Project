@@ -46,18 +46,22 @@ const ManageUsers = () => {
     <div className="p-6 min-h-screen bg-gray-100">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">User Management</h1>
-        <div className="flex gap-4 items-center">
-          <span className="p-input-icon-left">
-            <i className="pi pi-search" />
-            <InputText
-              type="text"
-              placeholder="Search User"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-72"
+        <div className="flex space-x-4 items-center ml-auto">
+          <div className="ml-auto w-72 pt-3">
+            <span className="p-input-icon-left w-full flex items-center pr-3">
+              <i className="pi pi-search pl-3 text-gray-500" />
+              <InputText value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search Order" className="w-full pl-8" />
+            </span>
+          </div>
+          <div className="ml-auto w-72 pt-3">
+            <Button
+              label="Add New Product"
+              icon="pi pi-plus"
+              className="p-button-primary"
+              onClick={() => {
+              }}
             />
-          </span>
-          <Button icon="pi pi-user-plus" label="Add New Member" className="p-button-primary" />
+          </div>
         </div>
       </div>
 

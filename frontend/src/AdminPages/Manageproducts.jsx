@@ -100,7 +100,6 @@ const ManageProducts = () => {
       return;
     }
 
-    // ✅ สร้าง JSON Object เพื่อส่งไป Backend
     const productData = {
       name: newProduct.name,
       description: newProduct.description || "",

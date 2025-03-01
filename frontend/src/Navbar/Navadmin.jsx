@@ -32,8 +32,8 @@ export default function Navbar() {
     { label: 'จัดการออเดอร์', icon: PrimeIcons.SHOPPING_CART, action: () => navigate('/manageorders'), className: pathname === '/manageorders' ? 'font-bold text-black' : '' },
     { label: 'จัดการสินค้า', icon: PrimeIcons.BOX, action: () => navigate('/manageproducts'), className: pathname === '/manageproducts' ? 'font-bold text-black' : '' },
     { label: 'จัดการสมาชิก', icon: PrimeIcons.USERS, action: () => navigate('/manageusers'), className: pathname === '/manageusers' ? 'font-bold text-black' : '' },
-    { label: 'จัดการโปรโมชั่น', icon: PrimeIcons.TAG, action: () => navigate('/promotions'), className: pathname === '/promotions' ? 'font-bold text-black' : '' },
-    { label: 'จัดการผลงาน', icon: PrimeIcons.BRIEFCASE, action: () => navigate('/projects'), className: pathname === '/projects' ? 'font-bold text-black' : '' },
+    { label: 'จัดการโปรโมชั่น', icon: PrimeIcons.TAG, action: () => navigate('/managepromotions'), className: pathname === '/managepromotions' ? 'font-bold text-black' : '' },
+    { label: 'จัดการผลงาน', icon: PrimeIcons.BRIEFCASE, action: () => navigate('/manageportfolios'), className: pathname === '/manageportfolios' ? 'font-bold text-black' : '' },
     { label: 'ประวัติ', icon: PrimeIcons.BOOK, action: () => navigate('/history'), className: pathname === '/history' ? 'font-bold text-black' : '' }
   ];
 
