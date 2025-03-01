@@ -32,6 +32,11 @@ const ManageProducts = () => {
   const [products, setProducts] = useState([]);
   const [visible, setVisible] = useState(false);
 
+  //edit
+  const [editMode, setEditMode] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
+
+
   const fileUploadRef = useRef(null);
 
   const [newProduct, setNewProduct] = useState({
@@ -59,6 +64,7 @@ const ManageProducts = () => {
       });
     }
   }, [visible]);
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -91,7 +97,6 @@ const ManageProducts = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-
     if (
       !newProduct.name ||
       !newProduct.category ||
@@ -143,7 +148,7 @@ const ManageProducts = () => {
 
   const handleDelete = async (productId) => {
     if (!window.confirm("คุณแน่ใจหรือไม่ว่าต้องการลบสินค้านี้?")) return;
-  
+
     try {
       const response = await axios.delete(
         `http://localhost:1234/api/products/${productId}`,
@@ -153,7 +158,7 @@ const ManageProducts = () => {
           },
         }
       );
-  
+
       console.log("✅ ลบสินค้าเรียบร้อย:", response.data);
       setProducts((prevProducts) =>
         prevProducts.filter((product) => product.id !== productId)
@@ -182,6 +187,72 @@ const ManageProducts = () => {
     }
   };
 
+  //edit
+  const handleEdit = (product) => {
+    setEditingProduct(product);
+    setNewProduct({
+      name: product.name,
+      category: product.category,
+      price: product.price,
+      stock_quantity: product.stock_quantity,
+      colors: Array.isArray(product.colors) ? product.colors : [],
+      description: product.description || "",
+      warranty: product.warranty || "",
+      images: product.images ? product.images.map(img => ({ previewUrl: img })) : [], // ✅ ให้โหลดภาพเก่าด้วย
+    });
+    setEditMode(true);
+    setVisible(true);
+  };
+
+  const handleSaveEdit = async (event) => {
+    event.preventDefault();
+
+    if (!editingProduct) {
+      console.error("❌ ไม่มีสินค้าให้แก้ไข");
+      return;
+    }
+
+    // ✅ สร้าง FormData
+    const formData = new FormData();
+    formData.append("name", newProduct.name);
+    formData.append("description", newProduct.description || "");
+    formData.append("price", newProduct.price);
+    formData.append("is_part", newProduct.is_part);
+    formData.append("category", newProduct.category);
+    formData.append("warranty", newProduct.warranty || "");
+    formData.append("stock_quantity", newProduct.stock_quantity);
+    formData.append("colors", JSON.stringify(newProduct.colors)); // ✅ ต้องเป็น JSON String ที่ถูกต้อง
+
+    // ✅ ตรวจสอบการอัปโหลดรูปภาพ
+    if (newProduct.images.length > 0) {
+      newProduct.images.forEach((img) => {
+        if (img.file) formData.append("images", img.file);
+      });
+    }
+
+    try {
+      const response = await axios.put(
+        `http://localhost:1234/api/products/${editingProduct.id}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      console.log("✅ แก้ไขสินค้าสำเร็จ:", response.data);
+      setVisible(false);
+      setEditMode(false);
+      fetchProducts();
+    } catch (error) {
+      console.error("❌ เกิดข้อผิดพลาดในการแก้ไขสินค้า:", error);
+      alert("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
+    }
+  };
+
+
   return (
     <div className="p-6 min-h-screen">
       <div className="flex justify-between items-center mb-4">
@@ -204,15 +275,17 @@ const ManageProducts = () => {
               icon="pi pi-plus"
               className="p-button-primary"
               onClick={() => {
+                setEditMode(false);  // รีเซ็ตเป็นโหมดเพิ่มสินค้า
+                setEditingProduct(null); // ล้างค่า editingProduct
                 setNewProduct({
                   name: "",
-                  type: "",
+                  category: "",
                   price: "",
-                  piece: "",
-                  colors: "",
-                  details: "",
+                  stock_quantity: "",
+                  colors: [],
+                  description: "",
                   warranty: "",
-                  image: "",
+                  images: [],
                 });
                 setVisible(true);
               }}
@@ -228,7 +301,7 @@ const ManageProducts = () => {
             body={(rowData) =>
               rowData.images && rowData.images.length > 0 ? (
                 <img
-                  src={`http://localhost:1234${rowData.images[0]}`}
+                  src={`http://localhost:1234${rowData.images[0]}`} // ปรับ URL ตาม backend ของคุณ
                   alt="Product"
                   style={{ width: "50px", height: "50px", objectFit: "cover" }}
                 />
@@ -270,6 +343,7 @@ const ManageProducts = () => {
                 <Button
                   icon="pi pi-pencil"
                   className="p-button-text p-button-secondary"
+                  onClick={() => handleEdit(rowData)}
                 />
                 <Button
                   icon="pi pi-trash"
@@ -283,12 +357,15 @@ const ManageProducts = () => {
       </div>
 
       <Dialog
-        header="Add New Product"
+        header={editMode ? "Edit Product" : "Add New Product"}
         visible={visible}
         style={{ width: "50vw" }}
         onHide={() => setVisible(false)}
       >
-        <form onSubmit={handleSubmit} encType="multipart/form-data">
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          editMode ? handleSaveEdit(e) : handleSubmit(e);
+        }}>
           <div className="p-4 grid grid-cols-2 gap-6 justify-content-center">
             <div className="flex-col items-center">
               <div
@@ -329,7 +406,7 @@ const ManageProducts = () => {
                   <InputText
                     name="name"
                     value={newProduct.name}
-                    onChange={handleInputChange}
+                    onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
                     className="w-full"
                     required
                   />
@@ -377,7 +454,7 @@ const ManageProducts = () => {
                   <InputText
                     name="price"
                     value={newProduct.price}
-                    onChange={handleInputChange}
+                    onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
                     className="w-full"
                     required
                   />
@@ -452,7 +529,7 @@ const ManageProducts = () => {
               />
             </div>
             <Button
-              label="Add Now"
+              label={editMode ? "Save Changes" : "Add Now"}
               className="p-button-primary"
               type="submit"
             />
