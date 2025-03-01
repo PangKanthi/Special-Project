@@ -9,7 +9,7 @@ import { Avatar } from "primereact/avatar";
 import { Dialog } from "primereact/dialog";
 import { FileUpload } from "primereact/fileupload";
 import { MultiSelect } from "primereact/multiselect";
-import { Dropdown } from 'primereact/dropdown';
+import { Dropdown } from "primereact/dropdown";
 import axios from "axios";
 
 const colorOptions = [
@@ -19,12 +19,12 @@ const colorOptions = [
   { label: "น้ำเงิน (Blue)", value: "blue" },
   { label: "เขียว (Green)", value: "green" },
   { label: "แดง (Red)", value: "red" },
-  { label: "ขาว (White)", value: "white" }
+  { label: "ขาว (White)", value: "white" },
 ];
 
 const categoryOptions = [
   { label: "ประตูม้วน", value: "shutter" },
-  { label: "อะไหล่ประตูม้วน", value: "shutter_parts" }
+  { label: "อะไหล่ประตูม้วน", value: "shutter_parts" },
 ];
 
 const ManageProducts = () => {
@@ -42,7 +42,7 @@ const ManageProducts = () => {
     colors: [],
     description: "",
     warranty: "",
-    images: []
+    images: [],
   });
 
   useEffect(() => {
@@ -59,7 +59,6 @@ const ManageProducts = () => {
       });
     }
   }, [visible]);
-  
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -90,48 +89,80 @@ const ManageProducts = () => {
     });
   };
 
-
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    if (!newProduct.name || !newProduct.category || !newProduct.price || !newProduct.stock_quantity) {
+    if (
+      !newProduct.name ||
+      !newProduct.category ||
+      !newProduct.price ||
+      !newProduct.stock_quantity
+    ) {
       alert("กรุณากรอกข้อมูลให้ครบก่อนทำการเพิ่มสินค้า");
-      console.log(newProduct);
       return;
     }
 
-    const productData = {
-      name: newProduct.name,
-      description: newProduct.description || "",
-      price: newProduct.price ? parseFloat(newProduct.price) : 0,
-      is_part: newProduct.type === "อะไหล่ประตูม้วน",  // ✅ Boolean
-      category: newProduct.category,
-      warranty: newProduct.warranty || "",
-      stock_quantity: newProduct.stock_quantity ? Number(newProduct.stock_quantity) : 0,
-      colors: Array.isArray(newProduct.colors) ? newProduct.colors : [],
-      images: newProduct.images.map(img => img.previewUrl) // ✅ ส่ง URL หรือ Base64
-    };
+    // ✅ สร้าง FormData
+    const formData = new FormData();
+    formData.append("name", newProduct.name);
+    formData.append("description", newProduct.description || "");
+    formData.append("price", newProduct.price);
+    formData.append("is_part", newProduct.is_part);
+    formData.append("category", newProduct.category);
+    formData.append("warranty", newProduct.warranty || "");
+    formData.append("stock_quantity", newProduct.stock_quantity);
+    formData.append("colors", JSON.stringify(newProduct.colors)); // แปลง array เป็น JSON string
 
-    console.log("📦 JSON Data Before Sending:", productData);
+    // ✅ เพิ่มไฟล์รูปภาพลงใน FormData
+    newProduct.images.forEach((img) => {
+      formData.append("images", img.file);
+    });
+
+    console.log("📦 FormData ก่อนส่ง:", formData);
 
     try {
-      const response = await axios.post("http://localhost:1234/api/products", productData, {
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token")}`
-        },
-      });
+      const response = await axios.post(
+        "http://localhost:1234/api/products",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
 
-      console.log("✅ Success:", response.data);
+      console.log("✅ สำเร็จ:", response.data);
       setVisible(false);
       setTimeout(fetchProducts, 500);
     } catch (error) {
-      console.error("❌ Error submitting form:", error);
+      console.error("❌ เกิดข้อผิดพลาดในการส่งฟอร์ม:", error);
       alert("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
     }
   };
 
-
+  const handleDelete = async (productId) => {
+    if (!window.confirm("คุณแน่ใจหรือไม่ว่าต้องการลบสินค้านี้?")) return;
+  
+    try {
+      const response = await axios.delete(
+        `http://localhost:1234/api/products/${productId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+  
+      console.log("✅ ลบสินค้าเรียบร้อย:", response.data);
+      setProducts((prevProducts) =>
+        prevProducts.filter((product) => product.id !== productId)
+      );
+    } catch (error) {
+      console.error("❌ เกิดข้อผิดพลาดในการลบสินค้า:", error);
+      alert("ไม่สามารถลบสินค้าได้ กรุณาลองใหม่");
+    }
+  };
 
   useEffect(() => {
     fetchProducts();
@@ -159,7 +190,12 @@ const ManageProducts = () => {
           <div className="ml-auto w-72 pt-3">
             <span className="p-input-icon-left w-full flex items-center pr-3">
               <i className="pi pi-search pl-3 text-gray-500" />
-              <InputText value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search Order" className="w-full pl-8" />
+              <InputText
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search Order"
+                className="w-full pl-8"
+              />
             </span>
           </div>
           <div className="ml-auto w-72 pt-3">
@@ -189,43 +225,83 @@ const ManageProducts = () => {
         <DataTable value={products} paginator rows={10}>
           <Column
             header="Image"
-            body={() => <Avatar shape="square" size="large" className="bg-gray-300" />}
+            body={(rowData) =>
+              rowData.images && rowData.images.length > 0 ? (
+                <img
+                  src={`http://localhost:1234${rowData.images[0]}`} // ปรับ URL ตาม backend ของคุณ
+                  alt="Product"
+                  style={{ width: "50px", height: "50px", objectFit: "cover" }}
+                />
+              ) : (
+                <Avatar shape="square" size="large" className="bg-gray-300" />
+              )
+            }
           />
           <Column field="name" header="Product Name" />
           <Column field="category" header="Type" />
-          <Column field="price" header="Price" body={(rowData) => `$${rowData.price}`} />
+          <Column
+            field="price"
+            header="Price"
+            body={(rowData) => `$${rowData.price}`}
+          />
           <Column field="stock_quantity" header="Piece" />
           <Column
             header="Available Color"
             body={(rowData) => (
               <div className="flex space-x-2">
                 {rowData.colors.map((color, i) => (
-                  <Tag key={i} style={{ backgroundColor: color, width: 20, height: 20, borderRadius: "50%" }} />
+                  <Tag
+                    key={i}
+                    style={{
+                      backgroundColor: color,
+                      width: 20,
+                      height: 20,
+                      borderRadius: "50%",
+                    }}
+                  />
                 ))}
               </div>
             )}
           />
           <Column
             header="Action"
-            body={() => (
+            body={(rowData) => (
               <div className="flex space-x-3">
-                <Button icon="pi pi-pencil" className="p-button-text p-button-secondary" />
-                <Button icon="pi pi-trash" className="p-button-text p-button-danger" />
+                <Button
+                  icon="pi pi-pencil"
+                  className="p-button-text p-button-secondary"
+                />
+                <Button
+                  icon="pi pi-trash"
+                  className="p-button-text p-button-danger"
+                  onClick={() => handleDelete(rowData.id)}
+                />
               </div>
             )}
           />
         </DataTable>
       </div>
 
-      <Dialog header="Add New Product" visible={visible} style={{ width: "50vw" }} onHide={() => setVisible(false)}>
+      <Dialog
+        header="Add New Product"
+        visible={visible}
+        style={{ width: "50vw" }}
+        onHide={() => setVisible(false)}
+      >
         <form onSubmit={handleSubmit} encType="multipart/form-data">
           <div className="p-4 grid grid-cols-2 gap-6 justify-content-center">
             <div className="flex-col items-center">
-              <div className="border border-gray-300 rounded-lg flex items-center justify-center mb-4 relative overflow-hidden"
-                style={{ width: "400px", height: "400px" }}>
+              <div
+                className="border border-gray-300 rounded-lg flex items-center justify-center mb-4 relative overflow-hidden"
+                style={{ width: "400px", height: "400px" }}
+              >
                 {(newProduct.images ?? []).length > 0 ? (
                   <>
-                    <img src={newProduct.images[0].previewUrl} alt="Product Preview" className="w-full h-full object-cover" />
+                    <img
+                      src={newProduct.images[0].previewUrl}
+                      alt="Product Preview"
+                      className="w-full h-full object-cover"
+                    />
                   </>
                 ) : (
                   <span className="text-gray-400">No Image</span>
@@ -250,7 +326,13 @@ const ManageProducts = () => {
               <div className="mb-3">
                 <label className="block">Product Name</label>
                 <div className="pt-2">
-                  <InputText name="name" value={newProduct.name} onChange={handleInputChange} className="w-full" required />
+                  <InputText
+                    name="name"
+                    value={newProduct.name}
+                    onChange={handleInputChange}
+                    className="w-full"
+                    required
+                  />
                 </div>
               </div>
 
@@ -262,9 +344,11 @@ const ManageProducts = () => {
                     value={newProduct.is_part}
                     options={[
                       { label: "ประตูม้วน", value: false },
-                      { label: "อะไหล่ประตูม้วน", value: true }
+                      { label: "อะไหล่ประตูม้วน", value: true },
                     ]}
-                    onChange={(e) => setNewProduct({ ...newProduct, is_part: e.value })}
+                    onChange={(e) =>
+                      setNewProduct({ ...newProduct, is_part: e.value })
+                    }
                     className="w-full"
                     placeholder="Select Product Type"
                   />
@@ -278,7 +362,9 @@ const ManageProducts = () => {
                     name="category"
                     value={newProduct.category}
                     options={categoryOptions}
-                    onChange={(e) => setNewProduct({ ...newProduct, category: e.value })}
+                    onChange={(e) =>
+                      setNewProduct({ ...newProduct, category: e.value })
+                    }
                     className="w-full"
                     placeholder="Select Category Type"
                   />
@@ -288,14 +374,26 @@ const ManageProducts = () => {
               <div className="mb-3">
                 <label className="block">Price</label>
                 <div className="pt-2">
-                  <InputText name="price" value={newProduct.price} onChange={handleInputChange} className="w-full" required />
+                  <InputText
+                    name="price"
+                    value={newProduct.price}
+                    onChange={handleInputChange}
+                    className="w-full"
+                    required
+                  />
                 </div>
               </div>
 
               <div className="mb-3">
                 <label className="block">Stock Quantity</label>
                 <div className="pt-2">
-                  <InputText name="stock_quantity" value={newProduct.stock_quantity} onChange={handleInputChange} className="w-full" required />
+                  <InputText
+                    name="stock_quantity"
+                    value={newProduct.stock_quantity}
+                    onChange={handleInputChange}
+                    className="w-full"
+                    required
+                  />
                 </div>
               </div>
 
@@ -306,7 +404,9 @@ const ManageProducts = () => {
                     name="colors"
                     value={newProduct.colors}
                     options={colorOptions}
-                    onChange={(e) => setNewProduct({ ...newProduct, colors: e.value })}
+                    onChange={(e) =>
+                      setNewProduct({ ...newProduct, colors: e.value })
+                    }
                     optionLabel="label"
                     className="w-full"
                     placeholder="Select Colors"
@@ -319,14 +419,24 @@ const ManageProducts = () => {
               <div className="mb-3">
                 <label className="block">Description</label>
                 <div className="pt-2">
-                  <InputText name="description" value={newProduct.description} onChange={handleInputChange} className="w-full" />
+                  <InputText
+                    name="description"
+                    value={newProduct.description}
+                    onChange={handleInputChange}
+                    className="w-full"
+                  />
                 </div>
               </div>
 
               <div className="mb-3">
                 <label className="block">Warranty</label>
                 <div className="pt-2">
-                  <InputText name="warranty" value={newProduct.warranty} onChange={handleInputChange} className="w-full" />
+                  <InputText
+                    name="warranty"
+                    value={newProduct.warranty}
+                    onChange={handleInputChange}
+                    className="w-full"
+                  />
                 </div>
               </div>
             </div>
@@ -334,13 +444,21 @@ const ManageProducts = () => {
 
           <div className="flex justify-content-center mt-4">
             <div className="mr-3">
-              <Button label="Cancel" className="p-button-danger" onClick={() => setVisible(false)} type="button" />
+              <Button
+                label="Cancel"
+                className="p-button-danger"
+                onClick={() => setVisible(false)}
+                type="button"
+              />
             </div>
-            <Button label="Add Now" className="p-button-primary" type="submit" />
+            <Button
+              label="Add Now"
+              className="p-button-primary"
+              type="submit"
+            />
           </div>
         </form>
       </Dialog>
-
     </div>
   );
 };

@@ -1,3 +1,4 @@
+import fs from "fs";
 import prisma from "../config/db.js";
 
 class ProductService {
@@ -14,9 +15,15 @@ class ProductService {
   static async createProduct(data, imageUrls) {
     return await prisma.product.create({
       data: {
-        ...data,
-        images: imageUrls,
-        colors: data.colors || []
+        name: data.name,
+        description: data.description,
+        price: data.price,
+        is_part: data.is_part,
+        category: data.category,
+        warranty: data.warranty,
+        stock_quantity: data.stock_quantity,
+        colors: data.colors,
+        images: imageUrls
       }
     });
   }
@@ -47,8 +54,8 @@ class ProductService {
       where: { id: Number(id) },
       data: {
         ...data,
-        colors: updatedColors, 
-        images: updatedImages 
+        colors: updatedColors,
+        images: updatedImages
       }
     });
   }
@@ -69,6 +76,7 @@ class ProductService {
 
     return await prisma.product.delete({ where: { id: Number(id) } });
   }
+
 }
 
 export default ProductService;

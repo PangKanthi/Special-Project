@@ -2,17 +2,26 @@ import ProductService from "../services/productService.js";
 
 export const createProduct = async (req, res, next) => {
   try {
-    const imageUrls = req.files ? req.files.map(file => `/uploads/products/${file.filename}`) : [];
-    const colors = req.body.colors;
+      const imageUrls = req.files ? req.files.map(file => `/uploads/products/${file.filename}`) : [];
+      const colors = req.body.colors ? JSON.parse(req.body.colors) : []; // แปลง JSON string เป็น Array
 
-    const newProduct = await ProductService.createProduct(
-      { ...req.body, colors },
-      imageUrls
-    );
+      const newProduct = await ProductService.createProduct(
+          {
+              name: req.body.name,
+              description: req.body.description || "",
+              price: parseFloat(req.body.price),
+              is_part: req.body.is_part === "true", // String => Boolean
+              category: req.body.category,
+              warranty: req.body.warranty || "",
+              stock_quantity: parseInt(req.body.stock_quantity, 10),
+              colors
+          },
+          imageUrls
+      );
 
-    res.status(201).json(newProduct);
+      res.status(201).json(newProduct);
   } catch (error) {
-    next(error);
+      next(error);
   }
 };
 
