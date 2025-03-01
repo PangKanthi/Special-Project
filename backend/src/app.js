@@ -13,6 +13,7 @@ import repairRequestRoute from './routes/repairRequestRoute.js';
 import reviewRoute from './routes/reviewRoute.js';
 import workSampleRoute from './routes/workSampleRoute.js';
 import addressRoute from "./routes/addressRoute.js";
+import userRoute from "./routes/userRoute.js";
 
 import errorMiddleware from './middlewares/errorMiddleware.js';
 
@@ -45,14 +46,19 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
-
 app.use('/api/auth', authRoute);
+app.use("/api/users", userRoute);
 app.use('/api/orders', orderRoute);
 app.use('/api/products', productRoute);
 app.use('/api/repair-requests', repairRequestRoute);
 app.use('/api/reviews', reviewRoute);
 app.use('/api/work-samples', workSampleRoute);
 app.use("/api/addresses", addressRoute);
+
+app.get("/api/users", (req, res) => {
+    console.log("✅ API /api/users ทำงาน!");
+    res.json([{ id: 1, username: "test_user", role: "U" }]);
+});
 
 app.use(errorMiddleware);
 
