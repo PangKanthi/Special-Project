@@ -1,34 +1,98 @@
-import React, { useState } from "react";
-import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { InputText } from "primereact/inputtext";
+import { ConfirmDialog } from "primereact/confirmdialog";
 import UserTable from "./Manageusers component/UserTable";
 import UserDialog from "./Manageusers component/UserDialog";
-import { InputText } from "primereact/inputtext";
 
-const initialUsers = [
-  { id: "00001", firstName: "Christine", lastName: "Brooks", address: "089 Kutch Green Apt. 448", email: "xxx@xxx.com", phone: "0xxxxxxxxx", position: "USER" },
-  { id: "00002", firstName: "Rosie", lastName: "Pearson", address: "979 Immanuel Ferry Suite 526", email: "xxx@xxx.com", phone: "0xxxxxxxxx", position: "USER" },
-  { id: "00003", firstName: "Darrell", lastName: "Caldwell", address: "8587 Frida Ports", email: "xxx@xxx.com", phone: "0xxxxxxxxx", position: "ADMIN" },
-  { id: "00004", firstName: "Gilbert", lastName: "Johnston", address: "768 Destiny Lake Suite 600", email: "xxx@xxx.com", phone: "0xxxxxxxxx", position: "USER" },
-];
+const API_BASE_URL = "http://localhost:1234/api/users";
 
 const ManageUsers = () => {
-  const [users, setUsers] = useState(initialUsers);
+  const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
   const [search, setSearch] = useState("");
-  const [editDialogVisible, setEditDialogVisible] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+  const [editDialogVisible, setEditDialogVisible] = useState(false);
 
-  const handleEditUser = () => {
-    setUsers(users.map(user => (user.id === editingUser.id ? editingUser : user)));
-    setEditDialogVisible(false);
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          console.error("No token found, please login first.");
+          return;
+        }
+
+        console.log("📡 Fetching users...");
+        const response = await axios.get(API_BASE_URL, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        console.log("✅ Users fetched:", response.data);
+        setUsers(response.data);
+        setFilteredUsers(response.data);
+      } catch (error) {
+        console.error(
+          "❌ Error fetching users:",
+          error.response?.data?.message || error.message
+        );
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+ useEffect(() => {
+  if (!search.trim()) {
+    setFilteredUsers([...users].sort((a, b) => a.id - b.id));
+  } else {
+    const filtered = users.filter(
+      (user) =>
+        user.username?.toLowerCase().includes(search.toLowerCase()) ||
+        user.firstname?.toLowerCase().includes(search.toLowerCase()) ||
+        user.lastname?.toLowerCase().includes(search.toLowerCase()) ||
+        user.email?.toLowerCase().includes(search.toLowerCase())
+    );
+    setFilteredUsers(filtered.sort((a, b) => a.id - b.id));
+  }
+}, [search, users]);
+
+  const handleEditUser = (user) => {
+    setEditingUser(user);
+    setEditDialogVisible(true);
   };
 
-  const confirmDeleteUser = (id, name) => {
-    confirmDialog({
-      message: `Are you sure you want to delete ${name}?`,
-      header: "Delete Confirmation",
-      icon: "pi pi-exclamation-triangle",
-      accept: () => setUsers(users.filter(user => user.id !== id)),
-    });
+  const handleSaveUser = async (updatedUser) => {
+    try {
+      const { id, ...userData } = updatedUser;
+      await axios.put(`${API_BASE_URL}/${id}`, userData, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+
+      setUsers(users.map((user) => (user.id === id ? updatedUser : user)));
+      setEditDialogVisible(false);
+    } catch (error) {
+      console.error(
+        "Error saving user:",
+        error.response?.data?.message || error.message
+      );
+    }
+  };
+
+  const handleDeleteUser = async (id) => {
+    try {
+      await axios.delete(`${API_BASE_URL}/${id}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+
+      setUsers(users.filter((user) => user.id !== id));
+      setFilteredUsers(filteredUsers.filter((user) => user.id !== id));
+    } catch (error) {
+      console.error(
+        "Error deleting user:",
+        error.response?.data?.message || error.message
+      );
+    }
   };
 
   return (
@@ -38,28 +102,29 @@ const ManageUsers = () => {
         <div className="ml-auto w-72 pt-3">
           <span className="p-input-icon-left w-full flex items-center">
             <i className="pi pi-search pl-3 text-gray-500" />
-            <InputText value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search History" className="w-full pl-8" />
+            <InputText
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search User"
+              className="w-full pl-8"
+            />
           </span>
         </div>
       </div>
+
       <ConfirmDialog />
 
-      {/* ตารางแสดงข้อมูลผู้ใช้ */}
       <UserTable
-        users={users.filter(user =>
-          Object.values(user).some(value =>
-            String(value).toLowerCase().includes(search.toLowerCase())
-          )
-        )} onEdit={(user) => { setEditingUser(user); setEditDialogVisible(true); }} onDelete={confirmDeleteUser}
+        users={filteredUsers}
+        onEdit={handleEditUser}
+        onDelete={handleDeleteUser}
       />
 
-      {/* Dialog สำหรับแก้ไขข้อมูล */}
       <UserDialog
         editingUser={editingUser}
         visible={editDialogVisible}
         onHide={() => setEditDialogVisible(false)}
-        onChange={setEditingUser}
-        onSave={handleEditUser}
+        onSave={handleSaveUser}
       />
     </div>
   );
