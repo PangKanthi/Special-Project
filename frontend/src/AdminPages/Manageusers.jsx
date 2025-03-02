@@ -18,24 +18,15 @@ const ManageUsers = () => {
     const fetchUsers = async () => {
       try {
         const token = localStorage.getItem("token");
-        if (!token) {
-          console.error("No token found, please login first.");
-          return;
-        }
 
-        console.log("📡 Fetching users...");
         const response = await axios.get(API_BASE_URL, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        console.log("✅ Users fetched:", response.data);
         setUsers(response.data);
         setFilteredUsers(response.data);
       } catch (error) {
-        console.error(
-          "❌ Error fetching users:",
-          error.response?.data?.message || error.message
-        );
+    
       }
     };
 
@@ -72,10 +63,7 @@ const ManageUsers = () => {
       setUsers(users.map((user) => (user.id === id ? updatedUser : user)));
       setEditDialogVisible(false);
     } catch (error) {
-      console.error(
-        "Error saving user:",
-        error.response?.data?.message || error.message
-      );
+      
     }
   };
 
@@ -88,10 +76,7 @@ const ManageUsers = () => {
       setUsers(users.filter((user) => user.id !== id));
       setFilteredUsers(filteredUsers.filter((user) => user.id !== id));
     } catch (error) {
-      console.error(
-        "Error deleting user:",
-        error.response?.data?.message || error.message
-      );
+      
     }
   };
 

@@ -172,7 +172,7 @@ const UserDialog = ({ editingUser, visible, onHide, onSave }) => {
             <p className="text-red-500">{errorMessages.role}</p>
           )}
         </div>
-        <div className="flex justify-center gap-2 mt-6">
+        <div className="flex justify-content-center gap-2 mt-6">
           <Button label="Cancel" className="p-button-danger" onClick={onHide} />
           <Button
             label="Save"
