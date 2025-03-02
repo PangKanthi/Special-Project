@@ -1,21 +1,69 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Card } from 'primereact/card';
 import { Button } from 'primereact/button';
+import { confirmDialog, ConfirmDialog } from 'primereact/confirmdialog';
+import { Toast } from 'primereact/toast';
 
-const PortfolioList = ({ portfolios }) => {
+const PortfolioList = ({ portfolios, onDelete, onEdit }) => {
+    const toast = useRef(null);
+
+    // ✅ แสดงแจ้งเตือนยืนยันก่อนลบ
+    const confirmDelete = (id) => {
+        confirmDialog({
+            message: 'คุณแน่ใจหรือไม่ว่าต้องการลบงานนี้?',
+            header: 'Confirm Delete',
+            icon: 'pi pi-exclamation-triangle',
+            acceptLabel: 'Yes, Delete',
+            rejectLabel: 'Cancel',
+            acceptClassName: 'p-button-danger',
+            accept: () => {
+                onDelete(id);
+                toast.current.show({ severity: 'success', summary: 'Deleted', detail: 'Work sample has been deleted', life: 3000 });
+            }
+        });
+    };
+
     return (
-        <div className="grid lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-4">
-            {portfolios.map((portfolio, index) => (
-                <Card key={index} className="shadow-md">
-                    <div className="h-40 bg-gray-300 mb-3"></div>
-                    <h5 className="font-bold text-center">{portfolio.title}</h5>
-                    <p className="text-center text-sm text-gray-500">{portfolio.description}</p>
-                    <div className="flex justify-content-center gap-2 mt-3">
-                        <Button icon="pi pi-pencil" className="p-button-text" />
-                        <Button icon="pi pi-trash" className="p-button-text p-button-danger" />
-                    </div>
-                </Card>
-            ))}
+        <div>
+            {/* ✅ เพิ่ม ConfirmDialog ให้ใช้งานได้ */}
+            <ConfirmDialog />
+            <Toast ref={toast} />
+
+            <div className="grid lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-4">
+                {portfolios.map((portfolio) => (
+                    <Card key={portfolio.id} className="shadow-md rounded-lg overflow-hidden max-w-sm mx-auto">
+                        <div className="bg-gray-300 flex items-center justify-center mx-auto" style={{ width: "400px", height: "400px", objectFit: "cover" }}>
+                            {portfolio.images && portfolio.images.length > 0 ? (
+                                <img 
+                                    src={portfolio.images[0]} 
+                                    alt="work" 
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <span className="text-gray-500">No Image</span>
+                            )}
+                        </div>
+
+                        <div className="p-4 text-center">
+                            <h5 className="font-bold text-lg">{portfolio.title || "XXXXX"}</h5>
+                            <p className="text-gray-500 text-sm truncate">{portfolio.description || "XXXXXXXXXXXXXXXXXXXXXXXXXX"}</p>
+                        </div>
+
+                        <div className="flex justify-content-center gap-2 p-3 border-t">
+                            <Button 
+                                icon="pi pi-pencil" 
+                                className="p-button-text p-button-sm" 
+                                onClick={() => onEdit(portfolio)} 
+                            />
+                            <Button 
+                                icon="pi pi-trash" 
+                                className="p-button-text p-button-danger p-button-sm" 
+                                onClick={() => confirmDelete(portfolio.id)} 
+                            />
+                        </div>
+                    </Card>
+                ))}
+            </div>
         </div>
     );
 };

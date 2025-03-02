@@ -1,115 +1,112 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog } from 'primereact/dialog';
 import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
 import { FileUpload } from 'primereact/fileupload';
-import axios from 'axios';
 
-const PortfolioDialog = ({ visible, onClose, onWorkSampleAdded }) => {
-    const [images, setImages] = useState([]); 
+const PortfolioDialog = ({ visible, onClose, onWorkSampleAdded, onUpdate, selectedPortfolio }) => {
     const [description, setDescription] = useState("");
-    const [loading, setLoading] = useState(false);
-    const fileUploadRef = useRef(null);
+    const [images, setImages] = useState([]); // ✅ เก็บรูปทั้งหมด (ทั้งเก่าและใหม่)
 
+    // ✅ โหลดข้อมูลเก่ามาแสดง
     useEffect(() => {
-        if (!visible) {
-            setImages([]);
+        if (selectedPortfolio) {
+            setDescription(selectedPortfolio.description || "");
+            setImages(selectedPortfolio.images || []);
+        } else {
             setDescription("");
+            setImages([]);
         }
-    }, [visible]);
+    }, [selectedPortfolio]);
 
-    // ✅ ฟังก์ชันอัปโหลดรูปภาพ (ป้องกันการอัปโหลดซ้ำ)
-    const onImageUpload = (event) => {
-        console.log("📸 Images uploaded:", event.files);
-
-        const uploadedFiles = event.files.map((file) => ({
+    // ✅ อัปโหลดรูปใหม่
+    const onImageSelect = (event) => {
+        const newFiles = event.files.map(file => ({
             file,
             previewUrl: URL.createObjectURL(file),
         }));
 
-        setImages((prevImages) => {
-            const existingFiles = prevImages.map(img => img.file.name);
-            const newFiles = uploadedFiles.filter(img => !existingFiles.includes(img.file.name));
-            return [...prevImages, ...newFiles];
-        });
+        setImages(prevImages => [...prevImages, ...newFiles.map(img => img.previewUrl)]);
     };
 
-    // ✅ ฟังก์ชันลบรูปภาพที่เลือก
-    const handleRemoveImage = (event) => {
-        console.log("🗑 Removing image:", event.file.name);
-        setImages((prevImages) =>
-            prevImages.filter((img) => img.file.name !== event.file.name)
-        );
+    // ✅ ลบรูปเก่าออก
+    const handleRemoveImage = (index) => {
+        setImages(images.filter((_, i) => i !== index));
     };
 
-    // ✅ ฟังก์ชันส่งข้อมูลไป Backend (ใช้ images ที่เป็น array)
-    const handleSubmit = async () => {
-        if (!description || images.length === 0) {
-            alert("กรุณากรอกรายละเอียดและอัปโหลดรูปภาพอย่างน้อย 1 รูป");
+    // ✅ ฟังก์ชันจัดการเมื่อกด Submit
+    const handleSubmit = (e) => {
+        e.preventDefault(); // ✅ ป้องกันการรีเฟรชหน้า
+        if (!description.trim() || images.length === 0) {
+            alert("กรุณากรอกรายละเอียดและอัปโหลดรูปภาพ");
             return;
         }
 
-        setLoading(true);
-        try {
-            const formData = new FormData();
-            images.forEach(img => formData.append("images", img.file));  
-            formData.append("description", description);
+        const workSample = {
+            id: selectedPortfolio ? selectedPortfolio.id : Date.now(),
+            title: `Sample ${Date.now()}`,
+            description,
+            images,
+        };
 
-            // ✅ Debug: ดูว่า formData มีข้อมูลถูกต้องไหม
-            for (let pair of formData.entries()) {
-                console.log("📤 Sending data:", pair[0], pair[1]);
-            }
-
-            const response = await axios.post(`/api/work-samples`, formData, {
-                headers: { "Content-Type": "multipart/form-data" }
-            });
-
-            alert("✅ เพิ่มผลงานสำเร็จ!");
-            onWorkSampleAdded(response.data);
-            setImages([]);
-            setDescription("");
-            onClose();
-        } catch (error) {
-            console.error("❌ Error uploading work sample:", error);
-            alert("❌ เกิดข้อผิดพลาดในการอัปโหลด");
-        } finally {
-            setLoading(false);
+        if (selectedPortfolio) {
+            onUpdate(workSample);
+        } else {
+            onWorkSampleAdded(workSample);
         }
+
+        setDescription("");
+        setImages([]);
+        onClose();
     };
 
     return (
-        <Dialog header="Upload Work Sample" draggable={false} visible={visible} onHide={onClose} style={{ width: "30vw" }}>
-            <div className="items-center gap-4 p-6">
-                <div className="w-full text-center">
-                    <FileUpload
-                        ref={fileUploadRef}
-                        mode="advanced"
-                        multiple
+        <Dialog header={selectedPortfolio ? "Edit Work Sample" : "Upload Work Sample"} visible={visible} onHide={onClose} style={{ width: "30vw" }}>
+            {/* ✅ ใช้ form ครอบ Dialog */}
+            <form onSubmit={handleSubmit}>
+                <div className="p-6">
+                    {/* ✅ แสดงรูปที่มีอยู่ข้างนอก FileUpload พร้อมปุ่มลบ */}
+                    <div className="flex flex-wrap gap-2 mb-4">
+                        {images.map((img, index) => (
+                            <div key={index} className="relative">
+                                <img src={img} alt={`uploaded-${index}`} className="w-20 h-20 object-cover rounded-md" style={{ width: "200px", height: "200px", objectFit: "cover" }} />
+                                <Button 
+                                    icon="pi pi-times"
+                                    className="p-button-rounded p-button-danger p-button-sm absolute top-0 right-0"
+                                    onClick={() => handleRemoveImage(index)} 
+                                />
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* ✅ FileUpload สำหรับอัปโหลดรูปใหม่ */}
+                    <FileUpload 
+                        multiple 
                         accept="image/*"
                         maxFileSize={1000000}
+                        auto
                         customUpload
-                        uploadHandler={onImageUpload}
-                        chooseLabel="Upload Photos"
+                        uploadHandler={onImageSelect}
+                        chooseLabel="Choose Photos"
                         className="mb-4"
-                        onRemove={handleRemoveImage}
                     />
-                </div>
 
-                <div className="w-full mt-4">
-                    <label className="block text-gray-700">Description</label>
-                    <InputText
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        placeholder="Enter your description"
-                        className="w-full mt-2 p-2 border rounded-lg"
-                    />
-                </div>
+                    <div className="w-full mt-4">
+                        <label className="block text-gray-700">Description</label>
+                        <InputText
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            placeholder="Enter your description"
+                            className="w-full mt-2 p-2 border rounded-lg"
+                        />
+                    </div>
 
-                <div className="flex justify-content-between w-full mt-6">
-                    <Button label="Cancel" className="p-button-danger w-1/3" onClick={onClose} disabled={loading} />
-                    <Button label={loading ? "Uploading..." : "Add Now"} className="p-button-primary w-1/3" onClick={handleSubmit} disabled={loading} />
+                    <div className="flex justify-content-between w-full mt-6">
+                        <Button type="button" label="Cancel" className="p-button-danger w-1/3" onClick={onClose} />
+                        <Button type="submit" label={selectedPortfolio ? "Save" : "Add Now"} className="p-button-primary w-1/3" />
+                    </div>
                 </div>
-            </div>
+            </form>
         </Dialog>
     );
 };
