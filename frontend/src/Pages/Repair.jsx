@@ -20,20 +20,9 @@ const Repair = () => {
 
   const [errors, setErrors] = useState({});
 
-  const provinces = [
-    { label: 'Bangkok', value: 'bangkok' },
-    { label: 'Chiang Mai', value: 'chiangmai' },
-  ];
-
-  const districts = [
-    { label: 'เขต 1', value: 'district_1' },
-    { label: 'เขต 2', value: 'district_2' },
-  ];
-
   const serviceTypes = [
-    { label: 'ไฟฟ้า', value: 'electrical' },
-    { label: 'ประปา', value: 'plumbing' },
-    { label: 'เครื่องใช้ไฟฟ้า', value: 'appliance' }
+    { label: 'ประตูม้วน', value: 'shutter' },
+    { label: "อะไหล่ประตูม้วน", value: "shutter_parts" },
   ];
 
   const orders = [
@@ -107,8 +96,6 @@ const Repair = () => {
           <RepairForm
             form={form}
             handleInputChange={handleInputChange}
-            provinces={provinces}
-            districts={districts}
             serviceTypes={serviceTypes}
             orders={orders}
             errors={errors}
