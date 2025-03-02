@@ -8,18 +8,18 @@ datasource db {
 }
 
 model product {
-  id             Int       @id @default(autoincrement())
-  name           String    @db.VarChar(100)
-  description    String?   @db.Text
-  price          Decimal   @db.Decimal(10, 2)
-  category       String    @db.VarChar(50)
-  warranty       String?   @db.VarChar(50)
-  is_part        Boolean?  @default(false)
-  stock_quantity Int?      @default(0)
-  created_at     DateTime? @default(now()) @db.Timestamp(6)
-  updated_at     DateTime  @updatedAt
-  colors         String[]  
-  images         String[]  
+  id             Int          @id @default(autoincrement())
+  name           String       @db.VarChar(100)
+  description    String?      @db.Text
+  price          Decimal      @db.Decimal(10, 2)
+  category       String       @db.VarChar(50)
+  warranty       String?      @db.VarChar(50)
+  is_part        Boolean?     @default(false)
+  stock_quantity Int?         @default(0)
+  created_at     DateTime?    @default(now()) @db.Timestamp(6)
+  updated_at     DateTime     @updatedAt
+  colors         String[]
+  images         String[]
   order_items    order_item[]
   reviews        review[]
 }
@@ -84,8 +84,8 @@ model order_item {
   quantity          Int
   price             Decimal @db.Decimal(10, 2)
 
-  order           order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product         product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+  order   order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@map("order_items")
 }
@@ -104,9 +104,9 @@ model review {
 }
 
 model work_sample {
-  id          Int    @id @default(autoincrement())
-  description String @db.Text
-  images      String[] 
+  id          Int      @id @default(autoincrement())
+  description String   @db.Text
+  images      String[]
 
   @@map("work_samples")
 }
@@ -119,6 +119,7 @@ model repair_request {
   userId              Int
   addressId           Int
   orderId             Int
+  images              String[]
 
   user    user    @relation(fields: [userId], references: [id], onDelete: Cascade)
   address Address @relation(fields: [addressId], references: [id], onDelete: Cascade)

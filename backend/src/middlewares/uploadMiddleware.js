@@ -5,7 +5,9 @@ import fs from 'fs';
 const productUploadDir = 'uploads/products/';
 const workSampleUploadDir = 'uploads/work_samples/';
 const slipUploadDir = 'uploads/slips/';
+const repairRequestUploadDir = 'uploads/repair_requests/';
 
+// ตรวจสอบและสร้างโฟลเดอร์ถ้ายังไม่มี
 if (!fs.existsSync(productUploadDir)) {
     fs.mkdirSync(productUploadDir, { recursive: true });
 }
@@ -14,6 +16,9 @@ if (!fs.existsSync(workSampleUploadDir)) {
 }
 if (!fs.existsSync(slipUploadDir)) {
     fs.mkdirSync(slipUploadDir, { recursive: true });
+}
+if (!fs.existsSync(repairRequestUploadDir)) {
+    fs.mkdirSync(repairRequestUploadDir, { recursive: true });
 }
 
 const storage = multer.diskStorage({
@@ -24,6 +29,8 @@ const storage = multer.diskStorage({
             cb(null, workSampleUploadDir);
         } else if (req.uploadType === "slip") {
             cb(null, slipUploadDir);
+        } else if (req.uploadType === "repair_request") {
+            cb(null, repairRequestUploadDir);
         } else {
             cb(new Error('Invalid upload type'), null);
         }
@@ -64,4 +71,9 @@ export const workSampleUpload = (req, res, next) => {
 export const slipUpload = (req, res, next) => {
     req.uploadType = "slip";
     uploadSingle(req, res, next);
+};
+
+export const repairRequestUpload = (req, res, next) => {
+    req.uploadType = "repair_request";
+    uploadMultiple(req, res, next);
 };
