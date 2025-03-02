@@ -17,10 +17,6 @@ const UserTable = ({ users, onEdit, onDelete }) => {
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem("token");
-      if (!token) {
-        console.error("No token found, please login first.");
-        return;
-      }
 
       const usersResponse = await axios.get(API_BASE_URL, {
         headers: { Authorization: `Bearer ${token}` },
@@ -28,10 +24,7 @@ const UserTable = ({ users, onEdit, onDelete }) => {
 
       setUsers(usersResponse.data);
     } catch (error) {
-      console.error(
-        "Error fetching users:",
-        error.response?.data?.message || error.message
-      );
+
     }
   };
 
@@ -58,10 +51,7 @@ const UserTable = ({ users, onEdit, onDelete }) => {
       fetchUsers();
       setDialogVisible(false);
     } catch (error) {
-      console.error(
-        "Error saving user:",
-        error.response?.data?.message || error.message
-      );
+      
     }
   };
 
@@ -79,7 +69,7 @@ const UserTable = ({ users, onEdit, onDelete }) => {
           });
           fetchUsers();
         } catch (error) {
-          console.error("Error deleting user:", error);
+          
         }
       },
     });
