@@ -105,6 +105,7 @@ model review {
 
 model work_sample {
   id          Int      @id @default(autoincrement())
+  title       String
   description String   @db.Text
   images      String[]
 

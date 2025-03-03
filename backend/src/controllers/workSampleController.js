@@ -1,4 +1,6 @@
 import WorkSampleService from '../services/workSampleService.js';
+import prisma from "../config/db.js"; 
+import fs from 'fs';
 
 export const createWorkSample = async (req, res, next) => {
     try {
@@ -7,7 +9,7 @@ export const createWorkSample = async (req, res, next) => {
         }
 
         const imageUrls = req.files.map(file => `/uploads/work_samples/${file.filename}`);
-        const workSample = await WorkSampleService.createWorkSample(req.user.id, req.body.description, imageUrls);
+        const workSample = await WorkSampleService.createWorkSample(req.body.title, req.body.description, imageUrls);
 
         res.status(201).json(workSample);
     } catch (error) {
@@ -31,30 +33,53 @@ export const updateWorkSample = async (req, res, next) => {
     }
 };
 
-export const deleteWorkSample = async (req, res, next) => {
+export const deleteWorkSample = async (req, res) => {
     try {
-        await WorkSampleService.deleteWorkSample(req.params.id);
-        res.json({ message: "ลบผลงานเรียบร้อยแล้ว" });
+        console.log("Deleting work sample with ID:", req.params.id);  // ✅ ตรวจสอบว่า ID ที่ส่งมาตรงกับ Database หรือไม่
+
+        const workSample = await prisma.work_sample.findUnique({
+            where: { id: Number(req.params.id) },
+        });
+
+        if (!workSample) {
+            return res.status(404).json({ message: "Work Sample not found" });
+        }
+
+        // ✅ ลบไฟล์ภาพออกจากเซิร์ฟเวอร์
+        workSample.images.forEach((imagePath) => {
+            const filePath = `.${imagePath}`;
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+            }
+        });
+
+        // ✅ ลบข้อมูลออกจาก Database
+        await prisma.work_sample.delete({
+            where: { id: Number(req.params.id) },
+        });
+
+        res.json({ message: "ลบผลงานและไฟล์รูปภาพเรียบร้อยแล้ว" });
     } catch (error) {
-        next(error);
+        console.error("Error deleting work sample:", error); // ✅ แสดง Error ที่เกิดขึ้นใน Backend
+        res.status(500).json({ message: "Error deleting work sample", error });
     }
 };
 
 export const getAllWorkSamples = async (req, res, next) => {
     try {
-      const workSamples = await WorkSampleService.getAllWorkSamples();
-      res.json(workSamples);
+        const workSamples = await WorkSampleService.getAllWorkSamples();
+        res.json(workSamples);
     } catch (error) {
-      next(error);
+        next(error);
     }
-  };
-  
-  export const getWorkSampleById = async (req, res, next) => {
+};
+
+export const getWorkSampleById = async (req, res, next) => {
     try {
-      const workSample = await WorkSampleService.getWorkSampleById(req.params.id);
-      if (!workSample) return res.status(404).json({ message: "Work Sample not found" });
-      res.json(workSample);
+        const workSample = await WorkSampleService.getWorkSampleById(req.params.id);
+        if (!workSample) return res.status(404).json({ message: "Work Sample not found" });
+        res.json(workSample);
     } catch (error) {
-      next(error);
+        next(error);
     }
-  };
+};

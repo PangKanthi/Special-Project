@@ -1,10 +1,10 @@
 import prisma from '../config/db.js';
 
 class WorkSampleService {
-    static async createWorkSample(adminId, description, imageUrls) {
+    static async createWorkSample(title, description, imageUrls) {
         return await prisma.work_sample.create({
             data: {
-                adminId,
+                title,
                 description,
                 images: imageUrls
             }
@@ -13,6 +13,12 @@ class WorkSampleService {
 
     static async getAllWorkSamples() {
         return await prisma.work_sample.findMany();
+    }
+
+    static async getWorkSampleById(id) {
+        return await prisma.work_sample.findUnique({
+            where: { id: Number(id) }
+        });
     }
 
     static async updateWorkSample(id, data, newImages) {
@@ -42,7 +48,8 @@ class WorkSampleService {
         return await prisma.work_sample.update({
             where: { id: Number(id) },
             data: {
-                ...data,
+                title: data.title,
+                description: data.description,
                 images: updatedImages
             }
         });
