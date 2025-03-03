@@ -22,22 +22,29 @@ const ProductForm = ({
     const fileUploadRef = useRef(null);
 
     // ✅ ฟังก์ชันลบภาพทั้งจาก UI และ FileUpload
-    const handleRemoveImage = (index) => {
-        setNewProduct(prev => {
-            const updatedImages = prev.images.filter((_, imgIndex) => imgIndex !== index);
+    const handleRemoveImage = (event) => {
+        setNewProduct((prev) => {
+            let updatedImages;
+
+            if (event.file) {
+                updatedImages = prev.images.filter(
+                    (image) => image.file && image.file.name !== event.file.name
+                );
+            }
+            else {
+                updatedImages = prev.images.filter(
+                    (image) => image.previewUrl !== event.previewUrl
+                );
+            }
+
             return { ...prev, images: updatedImages };
         });
-
-        // ✅ รีเซ็ต FileUpload UI
-        if (fileUploadRef.current) {
-            fileUploadRef.current.clear();
-        }
     };
 
     // ✅ ลบภาพเมื่อใช้ปุ่ม Remove ของ FileUpload
     const onRemoveFile = (event) => {
         const fileToRemove = event.file;
-        
+
         // ค้นหารูปที่มี `file` ตรงกับ `fileToRemove`
         setNewProduct(prev => {
             const updatedImages = prev.images.filter(img => img.file !== fileToRemove);
@@ -74,7 +81,7 @@ const ProductForm = ({
                                         <Button
                                             icon="pi pi-times"
                                             className="p-button-rounded p-button-danger p-button-sm absolute top-0 right-0"
-                                            onClick={() => handleRemoveImage(index)}
+                                            onClick={(event) => handleRemoveImage(img, event)} // ✅ ส่ง event ไปให้ stopPropagation
                                         />
                                     </div>
                                 ))}
@@ -169,7 +176,6 @@ const ProductForm = ({
                             className="w-full"
                             placeholder="Select Colors"
                             display="chip"
-                            maxSelectedLabels={2}
                         />
                     </div>
 
@@ -193,7 +199,7 @@ const ProductForm = ({
                         />
                     </div>
 
-                    <div className="flex justify-content-center mt-4">
+                    <div className="flex justify-content-between mt-4">
                         <Button
                             label="Cancel"
                             className="p-button-danger"

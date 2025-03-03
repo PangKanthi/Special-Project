@@ -24,7 +24,7 @@ const ProductService = {
     formData.append("name", product.name);
     formData.append("description", product.description || "");
     formData.append("price", product.price);
-    formData.append("is_part", product.is_part ? "true" : "false");
+    formData.append("is_part", product.is_part ? true : false);
     formData.append("category", product.category);
     formData.append("warranty", product.warranty || "");
     formData.append("stock_quantity", product.stock_quantity);

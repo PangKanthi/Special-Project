@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
 import ProductService from "./Manageproducts component/ProductService";
@@ -11,9 +11,6 @@ const ManageProducts = () => {
   const [visible, setVisible] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
-  const [uploadedFiles, setUploadedFiles] = useState([]); // ✅ เพิ่มตัวแปรนี้
-  const fileUploadRef = useRef(null);
-
 
   const [newProduct, setNewProduct] = useState({
     name: "",
@@ -45,30 +42,34 @@ const ManageProducts = () => {
   };
 
   const onImageUpload = (event) => {
-    const newFiles = event.files.map(file => ({
+    const uploadedFiles = event.files.map((file) => ({
       file,
       previewUrl: URL.createObjectURL(file),
     }));
 
-    setUploadedFiles(prev => [...prev, ...newFiles]);
-    setNewProduct(prev => ({
-      ...prev,
-      images: [...newFiles.map(img => img.previewUrl)],
-    }));
+    setNewProduct((prev) => {
+      // ใช้ Set เพื่อเช็คว่าชื่อไฟล์ซ้ำหรือไม่
+      const existingFileNames = new Set(prev.images.map(img => img.file?.name));
+      const uniqueFiles = uploadedFiles.filter(img => !existingFileNames.has(img.file.name));
+
+      return {
+        ...prev,
+        images: [...prev.images, ...uniqueFiles],
+      };
+    });
   };
 
   // ✅ ลบรูปภาพทั้งจาก UI และ FileUpload
-  const handleRemoveImage = (index) => {
-    setNewProduct(prev => {
-      const updatedImages = prev.images.filter((_, imgIndex) => imgIndex !== index);
+  const handleRemoveImage = (imageToRemove, event) => {
+    event.stopPropagation(); // ✅ ป้องกันการ trigger event ที่อาจทำให้ Dialog ปิด
 
-      // อัปเดต uploadedFiles ด้วย
-      setUploadedFiles(prevFiles => prevFiles.filter((_, imgIndex) => imgIndex !== index));
-
-      // ✅ ล้างไฟล์จาก FileUpload UI
-      if (fileUploadRef.current) {
-        fileUploadRef.current.clear();
-      }
+    setNewProduct((prev) => {
+      const updatedImages = prev.images.filter((image) => {
+        if (!image.file) {
+          return image.previewUrl !== imageToRemove.previewUrl;
+        }
+        return image.file.name !== imageToRemove.file.name;
+      });
 
       return { ...prev, images: updatedImages };
     });

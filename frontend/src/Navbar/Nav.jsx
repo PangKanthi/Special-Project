@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Menubar } from 'primereact/menubar';
 import { useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
+import UserMenu from '../๊User Pages/UserMenu';
 import 'primeflex/primeflex.css';
 
 const menuItems = (navigate) => [
@@ -57,12 +58,13 @@ const menuItems = (navigate) => [
     label: <span className="text-lg text-gray-900">ติดต่อเรา</span>,
     icon: 'pi pi-fw pi-phone text-gray-900',
     command: () => navigate("/contact"),
-  }
+  },
 ];
 
 const Navbar = () => {
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     const checkLoginStatus = () => {
@@ -101,13 +103,7 @@ const Navbar = () => {
           style={{ backgroundColor: '#000000', borderColor: '#000000' }}
         />
       ) : (
-        <Button
-          label="Logout"
-          icon="pi pi-sign-out"
-          className="p-button-rounded p-button-danger mx-1"
-          onClick={handleLogout}
-          style={{ backgroundColor: '#d9534f', borderColor: '#d9534f' }}
-        />
+        <UserMenu />
       )}
     </div>
   );

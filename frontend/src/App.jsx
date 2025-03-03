@@ -29,15 +29,16 @@ import Manageusers from "./AdminPages/Manageusers";
 import Managepromotions from "./AdminPages/Managepromotions";
 import Manageportfolios from "./AdminPages/Manageportfolios";
 import History from "./AdminPages/History";
+import ShopCart from "./Shopuser/ShopCart";
+import ShopOrder from "./Shopuser/ShopOrder";
+import ShopOrderinformation from "./Shopuser/ShopOrderinformation";
+import ProtectedRoute from "./protectedRoute/protectedRoute";
+import Profile from "../src/๊User Pages/Profile";
 import "primeflex/primeflex.css";
 import "primereact/resources/themes/saga-blue/theme.css";
 import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
 import "./index.css";
-import ShopCart from "./Shopuser/ShopCart";
-import ShopOrder from "./Shopuser/ShopOrder";
-import ShopOrderinformation from "./Shopuser/ShopOrderinformation";
-import ProtectedRoute from "./protectedRoute/protectedRoute";
 
 const App = () => {
   const location = useLocation();
@@ -49,9 +50,11 @@ const App = () => {
     location.pathname.startsWith("/managepromotions") ||
     location.pathname.startsWith("/manageportfolios") ||
     location.pathname.startsWith("/history");
+
   const showFooter = !["/productAuto/", "/productGeneral/"].some((path) =>
     location.pathname.startsWith(path)
   );
+
   const bodyStyle = {
     paddingTop: "70px",
   };
@@ -80,6 +83,17 @@ const App = () => {
           <Route path="/portfolio" element={<Portfolio />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/forgotpassword" element={<Forgotpassword />} />
+
+          {/* ✅ เพิ่ม Route สำหรับ Profile และใช้ ProtectedRoute */}
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute requiredRole="U">
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+
           <Route
             path="/homeadmin"
             element={
