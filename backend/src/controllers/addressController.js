@@ -1,10 +1,4 @@
-import {
-    getAllAddresses,
-    getUserAddresses,
-    createAddress,
-    updateAddress,
-    deleteAddress,
-  } from "../services/addressService.js";
+import AddressService from '../services/addressService.js';
   
   export const getAddresses = async (req, res, next) => {
     try {

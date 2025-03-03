@@ -43,14 +43,15 @@ model user {
 model Address {
   id          Int     @id @default(autoincrement())
   addressLine String  @db.Text
-  city        String  @db.VarChar(100)
-  state       String? @db.VarChar(100)
-  postalCode  String  @db.VarChar(10)
+  province    String  @db.VarChar(100)
+  district    String  @db.VarChar(100)
+  subdistrict String  @db.VarChar(100)
+  postalCode  Int
   userId      Int
   isPrimary   Boolean @default(false)
   isShipping  Boolean @default(true)
 
-  user           user             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user           user            @relation(fields: [userId], references: [id], onDelete: Cascade)
   orders         order[]
   repair_request repair_request[]
 
@@ -71,7 +72,6 @@ model order {
   user           user             @relation(fields: [userId], references: [id], onDelete: Cascade)
   address        Address          @relation(fields: [addressId], references: [id], onDelete: Cascade)
   order_items    order_item[]
-  repair_request repair_request[]
 
   @@map("orders")
 }
@@ -118,10 +118,8 @@ model repair_request {
   request_date        DateTime @default(now()) @db.Timestamp(6)
   userId              Int
   addressId           Int
-  orderId             Int
   images              String[]
 
   user    user    @relation(fields: [userId], references: [id], onDelete: Cascade)
   address Address @relation(fields: [addressId], references: [id], onDelete: Cascade)
-  order   order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }

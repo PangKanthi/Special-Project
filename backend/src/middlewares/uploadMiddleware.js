@@ -7,7 +7,6 @@ const workSampleUploadDir = 'uploads/work_samples/';
 const slipUploadDir = 'uploads/slips/';
 const repairRequestUploadDir = 'uploads/repair_requests/';
 
-// ตรวจสอบและสร้างโฟลเดอร์ถ้ายังไม่มี
 if (!fs.existsSync(productUploadDir)) {
     fs.mkdirSync(productUploadDir, { recursive: true });
 }

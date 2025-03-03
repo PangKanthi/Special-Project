@@ -1,110 +1,202 @@
-import React, { useState } from 'react';
-import { Button } from 'primereact/button';
-import RepairForm from './Repair component/RepairForm';
-import ImageUploader from './Repair component/ImageUploader';
-import 'primeflex/primeflex.css';
+import React, { useState, useEffect, useRef } from "react";
+import { Button } from "primereact/button";
+import { FileUpload } from "primereact/fileupload";
+import RepairForm from "./Repair component/RepairForm";
+import { useNavigate } from "react-router-dom";
+import "primeflex/primeflex.css";
 
 const Repair = () => {
   const [form, setForm] = useState({
-    firstName: '',
-    lastName: '',
-    phone: '',
-    province: '',
-    district: '',
-    postcode: '',
-    address: '',
-    additionalInfo: '',
-    serviceType: '',
-    orderId: ''
+    province: "",
+    district: "",
+    postcode: "",
+    addressLine: "",
+    problemDescription: "",
+    serviceType: "",
+    images: [],
   });
 
   const [errors, setErrors] = useState({});
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const navigate = useNavigate();
+  const fileUploadRef = useRef(null);
 
   const serviceTypes = [
-    { label: 'ประตูม้วน', value: 'shutter' },
+    { label: "ประตูม้วน", value: "shutter" },
     { label: "อะไหล่ประตูม้วน", value: "shutter_parts" },
   ];
 
-  const orders = [
-    { label: 'Order #001', value: 1 },
-    { label: 'Order #002', value: 2 },
-    { label: 'Order #003', value: 3 }
-  ];
-
-  // ฟังก์ชัน Validate ข้อมูล
-  const validateThaiName = (name) => /^[\u0E00-\u0E7F\s]{1,50}$/.test(name);
-  const validatePhone = (phone) => /^0[0-9]{9}$/.test(phone); // ตรวจสอบเบอร์ไทย
-  const validateNotEmpty = (value) => value.trim() !== '';
-  const validateNumeric = (value) => /^[0-9]+$/.test(value);
+  const validateNotEmpty = (value) => value.trim() !== "";
 
   const handleInputChange = (e, field) => {
     const value = e.target.value;
-    setForm({
-      ...form,
+    setForm((prevForm) => ({
+      ...prevForm,
       [field]: value,
-    });
-
-    // ตรวจสอบค่าทันทีที่กรอก
-    setErrors({
-      ...errors,
-      [field]: validateRepairField(field, value)
-    });
+    }));
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      [field]: validateRepairField(field, value),
+    }));
   };
 
-  // ฟังก์ชัน Validate แต่ละช่องแยกกัน
   const validateRepairField = (field, value) => {
     switch (field) {
-      case "firstName":
-      case "lastName":
-        return validateThaiName(value) ? '' : 'กรุณากรอกชื่อเป็นภาษาไทย';
-      case "phone":
-        return validatePhone(value) ? '' : 'กรุณากรอกหมายเลขโทรศัพท์ให้ถูกต้อง';
-      case "address":
-        return validateNotEmpty(value) ? '' : 'กรุณากรอกที่อยู่';
+      case "addressLine":
+        return validateNotEmpty(value) ? "" : "กรุณากรอกที่อยู่";
       case "serviceType":
-        return validateNotEmpty(value) ? '' : 'กรุณาเลือกประเภทการซ่อม';
-      case "orderId":
-        return validateNumeric(value) ? '' : 'หมายเลขคำสั่งซื้อต้องเป็นตัวเลข';
-      case "problem_description":
-        return validateNotEmpty(value) ? '' : 'กรุณากรอกรายละเอียดปัญหา';
+        return validateNotEmpty(value) ? "" : "กรุณาเลือกประเภทการซ่อม";
       default:
-        return '';
+        return "";
     }
   };
 
+  // ✅ ฟังก์ชันเพิ่มไฟล์ลง state
+  const handleImageUpload = (event) => {
+    const uploadedFiles = event.files.map((file) => ({
+      file,
+      previewUrl: URL.createObjectURL(file),
+    }));
+
+    setForm((prevForm) => ({
+      ...prevForm,
+      images: [...prevForm.images, ...uploadedFiles],
+    }));
+  };
+
+  // ✅ ฟังก์ชันลบรูปภาพออกจาก state
+  const handleRemoveImage = (event) => {
+    setForm((prevForm) => {
+      const updatedImages = prevForm.images.filter(
+        (image) => image.file.name !== event.file.name
+      );
+
+      return { ...prevForm, images: updatedImages };
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const newErrors = validateRepairField(form);
-    setErrors(newErrors);
+    if (!isLoggedIn) {
+      navigate("/login");
+      return;
+    }
 
-    if (!Object.values(newErrors).some(error => error)) {
-      console.log('ฟอร์มถูกต้อง:', form);
-      // ทำการส่งข้อมูลไปเซิร์ฟเวอร์
+    const formData = new FormData();
+    formData.append("problemDescription", form.problemDescription);
+    formData.append("serviceType", form.serviceType);
+
+    form.images.forEach((img) => {
+      formData.append("images", img.file);
+    });
+
+    if (!form.useExistingAddress) {
+      const addressData = {
+        addressLine: form.addressLine.trim() || "",
+        province: form.province?.name_th || "",
+        district: form.district?.name_th || "",
+        subdistrict: form.subdistrict || "",
+        postalCode: form.postcode || "",
+      };
+      formData.append("address", JSON.stringify(addressData));
+    }
+
+    try {
+      const response = await fetch(
+        "http://localhost:1234/api/repair-requests/",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: formData,
+        }
+      );
+
+      if (response.ok) {
+        alert("แจ้งซ่อมสำเร็จ");
+        setForm({
+          province: "",
+          district: "",
+          postcode: "",
+          addressLine: "",
+          problemDescription: "",
+          serviceType: "",
+          images: [],
+      });
+      fileUploadRef.current.clear();
+        navigate("/repair");
+      } else {
+        const errorData = await response.json();
+        alert(`เกิดข้อผิดพลาด: ${errorData.error}`);
+      }
+    } catch (err) {
+      alert("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
     }
   };
 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    setIsLoggedIn(!!token);
+  }, []);
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '50px' }}>
-      <h2 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '20px' }}>แจ้งซ่อม</h2>
-      <div style={{ width: '100%', maxWidth: '800px', backgroundColor: '#F5F5F5', padding: '2rem', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-        <p style={{ color: 'red', fontSize: '18px', marginBottom: '1rem', textAlign: 'left', paddingLeft: '5px' }}>
-          *หมายเหตุ กรุณาระบุให้ชัดเจนเพื่อป้องกันความผิดพลาด
-        </p>
-        <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-          <RepairForm
-            form={form}
-            handleInputChange={handleInputChange}
-            serviceTypes={serviceTypes}
-            orders={orders}
-            errors={errors}
-          />
-          <ImageUploader />
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        paddingTop: "50px",
+      }}
+    >
+      <h2
+        style={{ fontSize: "2rem", fontWeight: "bold", marginBottom: "20px" }}
+      >
+        แจ้งซ่อม
+      </h2>
+      <div
+        style={{
+          width: "100%",
+          maxWidth: "800px",
+          backgroundColor: "#F5F5F5",
+          padding: "2rem",
+          borderRadius: "10px",
+        }}
+      >
+        <RepairForm
+          form={form}
+          handleInputChange={handleInputChange}
+          serviceTypes={serviceTypes}
+          errors={errors}
+        />
+
+        {/* ✅ ส่วนอัปโหลดรูปภาพ */}
+        <div className="p-field p-col-12 pt-2">
+          <label>เพิ่มรูปภาพ</label>
+          <div className="pt-2">
+            <FileUpload
+              ref={fileUploadRef}
+              name="images"
+              mode="advanced"
+              accept="image/*"
+              maxFileSize={1000000}
+              multiple
+              customUpload
+              uploadHandler={handleImageUpload}
+              onRemove={handleRemoveImage}
+              chooseLabel="เลือกไฟล์"
+              auto={true}
+            />
+          </div>
         </div>
 
-        <div className="flex justify-content-center">
-          <Button label="บันทึก" className="p-button-primary p-button-block" style={{ marginTop: '1rem' }} onClick={handleSubmit} />
+        <div className="flex justify-content-center mt-4">
+          <Button
+            label={isLoggedIn ? "บันทึก" : "เข้าสู่ระบบเพื่อแจ้งซ่อม"}
+            className="p-button-primary p-button-block"
+            onClick={(e) => handleSubmit(e)}
+          />
         </div>
       </div>
     </div>

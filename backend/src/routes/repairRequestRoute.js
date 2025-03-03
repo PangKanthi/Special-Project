@@ -14,7 +14,7 @@ const router = express.Router();
 router.post('/', authMiddleware.verifyToken, repairRequestUpload, createRepairRequest);
 router.get('/', authMiddleware.verifyToken, getUserRepairRequests);
 router.get('/:id', authMiddleware.verifyToken, getRepairRequestById);
-router.put('/:id', authMiddleware.verifyToken, repairRequestUpload, updateRepairRequest); // รองรับอัปเดต
-router.delete('/:id', authMiddleware.verifyToken, deleteRepairRequest); // รองรับลบ
+router.put('/:id', authMiddleware.verifyToken, repairRequestUpload, updateRepairRequest);
+router.delete('/:id', authMiddleware.verifyToken, deleteRepairRequest);
 
 export default router;
