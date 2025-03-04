@@ -13,31 +13,13 @@ const menuItems = (navigate) => [
   },
   {
     label: <span className="text-lg text-gray-900">ประตูบานเลื่อน</span>,
+    command: () => navigate("/automatic"),
     icon: 'pi pi-fw pi-list text-gray-900',
-    items: [
-      {
-        label: <span className="text-lg text-gray-900">อัตโนมัติ</span>,
-        command: () => navigate("/automatic"),
-      },
-      {
-        label: <span className="text-lg text-gray-900">ธรรมดา</span>,
-        command: () => navigate("/manual"),
-      },
-    ],
   },
   {
     label: <span className="text-lg text-gray-900">อะไหล่ประตูบานเลื่อน</span>,
+    command: () => navigate("/generalparts"),
     icon: 'pi pi-fw pi-cog text-gray-900',
-    items: [
-      {
-        label: <span className="text-lg text-gray-900">ชิ้นส่วนทั่วไป</span>,
-        command: () => navigate("/generalparts"),
-      },
-      {
-        label: <span className="text-lg text-gray-900">ชิ้นส่วนพิเศษ</span>,
-        command: () => navigate("/specialparts"),
-      },
-    ],
   },
   {
     label: <span className="text-lg text-gray-900">แจ้งซ่อม</span>,
