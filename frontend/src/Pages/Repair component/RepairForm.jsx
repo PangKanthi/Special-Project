@@ -135,7 +135,7 @@ const RepairForm = ({
 
       {/* เขต/อำเภอ */}
       <div className="p-field p-col-6 pt-3">
-        <label htmlFor="district">เขต/อำเภอ</label>
+        <label htmlFor="district"> </label>
         <div className="pt-2">
           <Dropdown
             id="district"
