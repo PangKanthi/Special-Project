@@ -83,3 +83,15 @@ export const getProductById = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getRandomProducts = async (req, res, next) => {
+  try {
+    const count = req.query.count ? parseInt(req.query.count, 10) : 4;
+
+    const products = await ProductService.getRandomProducts(count);
+
+    return res.json(products);
+  } catch (error) {
+    next(error);
+  }
+};
