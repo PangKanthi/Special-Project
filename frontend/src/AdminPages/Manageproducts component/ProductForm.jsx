@@ -52,11 +52,21 @@ const ProductForm = ({
         });
     };
 
+    // ✅ รีเซ็ต Category Type เมื่อเปลี่ยน Product Type
+    const handleProductTypeChange = (e) => {
+        setNewProduct(prev => ({
+            ...prev,
+            is_part: e.value,
+            category: "" // รีเซ็ตค่า Category Type
+        }));
+    };
+
     return (
         <Dialog
             header={editMode ? "Edit Product" : "Add New Product"}
             visible={visible}
             style={{ width: "50vw" }}
+            draggable={false}
             onHide={() => setVisible(false)}
         >
             <form
@@ -125,7 +135,7 @@ const ProductForm = ({
                                 { label: "ประตูม้วน", value: false },
                                 { label: "อะไหล่ประตูม้วน", value: true },
                             ]}
-                            onChange={handleInputChange}
+                            onChange={handleProductTypeChange}
                             className="w-full"
                             placeholder="Select Product Type"
                         />
@@ -136,10 +146,13 @@ const ProductForm = ({
                         <Dropdown
                             name="category"
                             value={newProduct.category}
-                            options={categoryOptions}
+                            options={newProduct.is_part === false ? categoryOptions.shutter
+                                : newProduct.is_part === true ? categoryOptions.shutter_parts
+                                    : []}
                             onChange={handleInputChange}
                             className="w-full"
                             placeholder="Select Category Type"
+                            disabled={newProduct.is_part === undefined || newProduct.is_part === ""}
                         />
                     </div>
 

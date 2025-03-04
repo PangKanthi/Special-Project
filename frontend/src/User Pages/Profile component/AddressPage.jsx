@@ -139,6 +139,7 @@ const AddressPage = () => {
       <Dialog
         header={isEditing ? "แก้ไขที่อยู่" : "เพิ่มที่อยู่ใหม่"}
         visible={visible}
+        draggable={false}
         style={{ width: "450px" }}
         onHide={() => {
           resetForm();

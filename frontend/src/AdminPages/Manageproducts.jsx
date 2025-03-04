@@ -187,10 +187,6 @@ const ManageProducts = () => {
         handleRemoveImage={handleRemoveImage}
         handleSubmit={handleSubmit}
         handleSaveEdit={handleSaveEdit}
-        categoryOptions={[
-          { label: "ประตูม้วน", value: "shutter" },
-          { label: "อะไหล่ประตูม้วน", value: "shutter_parts" },
-        ]}
         colorOptions={[
           { label: "ดำ (Black)", value: "black" },
           { label: "เทา (Gray)", value: "gray" },
@@ -200,6 +196,27 @@ const ManageProducts = () => {
           { label: "แดง (Red)", value: "red" },
           { label: "ขาว (White)", value: "white" },
         ]}
+        categoryOptions={{ // ✅ ส่ง categoryOptions ไปให้ ProductForm
+          shutter: [
+            { label: "ประตูม้วนแบบไฟฟ้า", value: "electric_shutter" },
+            { label: "ประตูม้วนแบบรอกโซ่ไฟฟ้า", value: "chain_electric_shutter" },
+            { label: "ประตูม้วนแบบสปริง", value: "spring_shutter" },
+          ],
+          shutter_parts: [
+            { label: "แผ่นประตูม้วน", value: "shutter_panel" },
+            { label: "รางประตู", value: "door_track" },
+            { label: "เพลา", value: "shaft" },
+            { label: "สปริง", value: "spring" },
+            { label: "ฝาครอบเพลา", value: "shaft_cover" },
+            { label: "ตัวล็อกประตู", value: "door_lock" },
+            { label: "มอเตอร์", value: "motor" },
+            { label: "กล่องควบคุม", value: "control_box" },
+            { label: "รีโมทคอนโทรล / ปุ่มควบคุม", value: "remote_control" },
+            { label: "ระบบเซนเซอร์", value: "sensor_system" },
+            { label: "แบตเตอรี่สำรอง", value: "backup_battery" },
+            { label: "มือหมุนฉุกเฉิน", value: "emergency_crank" },
+          ],
+        }}
       />
     </div>
   );

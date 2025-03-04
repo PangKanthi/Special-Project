@@ -150,6 +150,7 @@ const PortfolioDialog = ({
       visible={visible}
       onHide={handleCloseDialog}
       style={{ width: "30vw" }}
+      draggable={false}
       modal
       blockScroll
     >
