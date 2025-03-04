@@ -2,15 +2,23 @@ import React, { useState } from 'react';
 import useFetchData from '../Hooks/useFetchData';
 import 'primeflex/primeflex.css';
 import { Card } from 'primereact/card';
+import { Paginator } from 'primereact/paginator';
 
 const Portfolio = () => {
   const [search, setSearch] = useState('');
   const [selectedMenu, setSelectedMenu] = useState(null);
+  const [page, setPage] = useState(0);
+  const itemsPerPage = 8;
+
   const { data: productAuto, isLoading, error } = useFetchData('/mockData/rollerdoor_products.json');
 
   const filterProducts = productAuto?.filter(product =>
     product.name.toLowerCase().includes(search.toLowerCase())
-  );
+  ) || [];
+
+  const startIndex = page * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedProducts = filterProducts.slice(startIndex, endIndex);
 
   if (isLoading) {
     return <div className="text-center p-mt-5">Loading...</div>;
@@ -26,7 +34,7 @@ const Portfolio = () => {
         <h1>ผลงาน</h1>
       </div>
       <div className="flex gap-4 justify-content-center flex-wrap pt-4 pl-8" style={{ flex: 1 }}>
-        {filterProducts.map((product, index) => (
+        {paginatedProducts.map((product, index) => (
           <div key={index} style={{ width: '325px' }}>
             <Card
               title={product.name}
@@ -44,6 +52,13 @@ const Portfolio = () => {
           </div>
         ))}
       </div>
+      <Paginator 
+        first={startIndex} 
+        rows={itemsPerPage} 
+        totalRecords={filterProducts.length} 
+        onPageChange={(e) => setPage(e.page)} 
+        className="mt-4"
+      />
     </div>
   );
 };
