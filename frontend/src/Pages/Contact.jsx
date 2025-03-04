@@ -4,7 +4,8 @@ import { Button } from "primereact/button";
 
 const Contact = () => {
   return (
-    <div className="p-6 flex justify-center">
+    <div className="p-6 flex flex-col items-center">
+      {/* การ์ดข้อมูลติดต่อ */}
       <Card className="w-full max-w-3xl shadow-lg">
         <h2 className="text-2xl font-semibold border-b-2 border-blue-500 p-3">
           ติดต่อเรา
@@ -65,6 +66,24 @@ const Contact = () => {
           </table>
         </div>
       </Card>
+
+      {/* Google Map Section */}
+      <div className="w-full max-w-3xl mt-6">
+        <h3 className="text-2xl font-semibold text-center text-gray-800 mb-3">
+          แผนที่ตั้งของเรา
+        </h3>
+        <div className="rounded-lg overflow-hidden shadow-lg">
+          <iframe
+            title="Google Maps Location"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d971.6323990381302!2d101.1381808209234!3d13.065587002711531!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3102c5d7963e7d5d%3A0xf8e82970dc2ad385!2z4Lir4LiI4LiBLuC4lOC4teC5gOC4lOC4ouC5jCDguJvguKPguLDguJXguLnguKHguYnguKfguJk!5e0!3m2!1sth!2sth!4v1741128915049!5m2!1sth!2sth"
+            width="100%"
+            height="400"
+            style={{ border: 0 }}
+            allowFullScreen=""
+            loading="lazy"
+          ></iframe>
+        </div>
+      </div>
     </div>
   );
 };
