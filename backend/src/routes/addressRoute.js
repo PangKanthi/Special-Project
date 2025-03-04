@@ -12,6 +12,6 @@ const router = express.Router();
 router.get("/", authMiddleware.verifyToken, getAddresses);
 router.post("/", authMiddleware.verifyToken, addAddress);
 router.put("/:id", authMiddleware.verifyToken, modifyAddress);
-router.delete("/:id", authMiddleware.verifyToken, authMiddleware.isAdmin, removeAddress);
+router.delete("/:id", authMiddleware.verifyToken, removeAddress);
 
 export default router;
