@@ -1,25 +1,33 @@
 import React, { useState } from 'react';
 import 'primeflex/primeflex.css';
-import { Card } from 'primereact/card';
-import { Divider } from 'primereact/divider';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
-import { Link } from 'react-router-dom';
-import { Dropdown } from 'primereact/dropdown';
+import { Paginator } from 'primereact/paginator';
 import useFetchData from '../Hooks/useFetchData';
+import CategoryMenu from './GeneralParts component/CategoryMenu';
+import ProductList from './GeneralParts component/ProductList';
 
 const GeneralParts = () => {
   const [search, setSearch] = useState('');
   const [selectedMenu, setSelectedMenu] = useState(null);
+  const [first, setFirst] = useState(0);
+  const [rows, setRows] = useState(12);
+
   const { data: GeneralParts, isLoading, error } = useFetchData('/mockData/rollerdoor_parts.json');
 
   const menuOptions = [
-
+    { label: 'ทั้งหมด', value: null },
+    { label: 'มอเตอร์', value: 'motor' },
+    { label: 'รีโมท', value: 'remote' },
+    { label: 'แผงวงจร', value: 'circuit' },
   ];
 
-  const filterGeneralParts = GeneralParts?.filter(product =>
-    product.name.toLowerCase().includes(search.toLowerCase())
+  let filteredGeneralParts = GeneralParts?.filter(product =>
+    product.name.toLowerCase().includes(search.toLowerCase()) &&
+    (selectedMenu ? product.type === selectedMenu : true)
   );
+
+  const paginatedGeneralParts = filteredGeneralParts?.slice(first, first + rows);
 
   if (isLoading) {
     return <div className="text-center p-mt-5">Loading...</div>;
@@ -62,48 +70,17 @@ const GeneralParts = () => {
         </div>
       </div>
       <div className='flex flex-column lg:flex-row'>
-        <div className="block lg:hidden mt-2">
-          <Dropdown
-            value={selectedMenu}
-            options={menuOptions}
-            onChange={(e) => setSelectedMenu(e.value)}
-            placeholder="เลือกชนิดอะไหล่"
-            className="p-dropdown-compact"
-            style={{ borderRadius: '25px 25px 25px 25px' }}
-          />
-        </div>
-
-        {/* เมนูในจอใหญ่ */}
-        <div className="hidden lg:block pl-5 pt-2">
-          <h3>ชนิดของอะไหล่</h3>
-          {menuOptions.map((option, index) => (
-            <p key={index}>{option.label}</p>
-          ))}
-          <Divider type="solid" />
-        </div>
-        <div className="lg:flex-1 flex gap-4 justify-content-center flex-wrap flex-wrap lg:pt-4">
-          {filterGeneralParts.map((product, index) => (
-            <div key={index} style={{ width: '325px' }}>
-              <Link to={`/productGeneral/${product.id}`} key={product.id} style={{ textDecoration: 'none' }}>
-                <Card
-                  title={product.name}
-                  subTitle={product.description}
-                  header={
-                    <img
-                      alt={product.name}
-                      src={product.image}
-                      style={{ width: '100%', height: '250px', objectFit: 'cover', borderRadius: '10px' }}
-                    />
-                  }
-                  footer={<span style={{ color: 'red', fontWeight: 'bold' }}>{product.price}</span>}
-                  className="m-2 p-shadow-5"
-                  style={{ height: '400px' }}
-                />
-              </Link>
-            </div>
-          ))}
-        </div>
+        <CategoryMenu selectedMenu={selectedMenu} setSelectedMenu={setSelectedMenu} setFirst={setFirst} menuOptions={menuOptions} />
+        <ProductList products={paginatedGeneralParts} />
       </div>
+      {/* Pagination */}
+      <Paginator
+        first={first}
+        rows={rows}
+        totalRecords={filteredGeneralParts.length}
+        onPageChange={(e) => setFirst(e.first)}
+        className="mt-4"
+      />
     </div>
   );
 };
