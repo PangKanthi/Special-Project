@@ -1,124 +1,138 @@
 import { useState, useEffect } from "react";
 import useLocationData from "../../../Hooks/useLocationData";
 
-const useAddressForm = () => {
-    const { provinces, amphures, tambons } = useLocationData();
-    const [selectedProvince, setSelectedProvince] = useState(null);
-    const [selectedAmphure, setSelectedAmphure] = useState(null);
-    const [selectedTambon, setSelectedTambon] = useState(null);
-    const [errors, setErrors] = useState({});
-    const [addresses, setAddresses] = useState([]);
+const API_URL = "http://localhost:1234/api/addresses"; // ✅ Backend URL
 
-    const [newAddress, setNewAddress] = useState({
-        firstName: "",
-        lastName: "",
-        phone: "",
-        address: "",
-        province: "",
-        district: "",
-        subDistrict: "",
-        postalCode: "",
-        apartment: "",
+const useAddressForm = () => {
+  const { provinces, amphures, tambons } = useLocationData();
+  const [selectedProvince, setSelectedProvince] = useState(null);
+  const [selectedAmphure, setSelectedAmphure] = useState(null);
+  const [selectedTambon, setSelectedTambon] = useState(null);
+  const [errors, setErrors] = useState({});
+  const [addresses, setAddresses] = useState([]);
+
+  const [newAddress, setNewAddress] = useState({
+    addressLine: "",
+    province: "",
+    district: "",
+    subdistrict: "",
+    postalCode: "",
+  });
+
+  // ✅ โหลดที่อยู่จาก backend เมื่อ component โหลด
+  useEffect(() => {
+    fetchAddresses();
+  }, []);
+
+  // ✅ ตรวจสอบข้อมูลที่โหลด
+  useEffect(() => {}, [provinces, amphures, tambons]);
+
+  // ✅ ดึงข้อมูลที่อยู่จาก API
+  const fetchAddresses = async () => {
+    try {
+      const response = await fetch("http://localhost:1234/api/addresses", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      const data = await response.json();
+      setAddresses(data.data);
+    } catch (error) {
+      console.error("❌ Error fetching addresses:", error);
+    }
+  };
+
+  const filteredAmphures = Array.isArray(amphures?.data)
+    ? amphures.data.filter(
+        (a) => String(a.province_id) === String(selectedProvince?.id)
+      )
+    : [];
+
+  const filteredTambons = Array.isArray(tambons?.data)
+    ? tambons.data.filter(
+        (t) => String(t.amphure_id) === String(selectedAmphure?.id)
+      )
+    : [];
+
+  const handleProvinceChange = (e) => {
+    setSelectedProvince(e.value);
+    setSelectedAmphure(null);
+    setSelectedTambon(null);
+    setNewAddress({
+      ...newAddress,
+      province: e.value.name_th,
+      district: "",
+      subdistrict: "",
+      postalCode: "",
+    });
+  };
+
+  const handleAmphureChange = (e) => {
+    setSelectedAmphure(e.value);
+    setSelectedTambon(null);
+    setNewAddress({
+      ...newAddress,
+      district: e.value.name_th,
+      subdistrict: "",
+      postalCode: "",
+    });
+  };
+
+  const handleTambonChange = (e) => {
+    setSelectedTambon(e.value);
+    setNewAddress({
+      ...newAddress,
+      subdistrict: e.value.name_th,
+      postalCode: String(e.value.zip_code || ""),
+    });
+  };
+
+  const resetForm = () => {
+    setNewAddress({
+      addressLine: "",
+      province: "",
+      district: "",
+      subdistrict: "",
+      postalCode: "",
     });
 
-    const filteredAmphures = amphures?.data?.filter(a => a.province_id === selectedProvince?.id) || [];
-    const filteredTambons = tambons?.data?.filter(t => t.amphure_id === selectedAmphure?.id) || [];
+    setSelectedProvince(null);
+    setSelectedAmphure(null);
+    setSelectedTambon(null);
+    setErrors({});
+  };
 
-    const handleProvinceChange = (e) => {
-        setSelectedProvince(e.value);
-        setSelectedAmphure(null);
-        setSelectedTambon(null);
-        setNewAddress({ ...newAddress, province: e.value.name_th, district: "", subDistrict: "", postalCode: "" });
-    };
+  const validateForm = () => {
+    let newErrors = {};
+    if (!newAddress.addressLine.trim())
+      newErrors.addressLine = "กรุณากรอกที่อยู่";
+    if (!selectedProvince) newErrors.province = "กรุณาเลือกจังหวัด";
+    if (!selectedAmphure) newErrors.district = "กรุณาเลือกเขต/อำเภอ";
+    if (!selectedTambon) newErrors.subdistrict = "กรุณาเลือกตำบล";
+    if (!/^\d{5}$/.test(newAddress.postalCode))
+      newErrors.postalCode = "กรุณากรอกรหัสไปรษณีย์เป็นตัวเลข 5 หลัก";
 
-    const handleAmphureChange = (e) => {
-        setSelectedAmphure(e.value);
-        setSelectedTambon(null);
-        setNewAddress({ ...newAddress, district: e.value.name_th, subDistrict: "", postalCode: "" });
-    };
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
-    const handleTambonChange = (e) => {
-        setSelectedTambon(e.value);
-        setNewAddress(prevState => ({
-            ...prevState,
-            subDistrict: e.value.name_th,
-            postalCode: String(e.value.zip_code || "")
-        }));
-    };
-    
-    const validateForm = () => {
-        let newErrors = {};
-        const thaiPattern = /^[ก-๙\s]+$/;
-        const numberPattern = /^[0-9]+$/;
-
-        if (!newAddress.firstName.match(thaiPattern)) {
-            newErrors.firstName = "กรุณากรอกชื่อเป็นภาษาไทย";
-        }
-        if (!newAddress.lastName.match(thaiPattern)) {
-            newErrors.lastName = "กรุณากรอกนามสกุลเป็นภาษาไทย";
-        }
-        if (!newAddress.phone.match(numberPattern) || newAddress.phone.length < 9 || newAddress.phone.length > 10) {
-            newErrors.phone = "กรุณากรอกเบอร์โทรศัพท์เป็นตัวเลข 9-10 หลัก";
-        }
-        if (!newAddress.address.trim()) {
-            newErrors.address = "กรุณากรอกที่อยู่";
-        }
-        if (!selectedProvince) {
-            newErrors.province = "กรุณาเลือกจังหวัด";
-        }
-        if (!selectedAmphure) {
-            newErrors.district = "กรุณาเลือกเขต/อำเภอ";
-        }
-        if (!selectedTambon) {
-            newErrors.subDistrict = "กรุณาเลือกตำบล";
-        }
-
-        const postalCodeStr = String(newAddress.postalCode || "");
-
-        if (!postalCodeStr.match(numberPattern) || postalCodeStr.length !== 5) {
-            newErrors.postalCode = "กรุณากรอกรหัสไปรษณีย์เป็นตัวเลข 5 หลัก";
-        }
-
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
-
-    const saveAddress = () => {
-        if (validateForm()) {
-            setAddresses([...addresses, newAddress]);
-            setNewAddress({
-                firstName: "",
-                lastName: "",
-                phone: "",
-                address: "",
-                province: "",
-                district: "",
-                subDistrict: "",
-                postalCode: "",
-                apartment: "",
-            });
-            setErrors({});
-        }
-    };
-
-    return {
-        newAddress,
-        setNewAddress,
-        selectedProvince,
-        selectedAmphure,
-        selectedTambon,
-        filteredAmphures,
-        filteredTambons,
-        handleProvinceChange,
-        handleAmphureChange,
-        handleTambonChange,
-        errors,
-        validateForm,
-        saveAddress, // ✅ ส่งฟังก์ชัน saveAddress ออกไป
-        addresses, // ✅ ส่ง addresses ออกไปเพื่อใช้ใน AddressPage
-        provinces,
-        setAddresses,
-    };
+  return {
+    newAddress,
+    setNewAddress,
+    selectedProvince,
+    selectedAmphure,
+    selectedTambon,
+    filteredAmphures,
+    filteredTambons,
+    handleProvinceChange,
+    handleAmphureChange,
+    handleTambonChange,
+    fetchAddresses,
+    errors,
+    validateForm,
+    addresses,
+    provinces,
+    setAddresses,
+    resetForm,
+  };
 };
 
 export default useAddressForm;

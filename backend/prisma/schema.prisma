@@ -49,7 +49,7 @@ model Address {
   postalCode  Int
   userId      Int
   isPrimary   Boolean @default(false)
-  isShipping  Boolean @default(true)
+  isShipping  Boolean @default(false)
 
   user           user            @relation(fields: [userId], references: [id], onDelete: Cascade)
   orders         order[]
