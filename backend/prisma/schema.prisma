@@ -65,7 +65,6 @@ model order {
   total_amount   Decimal  @db.Decimal(10, 2)
   userId         Int
   addressId      Int
-  type           String   @db.VarChar(50)
   payment_status String   @db.VarChar(20)
   payment_slip   String?
 
@@ -80,7 +79,6 @@ model order_item {
   id                Int     @id @default(autoincrement())
   orderId           Int
   productId         Int
-  installationKitId Int?
   quantity          Int
   price             Decimal @db.Decimal(10, 2)
 

@@ -34,6 +34,7 @@ import ShopOrder from "./Shopuser/ShopOrder";
 import ShopOrderinformation from "./Shopuser/ShopOrderinformation";
 import ProtectedRoute from "./protectedRoute/protectedRoute";
 import Profile from "../src/User Pages/Profile";
+import ProductAutoDetail from "./Pages/ProductAutoDetail";
 import "primeflex/primeflex.css";
 import "primereact/resources/themes/saga-blue/theme.css";
 import "primereact/resources/primereact.min.css";
@@ -70,21 +71,18 @@ const App = () => {
           <Route path="/" element={<Home />} />
           <Route path="/home" element={<Home />} />
           <Route path="/automatic" element={<Automatic />} />
-          <Route path="/productAuto/:id" element={<Automaticinside />} />
+          <Route path="/productAuto/:id" element={<ProductAutoDetail />} />
           <Route path="/shop-cart/" element={<ShopCart />} />
           <Route path="/shop-order/" element={<ShopOrder />} />
           <Route path="/shop-order-info/" element={<ShopOrderinformation />} />
           <Route path="/manual" element={<Manual />} />
           <Route path="/generalparts" element={<GeneralParts />} />
-          <Route path="/productGeneral/:id" element={<GeneralPartsinside />} />
-          <Route path="/specialparts" element={<SpecialParts />} />
           <Route path="/repair" element={<Repair />} />
           <Route path="/about" element={<About />} />
           <Route path="/portfolio" element={<Portfolio />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/forgotpassword" element={<Forgotpassword />} />
 
-          {/* ✅ เพิ่ม Route สำหรับ Profile และใช้ ProtectedRoute */}
           <Route
             path="/profile"
             element={

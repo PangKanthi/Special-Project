@@ -129,7 +129,7 @@ function Automaticinside() {
               }}
             />
             <InputText
-              keyfilter="int"
+              keyfilter="int"s
               placeholder='ยาว = ตร.ม.'
               className="p-inputtext-sm m-1"
               onChange={(e) => handleDimensionChange('height', e.target.value)}

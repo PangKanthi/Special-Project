@@ -188,6 +188,7 @@ const ManageProducts = () => {
         handleSubmit={handleSubmit}
         handleSaveEdit={handleSaveEdit}
         colorOptions={[
+          { label: "ไม่มีสี (Colorless)", value: "colorless" },
           { label: "ดำ (Black)", value: "black" },
           { label: "เทา (Gray)", value: "gray" },
           { label: "ชมพู (Pink)", value: "pink" },
