@@ -34,7 +34,7 @@ import ShopOrder from "./Shopuser/ShopOrder";
 import ShopOrderinformation from "./Shopuser/ShopOrderinformation";
 import ProtectedRoute from "./protectedRoute/protectedRoute";
 import Profile from "../src/User Pages/Profile";
-import ProductAutoDetail from "./Pages/ProductAutoDetail";
+import ProductAutoDetail from "./Pagesinside/ProductAutoDetail"
 import "primeflex/primeflex.css";
 import "primereact/resources/themes/saga-blue/theme.css";
 import "primereact/resources/primereact.min.css";

@@ -20,7 +20,6 @@ const ProductList = ({ products }) => {
             <Card
               title={product.name}
               subTitle={product.description}
-              style={{ marginBottom: "1rem", height: "100%" }}
               header={
                 <img
                   alt={product.name}
@@ -32,7 +31,7 @@ const ProductList = ({ products }) => {
                   style={{
                     width: "250px",
                     height: "250px",
-                    objectFit: "cover",
+                    objectFit: "contain",
                     borderRadius: "10px",
                     display: "block",
                     margin: "0 auto",

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { Card } from 'primereact/card';
+import { Carousel } from "primereact/carousel";
 
 function ShopCart() {
   const location = useLocation();
@@ -18,6 +19,22 @@ function ShopCart() {
     if (updatedCart.length === 0) {
       navigate('/automatic');
     }
+  };
+
+  const imageTemplate = (imageUrl, index) => {
+    return (
+      <img
+        key={index}
+        src={imageUrl}
+        alt="Product"
+        style={{
+          width: "100%",
+          height: "200px",
+          objectFit: "cover",
+          borderRadius: "8px",
+        }}
+      />
+    );
   };
 
   if (cart.length === 0) {
@@ -39,21 +56,50 @@ function ShopCart() {
             <h2>ตะกร้าสินค้า</h2>
           </div>
           {cart.map((item, index) => (
-            <div key={index} className='flex'>
-              <div>
-                <img
-                  src={item.product.image}
-                  alt={item.product.name}
-                  style={{ width: '300px', height: '300px', }}
-                  className="w-[120px] sm:w-[150px] md:w-[200px] max-w-full h-auto object-contain"
-                />
+            <div key={index} className='lg:flex'>
+              <div className="w-[200px] pt-5">
+                {Array.isArray(item.product.images) && item.product.images.length > 0 ? (
+                  <Carousel
+                    value={item.product.images}  // ใช้ array ของรูป
+                    numVisible={1}
+                    numScroll={1}
+                    itemTemplate={imageTemplate}
+                    style={{ maxWidth: "400px", width: "100%" }}
+                  />
+                ) : (
+                  <img
+                    src="https://via.placeholder.com/300"
+                    alt="สินค้าตัวนี้"
+                    style={{
+                      width: '200px',
+                      height: '200px',
+                      objectFit: 'cover'
+                    }}
+                  />
+                )}
               </div>
-              <div className='lg:pt-4'>
+
+              <div className='pl-4'>
                 <div className="flex-1 text-left">
                   <h3 className="text-sm lg:text-xl">{item.product.name}</h3>
                   <p className="text-xs lg:text-base">{item.installation}</p>
+                  <p className="text-xs lg:text-base flex items-center">
+                    สีที่เลือก:
+                    <span style={{
+                      backgroundColor: item.selectedColor || "transparent",
+                      borderRadius: "50%",
+                      border: "1px solid #ccc",
+                      display: "inline-block",
+                      width: "20px",
+                      height: "20px",
+                      marginLeft: "10px"
+                    }}>
+                    </span>
+                  </p>
                   <p className="text-xs lg:text-base sm:text-sm">
-                    กว้าง {item.dimensins?.width || '-'} ตร.ม. | ยาว {item.dimensins?.height || '-'} ตร.ม. | หนา {item.dimensins?.thickness || '-'} มม.
+                    กว้าง {item.dimensions?.width || '-'} ตร.ม. |
+                    ยาว {item.dimensions?.height || '-'} ตร.ม. |
+                    หนา {item.dimensions?.thickness || '-'} มม.
                   </p>
                   <p className="text-sm font-bold text-red-500 lg:text-lg">฿{item.product.price.toLocaleString()}</p>
                 </div>

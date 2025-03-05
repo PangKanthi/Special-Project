@@ -4,8 +4,10 @@ import { useParams } from "react-router-dom";
 // PrimeReact
 import { Carousel } from "primereact/carousel";
 import { RadioButton } from "primereact/radiobutton";
-import { InputNumber } from "primereact/inputnumber";
+import { InputText } from "primereact/inputtext";
 import { Button } from "primereact/button";
+import { Dialog } from 'primereact/dialog';
+import { useNavigate } from "react-router-dom";
 
 // PrimeFlex
 import "primeflex/primeflex.css";
@@ -45,9 +47,13 @@ const ProductAutoDetail = () => {
   const [product, setProduct] = useState(null);
 
   const [installOption, setInstallOption] = useState(null); // ติดตั้ง/ไม่ติดตั้ง
+  const [showDialog, setShowDialog] = useState(false);
   const [quantity, setQuantity] = useState(1); // จำนวน
   const [width, setWidth] = useState(""); // กว้าง
   const [length, setLength] = useState(""); // ยาว
+  const [thickness, setThickness] = useState(""); // หนา (เพิ่มใหม่)
+  const [selectedColor, setSelectedColor] = useState(null);
+  const navigate = useNavigate();
 
   const isLoggedIn = checkLogin();
 
@@ -99,13 +105,30 @@ const ProductAutoDetail = () => {
     );
   };
 
-  // ถ้ายังไม่ล็อกอิน เมื่อกดซื้อหรือเพิ่มลงตะกร้าให้ไปหน้า /login
   const handleBuy = () => {
     if (!isLoggedIn) {
-      window.location.href = "/login"; // หรือใช้ navigate("/login")
+      window.location.href = "/login";
       return;
     }
-    alert("กดซื้อสินค้า (ตัวอย่าง)");
+
+    const cartItem = {
+      product: {
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        images: product.images?.map(img => `http://localhost:1234${img}`) || ["https://via.placeholder.com/300"]
+      },
+      quantity,
+      installation: installOption, // "ติดตั้ง" หรือ "ไม่ติดตั้ง"
+      selectedColor: selectedColor,
+      dimensions: {
+        width,
+        height: length, // ใช้ length แทน height
+        thickness // อันนี้ยังไม่มีค่าจาก input
+      }
+    };
+
+    navigate("/shop-cart", { state: cartItem }); // ส่งไปที่ ShopCart
   };
 
   const handleAddToCart = () => {
@@ -114,6 +137,16 @@ const ProductAutoDetail = () => {
       return;
     }
     alert("เพิ่มลงตะกร้า (ตัวอย่าง)");
+  };
+
+  const handleIncrease = () => {
+    setQuantity(prev => prev + 1);
+  };
+
+  const handleDecrease = () => {
+    if (quantity > 1) {
+      setQuantity(prev => prev - 1);
+    }
   };
 
   return (
@@ -149,7 +182,6 @@ const ProductAutoDetail = () => {
 
           <div className="col-12 md:col-6 mt-4 md:mt-0">
             <h2 className="mt-0">{product.name}</h2>
-
             {!product.is_part &&
               product.colors &&
               product.colors.length > 0 && (
@@ -157,13 +189,15 @@ const ProductAutoDetail = () => {
                   {product.colors.map((color) => (
                     <div
                       key={color}
+                      onClick={() => setSelectedColor(color)} // กดแล้วเปลี่ยนค่า
                       style={{
-                        width: "30px",
-                        height: "30px",
+                        width: "20px",
+                        height: "20px",
                         borderRadius: "50%",
                         backgroundColor: color,
-                        border: "1px solid #ccc",
+                        border: selectedColor === color ? "3px solid #ffffff" : "1px solid #ccc", // ไฮไลต์สีที่ถูกเลือก
                         cursor: "pointer",
+                        boxShadow: selectedColor === color ? "0 0 5px rgba(0,0,0,0.5)" : "none", // เพิ่มเอฟเฟกต์เงา
                       }}
                     />
                   ))}
@@ -198,27 +232,35 @@ const ProductAutoDetail = () => {
                 </div>
               </div>
             )}
-
+            <p>ขนาด ( 2000/ตร.ม. )</p>
             {!product.is_part && (
-              <div className="mb-3">
-                <div className="flex gap-2 mb-2 align-items-center">
-                  <span>กว้าง:</span>
+              <div className="flex">
+                <div className="flex align-items-center">
                   <input
                     type="text"
                     value={width}
                     onChange={(e) => setWidth(e.target.value)}
-                    placeholder="เซนติเมตร"
+                    placeholder="กว้าง = ตร.ม."
                     className="p-inputtext p-component"
                     style={{ width: "100px" }}
                   />
                 </div>
-                <div className="flex gap-2 align-items-center">
-                  <span>ยาว:</span>
+                <div className="flex align-items-center pl-2">
                   <input
                     type="text"
                     value={length}
                     onChange={(e) => setLength(e.target.value)}
-                    placeholder="เซนติเมตร"
+                    placeholder="ยาว = ตร.ม."
+                    className="p-inputtext p-component"
+                    style={{ width: "100px" }}
+                  />
+                </div>
+                <div className="flex align-items-center pl-2">
+                  <input
+                    type="text"
+                    value={thickness}
+                    onChange={(e) => setThickness(e.target.value)}
+                    placeholder="หนา = มิน"
                     className="p-inputtext p-component"
                     style={{ width: "100px" }}
                   />
@@ -226,35 +268,108 @@ const ProductAutoDetail = () => {
               </div>
             )}
 
-            <p className="text-2xl font-bold mb-1">
+            <p className="text-2xl font-bold mb-3">
               {product.price
                 ? `${Number(product.price).toLocaleString()} บาท`
                 : "ไม่ระบุราคา"}
             </p>
 
-            <p className="text-sm text-500">หมวดหมู่: {categoryLabel}</p>
-
-            {product.description && (
-              <p className="mt-2" style={{ whiteSpace: "pre-line" }}>
-                {product.description}
-              </p>
-            )}
-
-            <div className="flex align-items-center gap-2 mt-3">
-              <label htmlFor="quantity" className="font-bold">
+            <div className="flex-auto">
+              <label htmlFor="minmax-buttons" className="font-bold block mb-2">
                 จำนวน:
               </label>
-              <InputNumber
-                value={quantity}
-                onValueChange={(e) => setQuantity(e.value)}
-                min={1}
-                showButtons
-                buttonLayout="vertical" 
-                incrementButtonIcon="pi pi-chevron-up"
-                decrementButtonIcon="pi pi-chevron-down"
-                style={{ width: "20rem" }} 
-              />
+              <div className="flex align-items-center">
+                <Button
+                  label="-"
+                  className="p-button-secondary"
+                  onClick={handleDecrease}
+                  style={{
+                    width: '30px',
+                    height: '30px',
+                    backgroundColor: '#ffffff',
+                    color: '#000000',
+                    fontSize: '30px',
+                    justifyContent: 'center',
+                    paddingBottom: '14px'
+                  }}
+                />
+                <InputText
+                  value={quantity}
+                  readOnly
+                  style={{
+                    width: '57px',
+                    height: '30px',
+                    textAlign: 'center',
+                    fontSize: '16px',
+                    fontWeight: 'bold',
+                    border: '1px solid #424242',
+                  }}
+                />
+                <Button
+                  label="+"
+                  className="p-button-secondary"
+                  onClick={handleIncrease}
+                  style={{
+                    width: '30px',
+                    height: '30px',
+                    backgroundColor: '#ffffff',
+                    color: '#000000',
+                    fontSize: '30px',
+                    justifyContent: 'center',
+                    paddingBottom: '14px'
+                  }}
+                />
+              </div>
             </div>
+
+            <p
+              onClick={() => setShowDialog(true)}
+              style={{ color: 'red', cursor: 'pointer', textDecoration: 'underline', fontSize: '17px' }}
+            >
+              *รายละเอียดและคำแจ้งเตือนเมื่อซื้อ
+            </p>
+            <Dialog
+              visible={showDialog}
+              style={{ width: '1080px', height: '840px' }}
+              onHide={() => setShowDialog(false)}
+            >
+              <div className='lg:flex-1 flex justify-content-center flex-wrap'>
+                {productImages.length > 0 ? (
+                  <Carousel
+                    value={productImages}
+                    itemTemplate={imageItemTemplate}
+                    numVisible={1}
+                    numScroll={1}
+                    style={{ maxWidth: "400px", width: "100%" }}
+                  />
+                ) : (
+                  <img
+                    src="https://via.placeholder.com/300"
+                    alt="NoImages"
+                    style={{
+                      width: "300px",
+                      height: "300px",
+                      objectFit: "cover",
+                      borderRadius: "8px",
+                    }}
+                  />
+                )}
+              </div>
+              <div className='pl-5 pr-5'>
+                <div>
+                  <h3>รายละเอียด</h3>
+                  <p className="text-sm text-500">หมวดหมู่: {categoryLabel}</p>
+                </div>
+                <div className='pt-8'>
+                  <h3>การรับประกัน</h3>
+                  {product.description && (
+                    <p className="mt-2" style={{ whiteSpace: "pre-line" }}>
+                      {product.description}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </Dialog>
 
             <div className="mt-4 flex gap-3">
               <Button
