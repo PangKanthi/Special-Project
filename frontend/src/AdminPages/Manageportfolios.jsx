@@ -20,6 +20,16 @@ const ManagePortfolios = () => {
             .catch(error => console.error("Error fetching data:", error));
     }, []);
 
+    const fetchPortfolios = async () => {
+        try {
+            const response = await fetch(API_URL);
+            const data = await response.json();
+            setPortfolios(data);
+        } catch (error) {
+            console.error("Error fetching data:", error);
+        }
+    };
+
     const handleAddWorkSample = async (newWorkSample) => {
         try {
             const formData = new FormData();
@@ -40,6 +50,7 @@ const ManagePortfolios = () => {
 
             const createdWorkSample = await response.json();
             setPortfolios([...portfolios, createdWorkSample]);
+            fetchPortfolios();
         } catch (error) {
             console.error("Error adding work sample:", error);
         }

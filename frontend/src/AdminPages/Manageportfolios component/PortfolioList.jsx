@@ -6,7 +6,6 @@ import { Toast } from "primereact/toast";
 
 const PortfolioList = ({ portfolios, onDelete, onEdit }) => {
   const toast = useRef(null);
-
   const onDeleteWorkSample = async (id) => {
     console.log("Attempting to delete work sample ID:", id);
 
@@ -77,7 +76,7 @@ const PortfolioList = ({ portfolios, onDelete, onEdit }) => {
           >
             <div
               className="bg-gray-300 flex items-center justify-center mx-auto"
-              style={{ width: "400px", height: "400px", objectFit: "cover" }}
+              style={{ width: "350px", height: "350px", objectFit: "cover" }}
             >
               {portfolio.images && portfolio.images.length > 0 ? (
                 <img
