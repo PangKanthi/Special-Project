@@ -2,12 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom'
 import { Button } from 'primereact/button';
 import { Card } from 'primereact/card';
+import { FileUpload } from "primereact/fileupload";
 import { Carousel } from "primereact/carousel";
 
 
 function ShopOrder() {
     const navigate = useNavigate();
     const [cart, setCart] = useState([]);
+
+    const [form, setForm] = useState({
+        images: [],
+    });
 
     useEffect(() => {
         const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
@@ -24,19 +29,52 @@ function ShopOrder() {
         return <p>ไม่มีสินค้าในตะกร้า</p>
     }
 
-    const handleOrderConfirmation = () => {
-        const orderDetails = {
-            cart,
-            orderDate: new Date().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' }),
-            orderNumber: `ORD${Math.floor(100000 + Math.random() * 900000)}`,
-        };
+    const handleOrderConfirmation = async () => {
+        if (form.images.length === 0) {
+            alert("กรุณาอัปโหลดสลิปการโอนเงินก่อนทำการสั่งซื้อ");
+            return;
+        }
 
-        // ล้างตะกร้า
-        localStorage.removeItem("cart");
-        window.dispatchEvent(new Event("cartUpdated"));
+        const formData = new FormData();
 
-        navigate('/shop-order-info', { state: { orderDetails } });
+        // เพิ่มสินค้าในคำสั่งซื้อ
+        cart.forEach((item, index) => {
+            formData.append(`cart[${index}]`, JSON.stringify(item));
+        });
+
+        // เพิ่มรูปภาพสลิป
+        form.images.forEach((img) => {
+            formData.append("paymentSlip", img.file);
+        });
+
+        try {
+            const response = await fetch("http://localhost:1234/api/orders", {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+                body: formData,
+            });
+
+            if (response.ok) {
+                const orderData = await response.json();
+
+                // ✅ ล้างตะกร้าและแจ้งอัปเดต
+                localStorage.removeItem("cart");
+                window.dispatchEvent(new Event("cartUpdated"));
+
+                // ✅ ไปยังหน้า ShopOrderInformation พร้อมส่งข้อมูลคำสั่งซื้อไปด้วย
+                navigate('/shop-order-info', { state: { orderDetails: orderData } });
+
+            } else {
+                const errorData = await response.json();
+                alert(`เกิดข้อผิดพลาด: ${errorData.error}`);
+            }
+        } catch (err) {
+            alert("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
+        }
     };
+
 
     // ✅ คำนวณยอดรวมสินค้าและค่าติดตั้ง
     const totalProductPrice = cart.reduce((sum, item) => {
@@ -52,6 +90,30 @@ function ShopOrder() {
     ), 0);
 
     const grandTotal = totalProductPrice + totalInstallationFee;
+
+    // ✅ ฟังก์ชันเพิ่มไฟล์ลง state
+    const handleImageUpload = (event) => {
+        const uploadedFiles = event.files.map((file) => ({
+            file,
+            previewUrl: URL.createObjectURL(file),
+        }));
+
+        setForm((prevForm) => ({
+            ...prevForm,
+            images: [...prevForm.images, ...uploadedFiles],
+        }));
+    };
+
+    // ✅ ฟังก์ชันลบรูปภาพออกจาก state
+    const handleRemoveImage = (event) => {
+        setForm((prevForm) => {
+            const updatedImages = prevForm.images.filter(
+                (image) => image.file.name !== event.file.name
+            );
+
+            return { ...prevForm, images: updatedImages };
+        });
+    };
 
     const imageTemplate = (imageUrl, index) => {
         return (
@@ -190,12 +252,43 @@ function ShopOrder() {
                         <Card
                             style={{
                                 width: '500px',
-                                height: '100px',
+                                height: '500px',
                                 borderRadius: '10px',
                                 padding: '20px',
                                 backgroundColor: '#f6f6f6',
                             }}
                         >
+                            <div>
+                                <p>บัญชี กสิกร</p>
+                            </div>
+                            <div>
+                                <p>เลขบัญชี 0591344439</p>
+                            </div>
+                            <div>
+                                <p>ชื่อบัญชี กันต์ธี จิตรแก้ว</p>
+                            </div>
+                            <div className="p-field p-col-12 pt-2">
+                                <label>เพิ่มรูปภาพ</label>
+                                <div className="pt-2">
+                                    <FileUpload
+                                        name="images"
+                                        mode="advanced"
+                                        accept="image/*"
+                                        maxFileSize={1000000}
+                                        customUpload
+                                        uploadHandler={handleImageUpload}
+                                        onRemove={handleRemoveImage}
+                                        chooseLabel="เลือกไฟล์"
+                                    />
+                                </div>
+                            </div>
+                            <div className='pt-3'>
+                                <Button
+                                    label="ยืนยันการโอนเงิน"
+                                    onClick={handleOrderConfirmation}
+                                    className="w-full bg-blue-600 text-white py-2 text-lg font-bold rounded"
+                                />
+                            </div>
                         </Card>
                     </div>
                     <div className='md:text-center pt-5'>
