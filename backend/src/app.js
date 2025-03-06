@@ -14,6 +14,7 @@ import reviewRoute from './routes/reviewRoute.js';
 import workSampleRoute from './routes/workSampleRoute.js';
 import addressRoute from "./routes/addressRoute.js";
 import userRoute from "./routes/userRoute.js";
+import slipUploadRoute from './routes/slipUploadRoute.js';
 
 import errorMiddleware from './middlewares/errorMiddleware.js';
 
@@ -53,7 +54,8 @@ app.use('/api/products', productRoute);
 app.use('/api/repair-requests', repairRequestRoute);
 app.use('/api/reviews', reviewRoute);
 app.use('/api/work-samples', workSampleRoute);
-app.use("/api/addresses", addressRoute);
+app.use('/api/addresses', addressRoute);
+app.use('/api', slipUploadRoute);
 
 app.get("/api/users", (req, res) => {
     console.log("✅ API /api/users ทำงาน!");

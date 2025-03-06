@@ -51,7 +51,7 @@ model Address {
   isPrimary   Boolean @default(false)
   isShipping  Boolean @default(false)
 
-  user           user            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user           user             @relation(fields: [userId], references: [id], onDelete: Cascade)
   orders         order[]
   repair_request repair_request[]
 
@@ -59,28 +59,28 @@ model Address {
 }
 
 model order {
-  id             Int      @id @default(autoincrement())
+  id             Int             @id @default(autoincrement())
   order_date     DateTime @default(now()) @db.Timestamp(6)
   status         String   @db.VarChar(20)
   total_amount   Decimal  @db.Decimal(10, 2)
   userId         Int
   addressId      Int
   payment_status String   @db.VarChar(20)
-  payment_slip   String?
 
   user           user             @relation(fields: [userId], references: [id], onDelete: Cascade)
   address        Address          @relation(fields: [addressId], references: [id], onDelete: Cascade)
   order_items    order_item[]
-
+  payment_slips  payment_slip[]
+  
   @@map("orders")
 }
 
 model order_item {
-  id                Int     @id @default(autoincrement())
-  orderId           Int
-  productId         Int
-  quantity          Int
-  price             Decimal @db.Decimal(10, 2)
+  id        Int     @id @default(autoincrement())
+  orderId   Int
+  productId Int
+  quantity  Int
+  price     Decimal @db.Decimal(10, 2)
 
   order   order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product product @relation(fields: [productId], references: [id], onDelete: Cascade)
@@ -88,6 +88,17 @@ model order_item {
   @@map("order_items")
 }
 
+model payment_slip {
+  id         Int      @id @default(autoincrement())
+  orderId    Int
+  imageUrl   String
+  uploadedAt DateTime @default(now())
+  verified   Boolean @default(false)
+
+  order order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("payment_slips")
+}
 model review {
   id        Int    @id @default(autoincrement())
   content   String @db.Text

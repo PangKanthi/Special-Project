@@ -7,19 +7,16 @@ const workSampleUploadDir = 'uploads/work_samples/';
 const slipUploadDir = 'uploads/slips/';
 const repairRequestUploadDir = 'uploads/repair_requests/';
 
-if (!fs.existsSync(productUploadDir)) {
-    fs.mkdirSync(productUploadDir, { recursive: true });
-}
-if (!fs.existsSync(workSampleUploadDir)) {
-    fs.mkdirSync(workSampleUploadDir, { recursive: true });
-}
-if (!fs.existsSync(slipUploadDir)) {
-    fs.mkdirSync(slipUploadDir, { recursive: true });
-}
-if (!fs.existsSync(repairRequestUploadDir)) {
-    fs.mkdirSync(repairRequestUploadDir, { recursive: true });
-}
+// ✅ ตรวจสอบและสร้างโฟลเดอร์อัปโหลดหากไม่มี
+const ensureDirExists = (dir) => {
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
+};
 
+[productUploadDir, workSampleUploadDir, slipUploadDir, repairRequestUploadDir].forEach(ensureDirExists);
+
+// ✅ ตั้งค่าการเก็บไฟล์
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         if (req.uploadType === "product") {
@@ -31,7 +28,7 @@ const storage = multer.diskStorage({
         } else if (req.uploadType === "repair_request") {
             cb(null, repairRequestUploadDir);
         } else {
-            cb(new Error('Invalid upload type'), null);
+            cb(new Error('❌ Invalid upload type'), null);
         }
     },
     filename: (req, file, cb) => {
@@ -39,18 +36,23 @@ const storage = multer.diskStorage({
     }
 });
 
+// ✅ ตรวจสอบประเภทไฟล์ที่รองรับ
 const fileFilter = (req, file, cb) => {
+    console.log("📂 ไฟล์ที่อัปโหลด:", file.originalname);
+    console.log("📂 ประเภทไฟล์:", file.mimetype);
     const allowedTypes = /jpeg|jpg|png/;
     const isValidType = allowedTypes.test(path.extname(file.originalname).toLowerCase()) && allowedTypes.test(file.mimetype);
-    isValidType ? cb(null, true) : cb(new Error('ประเภทไฟล์ไม่รองรับ (เฉพาะ JPEG, JPG, PNG เท่านั้น)'), false);
+    isValidType ? cb(null, true) : cb(new Error('❌ ประเภทไฟล์ไม่รองรับ (เฉพาะ JPEG, JPG, PNG เท่านั้น)'), false);
 };
 
+// ✅ ตั้งค่า `multer` สำหรับอัปโหลดไฟล์หลายไฟล์
 const uploadMultiple = multer({
     storage,
     limits: { fileSize: 5 * 1024 * 1024 },
     fileFilter
 }).array('images', 5);
 
+// ✅ ตั้งค่า `multer` สำหรับอัปโหลดไฟล์เดี่ยว
 const uploadSingle = multer({
     storage,
     limits: { fileSize: 5 * 1024 * 1024 },
