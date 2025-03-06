@@ -21,8 +21,6 @@ import Forgotpassword from "./Pages/Forgotpassword";
 import Footer from "./Footer/Foot";
 import Homeadmin from "./AdminPages/Homeadmin";
 import Navadmin from "./Navbar/Navadmin";
-import Automaticinside from "./Pagesinside/Automaticinside";
-import GeneralPartsinside from "./Pagesinside/GeneralPartsinside";
 import Manageorders from "./AdminPages/Manageorders";
 import Manageproducts from "./AdminPages/Manageproducts";
 import Manageusers from "./AdminPages/Manageusers";

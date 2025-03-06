@@ -1,20 +1,25 @@
-import React, { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { Card } from 'primereact/card';
 import { Carousel } from "primereact/carousel";
 
 function ShopCart() {
-  const location = useLocation();
   const navigate = useNavigate();
+  const [cart, setCart] = useState([]);
 
-  // แบบใหม่ดึงมาใช้แบบนี้ได้ใช้แบบนี้ได้เลยไม่ต้องระบุ
-  const initialCart = location.state ? [location.state] : [];
-  const [cart, setCart] = useState(initialCart);
+  useEffect(() => {
+    const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
+    setCart(storedCart);
+  }, []);
 
   const handleRemoveItem = (productId) => {
-    const updatedCart = cart.filter(item => item.product.id !== productId);
+    let updatedCart = cart.filter(item => item.product.id !== productId);
     setCart(updatedCart);
+    localStorage.setItem("cart", JSON.stringify(updatedCart));
+
+    // แจ้งให้ `UserMenu` อัปเดตจำนวนสินค้า
+    window.dispatchEvent(new Event("cartUpdated"));
 
     if (updatedCart.length === 0) {
       navigate('/automatic');
@@ -28,10 +33,11 @@ function ShopCart() {
         src={imageUrl}
         alt="Product"
         style={{
-          width: "100%",
-          height: "200px",
-          objectFit: "cover",
+          width: "300px",       // กำหนดความกว้าง
+          height: "300px",      // กำหนดความสูงเท่ากัน
+          objectFit: "auto", // ป้องกันการครอบตัดรูป
           borderRadius: "8px",
+          backgroundColor: "#fff" // เพิ่มพื้นหลังให้รูปที่โปร่งใส
         }}
       />
     );
@@ -40,6 +46,7 @@ function ShopCart() {
   if (cart.length === 0) {
     return <p>ไม่มีสินค้าในตะกร้า</p>;
   }
+
   const handleOrder = () => {
     navigate('/shop-order', {
       state: {
@@ -47,6 +54,21 @@ function ShopCart() {
       }
     });
   }
+
+  // ✅ คำนวณยอดรวมสินค้าและค่าติดตั้ง
+  const totalProductPrice = cart.reduce((sum, item) => {
+    const price = typeof item.product.price === "number"
+      ? item.product.price
+      : parseInt(item.product.price.replace(/,| บาท/g, ''), 10);
+
+    return sum + (price * item.quantity);
+  }, 0);
+
+  const totalInstallationFee = cart.reduce((sum, item) => (
+    sum + (item.installation === 'ติดตั้ง' ? 150 : 0)
+  ), 0);
+
+  const grandTotal = totalProductPrice + totalInstallationFee;
 
   return (
     <div className='px-4 sm:px-6 md:px-8 lg:pl-8 pr-8'>
@@ -57,8 +79,8 @@ function ShopCart() {
           </div>
           {cart.map((item, index) => (
             <div key={index} className='lg:flex'>
-              <div className="w-[200px] pt-5">
-                {Array.isArray(item.product.images) && item.product.images.length > 0 ? (
+              <div className="pt-5">
+                {item.product.images && item.product.images.length > 0 ? (
                   <Carousel
                     value={item.product.images}  // ใช้ array ของรูป
                     numVisible={1}
@@ -71,8 +93,8 @@ function ShopCart() {
                     src="https://via.placeholder.com/300"
                     alt="สินค้าตัวนี้"
                     style={{
-                      width: '200px',
-                      height: '200px',
+                      width: "300px",
+                      height: "300px",
                       objectFit: 'cover'
                     }}
                   />
@@ -103,6 +125,7 @@ function ShopCart() {
                   </p>
                   <p className="text-sm font-bold text-red-500 lg:text-lg">฿{item.product.price.toLocaleString()}</p>
                 </div>
+                <p>จำนวน: {item.quantity}</p>
                 <Button
                   label="ลบออก"
                   size='small'
@@ -114,45 +137,41 @@ function ShopCart() {
             </div>
           ))}
         </div>
+
         <div className="w-full lg:w-auto pt-7 flex justify-end">
           <Card
             style={{
               width: '500px',
+              height: "300px",
               borderRadius: '10px',
               boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
               padding: '20px',
               backgroundColor: '#f6f6f6',
             }}
           >
-            {cart.map((item, index) => {
-              const totalPrice =
-                typeof item.product.price === "number"
-                  ? item.product.price * item.quantity
-                  : parseInt(item.product.price.replace(/,| บาท/g, ''), 10) * item.quantity;
+            {/* ✅ แสดงยอดรวมของสินค้า */}
+            <div className="flex justify-content-between text-lg">
+              <p>ยอดรวม</p>
+              <p>฿{totalProductPrice.toLocaleString()}</p>
+            </div>
 
-              const installationFee = item.installation === 'ติดตั้ง' ? 150 : 0;
-              const finalPrice = totalPrice + installationFee;
+            {/* ✅ แสดงค่าธรรมเนียมการติดตั้ง */}
+            <div className="flex justify-content-between mb-3">
+              <p>ค่าธรรมเนียมการติดตั้ง</p>
+              <p>฿{totalInstallationFee.toLocaleString()}</p>
+            </div>
 
-              return (
-                <div key={index}>
-                  <div className="flex justify-content-between">
-                    <p>ยอดรวม</p>
-                    <p>฿{totalPrice.toLocaleString()}</p>
-                  </div>
-                  <div className="flex justify-content-between mb-2">
-                    <p>ค่าธรรมเนียมการติดตั้ง</p>
-                    <p>฿{installationFee.toLocaleString()}</p>
-                  </div>
-                  <div
-                    className="flex justify-content-between mb-3 border-t border-gray-300 pt-3"
-                    style={{ borderTop: '1px solid #ddd', paddingTop: '15px' }}
-                  >
-                    <strong>ยอดรวม</strong>
-                    <strong>฿{finalPrice.toLocaleString()}</strong>
-                  </div>
-                </div>
-              );
-            })}
+            {/* ✅ เส้นคั่น */}
+            <div className="border-t border-gray-300 my-3"></div>
+
+            <div
+              className="flex justify-content-between mb-3 border-t border-gray-300 pt-3"
+              style={{ borderTop: '1px solid #ddd', paddingTop: '15px' }}
+            >
+              <strong>ยอดรวม</strong>
+              <strong>฿{grandTotal.toLocaleString()}</strong>
+            </div>
+
             <Button
               label="สั่งซื้อ"
               onClick={handleOrder}

@@ -10,6 +10,24 @@ const UserMenu = () => {
     const dropdownRef = useRef(null);
 
     useEffect(() => {
+        const updateCartCount = () => {
+            const cart = JSON.parse(localStorage.getItem("cart")) || [];
+            const totalItems = cart.reduce((acc, item) => acc + item.quantity, 0);
+            setCartCount(totalItems);
+        };
+    
+        // โหลดค่าตอนเปิดหน้า
+        updateCartCount();
+    
+        // ฟัง event เมื่อมีการอัปเดตตะกร้า
+        window.addEventListener("cartUpdated", updateCartCount);
+        
+        return () => {
+            window.removeEventListener("cartUpdated", updateCartCount);
+        };
+    }, []);
+
+    useEffect(() => {
         const token = localStorage.getItem('token');
         if (token) {
             const storedUser = JSON.parse(localStorage.getItem('user')) || { name: "User" };

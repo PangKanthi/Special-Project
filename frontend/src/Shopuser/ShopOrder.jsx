@@ -1,14 +1,18 @@
-import React from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'
 import { Button } from 'primereact/button';
 import { Card } from 'primereact/card';
 import { Carousel } from "primereact/carousel";
 
 
 function ShopOrder() {
-    const location = useLocation();
     const navigate = useNavigate();
-    const { cart } = location.state || {};
+    const [cart, setCart] = useState([]);
+
+    useEffect(() => {
+        const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
+        setCart(storedCart);
+    }, []);
 
     const mockAddress = {
         name: 'Ben Tennyson',
@@ -22,14 +26,32 @@ function ShopOrder() {
 
     const handleOrderConfirmation = () => {
         const orderDetails = {
-            mockAddress,
             cart,
             orderDate: new Date().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' }),
             orderNumber: `ORD${Math.floor(100000 + Math.random() * 900000)}`,
         };
 
+        // ล้างตะกร้า
+        localStorage.removeItem("cart");
+        window.dispatchEvent(new Event("cartUpdated"));
+
         navigate('/shop-order-info', { state: { orderDetails } });
     };
+
+    // ✅ คำนวณยอดรวมสินค้าและค่าติดตั้ง
+    const totalProductPrice = cart.reduce((sum, item) => {
+        const price = typeof item.product.price === "number"
+            ? item.product.price
+            : parseInt(item.product.price.replace(/,| บาท/g, ''), 10);
+
+        return sum + (price * item.quantity);
+    }, 0);
+
+    const totalInstallationFee = cart.reduce((sum, item) => (
+        sum + (item.installation === 'ติดตั้ง' ? 150 : 0)
+    ), 0);
+
+    const grandTotal = totalProductPrice + totalInstallationFee;
 
     const imageTemplate = (imageUrl, index) => {
         return (
@@ -38,10 +60,11 @@ function ShopOrder() {
                 src={imageUrl}
                 alt="Product"
                 style={{
-                    width: "100%",
-                    height: "200px",
-                    objectFit: "cover",
+                    width: "300px",       // กำหนดความกว้าง
+                    height: "300px",      // กำหนดความสูงเท่ากัน
+                    objectFit: "auto", // ป้องกันการครอบตัดรูป
                     borderRadius: "8px",
+                    backgroundColor: "#fff" // เพิ่มพื้นหลังให้รูปที่โปร่งใส
                 }}
             />
         );
@@ -72,7 +95,7 @@ function ShopOrder() {
                     </div>
                 </div>
                 {cart.map((item, index) => (
-                    <div key={index} className='flex'>
+                    <div key={index} className='lg:flex'>
                         <div className="w-[200px] lg:pt-6">
                             {Array.isArray(item.product.images) && item.product.images.length > 0 ? (
                                 <Carousel
@@ -135,38 +158,31 @@ function ShopOrder() {
                             height: '250px'
                         }}
                     >
-                        {cart.map((item, index) => {
-                            const totalPrice =
-                                typeof item.product.price === "number"
-                                    ? item.product.price * item.quantity
-                                    : parseInt(item.product.price.replace(/,| บาท/g, ''), 10) * item.quantity;
+                        {/* ✅ แสดงยอดรวมของสินค้า */}
+                        <div className="flex justify-content-between text-lg">
+                            <p>ยอดรวม</p>
+                            <p>฿{totalProductPrice.toLocaleString()}</p>
+                        </div>
 
-                            const installationFee = item.installation === 'ติดตั้ง' ? 150 : 0;
-                            const finalPrice = totalPrice + installationFee;
+                        {/* ✅ แสดงค่าธรรมเนียมการติดตั้ง */}
+                        <div className="flex justify-content-between mb-3">
+                            <p>ค่าธรรมเนียมการติดตั้ง</p>
+                            <p>฿{totalInstallationFee.toLocaleString()}</p>
+                        </div>
 
-                            return (
-                                <div key={index}>
-                                    <div className="flex justify-content-between">
-                                        <p>ยอดรวม</p>
-                                        <p>฿{totalPrice.toLocaleString()}</p>
-                                    </div>
-                                    <div className="flex justify-content-between mb-2">
-                                        <p>ค่าธรรมเนียมการติดตั้ง</p>
-                                        <p>฿{installationFee.toLocaleString()}</p>
-                                    </div>
-                                    <div
-                                        className="flex justify-content-between mb-3 text-xl"
-                                        style={{ borderTop: '1px solid #ddd', paddingTop: '15px' }}
-                                    >
-                                        <strong>ยอดรวม</strong>
-                                        <strong>฿{finalPrice.toLocaleString()}</strong>
-                                    </div>
-                                </div>
-                            );
-                        })}
+                        {/* ✅ เส้นคั่น */}
+                        <div className="border-t border-gray-300 my-3"></div>
+
+                        <div
+                            className="flex justify-content-between mb-3 border-t border-gray-300 pt-3"
+                            style={{ borderTop: '1px solid #ddd', paddingTop: '15px' }}
+                        >
+                            <strong>ยอดรวม</strong>
+                            <strong>฿{grandTotal.toLocaleString()}</strong>
+                        </div>
                     </Card>
                 </div>
-                <div className='pt-4'>
+                <div className='pt-4 '>
                     <div>
                         <strong>วิธีการชำระเงิน</strong>
                     </div>
