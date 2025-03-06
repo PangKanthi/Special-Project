@@ -3,8 +3,11 @@ import { Galleria } from "primereact/galleria";
 import { Card } from "primereact/card";
 import "primeflex/primeflex.css";
 import useFetchData from "../Hooks/useFetchData";
+import { useNavigate } from "react-router-dom";
 
 const Home = () => {
+  const navigate = useNavigate();
+
   // 1) เรียก API ให้ส่งสินค้าสุ่ม 8 รายการ
   const { data: randomProducts, isLoading: productsLoading } = useFetchData(
     "http://localhost:1234/api/products/random?count=4"
@@ -79,9 +82,10 @@ const Home = () => {
         <h2 className="mt-4">สินค้าภายในร้าน</h2>
         <div className="grid mt-3">
           {randomProducts.map((product) => (
-            <div key={product.id} className="col-12 md:col-6 lg:col-3">
+            <div key={product.id} className="col-12 md:col-6 lg:col-3" onClick={() => navigate(`/productAuto/${product.id}`)}>
               <Card
                 title={product.name}
+                
                 subTitle={product.description}
                 style={{ marginBottom: "1rem", height: "100%" }}
                 header={

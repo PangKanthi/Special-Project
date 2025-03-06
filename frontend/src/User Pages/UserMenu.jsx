@@ -64,7 +64,7 @@ const UserMenu = () => {
     return (
         <div className={`flex items-center space-x-4 relative transition-all duration-500 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-[-10px]"}`}>
             {/* ไอคอนตะกร้าสินค้า + Badge แจ้งเตือน */}
-            <div className="relative cursor-pointer mr-5">
+            <div className="relative cursor-pointer mr-5" onClick={() => navigate("/shop-cart")}>
                 <i className="pi pi-shopping-bag text-2xl text-gray-700"></i>
                 {cartCount > 0 && (
                     <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-2 animate-pulse">

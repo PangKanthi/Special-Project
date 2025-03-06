@@ -122,11 +122,13 @@ function ShopOrder() {
                 src={imageUrl}
                 alt="Product"
                 style={{
-                    width: "300px",       // กำหนดความกว้าง
-                    height: "300px",      // กำหนดความสูงเท่ากัน
-                    objectFit: "auto", // ป้องกันการครอบตัดรูป
+                    width: "100%",        // ทำให้รูปขยายเต็ม container
+                    maxWidth: "300px",    // จำกัดขนาดรูป
+                    height: "auto",       // ปรับความสูงอัตโนมัติ
+                    maxHeight: "300px",   // จำกัดความสู00ง
+                    objectFit: "contain", // ปรับขนาดให้แสดงครบ ไม่ถูกครอบตัด
                     borderRadius: "8px",
-                    backgroundColor: "#fff" // เพิ่มพื้นหลังให้รูปที่โปร่งใส
+                    backgroundColor: "#fff"
                 }}
             />
         );
@@ -251,8 +253,10 @@ function ShopOrder() {
                     <div className='w-full lg:w-auto flex justify-end pt-3'>
                         <Card
                             style={{
-                                width: '500px',
-                                height: '500px',
+                                width: "100%",        // ทำให้รูปขยายเต็ม container
+                                maxWidth: "500px",    // จำกัดขนาดรูป
+                                height: "auto",       // ปรับความสูงอัตโนมัติ
+                                maxHeight: "600px",   // จำกัดความสู00ง
                                 borderRadius: '10px',
                                 padding: '20px',
                                 backgroundColor: '#f6f6f6',

@@ -33,11 +33,13 @@ function ShopCart() {
         src={imageUrl}
         alt="Product"
         style={{
-          width: "300px",       // กำหนดความกว้าง
-          height: "300px",      // กำหนดความสูงเท่ากัน
-          objectFit: "auto", // ป้องกันการครอบตัดรูป
+          width: "100%",        // ทำให้รูปขยายเต็ม container
+          maxWidth: "300px",    // จำกัดขนาดรูป
+          height: "auto",       // ปรับความสูงอัตโนมัติ
+          maxHeight: "300px",   // จำกัดความสู00ง
+          objectFit: "contain", // ปรับขนาดให้แสดงครบ ไม่ถูกครอบตัด
           borderRadius: "8px",
-          backgroundColor: "#fff" // เพิ่มพื้นหลังให้รูปที่โปร่งใส
+          backgroundColor: "#fff"
         }}
       />
     );

@@ -162,7 +162,7 @@ const ProductAutoDetail = () => {
 
   return (
     <div>
-      <div className="flex justify-content-center align-items-center p-4 mt-8">
+      <div className="flex justify-content-center align-items-center mt-8">
         <div className="surface-card p-4 border-round shadow-2" style={{ maxWidth: "1000px", width: "100%" }}>
           <div className="grid">
             {/* โซนแสดง Carousel รูปภาพ */}
