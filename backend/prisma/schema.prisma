@@ -25,14 +25,16 @@ model product {
 }
 
 model user {
-  id        Int     @id @default(autoincrement())
-  username  String  @unique @db.VarChar(20)
-  firstname String  @db.VarChar(50)
-  lastname  String  @db.VarChar(50)
-  password  String  @db.VarChar(100)
-  email     String  @unique @db.VarChar(50)
-  phone     String? @db.VarChar(10)
-  role      String  @default("U") @db.Char(1)
+  id                   Int       @id @default(autoincrement())
+  username             String    @unique @db.VarChar(20)
+  firstname            String    @db.VarChar(50)
+  lastname             String    @db.VarChar(50)
+  password             String    @db.VarChar(100)
+  email                String    @unique @db.VarChar(50)
+  phone                String?   @db.VarChar(10)
+  role                 String    @default("U") @db.Char(1)
+  resetPasswordToken   String?   @db.VarChar(255)
+  resetPasswordExpires DateTime?
 
   addresses      Address[]
   orders         order[]
@@ -59,7 +61,7 @@ model Address {
 }
 
 model order {
-  id             Int             @id @default(autoincrement())
+  id             Int      @id @default(autoincrement())
   order_date     DateTime @default(now()) @db.Timestamp(6)
   status         String   @db.VarChar(20)
   total_amount   Decimal  @db.Decimal(10, 2)
@@ -67,11 +69,11 @@ model order {
   addressId      Int
   payment_status String   @db.VarChar(20)
 
-  user           user             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  address        Address          @relation(fields: [addressId], references: [id], onDelete: Cascade)
-  order_items    order_item[]
-  payment_slips  payment_slip[]
-  
+  user          user           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  address       Address        @relation(fields: [addressId], references: [id], onDelete: Cascade)
+  order_items   order_item[]
+  payment_slips payment_slip[]
+
   @@map("orders")
 }
 
@@ -93,12 +95,13 @@ model payment_slip {
   orderId    Int
   imageUrl   String
   uploadedAt DateTime @default(now())
-  verified   Boolean @default(false)
+  verified   Boolean  @default(false)
 
   order order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@map("payment_slips")
 }
+
 model review {
   id        Int    @id @default(autoincrement())
   content   String @db.Text

@@ -127,7 +127,7 @@ const Login = () => {
                 {!isLoggedIn && (
                     <div className="flex justify-content-between">
                         <a href="/register" className="text-primary">สมัครสมาชิก?</a>
-                        <a href="/forgotpassword" className="text-primary">ลืมรหัสผ่าน?</a>
+                        <a href="/requestreset" className="text-primary">ลืมรหัสผ่าน?</a>
                     </div>
                 )}
             </div>

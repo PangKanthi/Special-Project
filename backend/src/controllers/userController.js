@@ -1,5 +1,6 @@
 import UserService from "../services/userService.js";
 import bcrypt from "bcryptjs";
+import nodemailer from "nodemailer";
 
 export const getAllUsers = async (req, res, next) => {
   try {
@@ -50,3 +51,27 @@ export const deleteUser = async (req, res, next) => {
     next(error);
   }
 };
+
+export const requestPasswordReset = async (req, res, next) => {
+  console.log("EMAIL_USER:", process.env.EMAIL_USER);
+  console.log("EMAIL_PASS:", process.env.EMAIL_PASS);
+
+  try {
+    const { email } = req.body;
+    const response = await UserService.requestPasswordReset(email);
+    res.json(response);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resetPassword = async (req, res, next) => {
+  try {
+    const { email, token, newPassword } = req.body;
+    const response = await UserService.resetPassword(email, token, newPassword);
+    res.json(response);
+  } catch (error) {
+    next(error);
+  }
+};
+

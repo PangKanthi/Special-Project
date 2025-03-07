@@ -39,7 +39,6 @@ const partCategoryOptions = [
 ];
 
 const checkLogin = () => {
-  // ตัวอย่างการเช็คล็อกอิน (ในโปรเจ็กต์จริงอาจเช็ค token หรือ context)
   return localStorage.getItem("token") ? true : false;
 };
 
@@ -57,6 +56,10 @@ const ProductAutoDetail = () => {
   const navigate = useNavigate();
 
   const isLoggedIn = checkLogin();
+
+  const handleIncrease = () => {
+    setQuantity((prev) => (prev < product.stock_quantity ? prev + 1 : prev));
+  };
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -121,7 +124,18 @@ const ProductAutoDetail = () => {
       window.location.href = "/login";
       return;
     }
-
+  
+    let cart = JSON.parse(localStorage.getItem("cart")) || [];
+  
+    // ตรวจสอบว่าสินค้านี้มีอยู่ในตะกร้าหรือไม่
+    const existingItem = cart.find(item => item.product.id === product.id);
+    const totalQuantity = existingItem ? existingItem.quantity + quantity : quantity;
+  
+    if (totalQuantity > product.stock_quantity) {
+      alert(`สินค้าคงเหลือในสต็อกมี ${product.stock_quantity} ชิ้นเท่านั้น`);
+      return;
+    }
+  
     const cartItem = {
       product: {
         id: product.id,
@@ -134,24 +148,17 @@ const ProductAutoDetail = () => {
       selectedColor,
       dimensions: { width, height: length, thickness }
     };
-
-    let cart = JSON.parse(localStorage.getItem("cart")) || [];
-
-    const existingItemIndex = cart.findIndex(item => item.product.id === product.id);
-    if (existingItemIndex !== -1) {
-      cart[existingItemIndex].quantity += quantity;
+  
+    if (existingItem) {
+      existingItem.quantity += quantity;
     } else {
       cart.push(cartItem);
     }
-
+  
     localStorage.setItem("cart", JSON.stringify(cart));
-
+  
     // แจ้งให้ `UserMenu` อัปเดตตะกร้า
     window.dispatchEvent(new Event("cartUpdated"));
-  };
-
-  const handleIncrease = () => {
-    setQuantity(prev => prev + 1);
   };
 
   const handleDecrease = () => {

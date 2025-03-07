@@ -17,7 +17,6 @@ import Portfolio from "./Pages/Portfolio";
 import Contact from "./Pages/Contact";
 import Login from "./Pages/Login";
 import Register from "./Pages/Register";
-import Forgotpassword from "./Pages/Forgotpassword";
 import Footer from "./Footer/Foot";
 import Homeadmin from "./AdminPages/Homeadmin";
 import Navadmin from "./Navbar/Navadmin";
@@ -33,6 +32,8 @@ import ShopOrderinformation from "./Shopuser/ShopOrderinformation";
 import ProtectedRoute from "./protectedRoute/protectedRoute";
 import Profile from "../src/User Pages/Profile";
 import ProductAutoDetail from "./Pagesinside/ProductAutoDetail"
+import ResetPassword from "./Pages/PasswordReset/ResetPassword"
+import RequestReset from "./Pages/PasswordReset/RequestReset"
 import "primeflex/primeflex.css";
 import "primereact/resources/themes/saga-blue/theme.css";
 import "primereact/resources/primereact.min.css";
@@ -79,7 +80,8 @@ const App = () => {
           <Route path="/about" element={<About />} />
           <Route path="/portfolio" element={<Portfolio />} />
           <Route path="/contact" element={<Contact />} />
-          <Route path="/forgotpassword" element={<Forgotpassword />} />
+          <Route path="/reset-password" element={<ResetPassword/>} />
+          <Route path="/requestreset" element={<RequestReset/>} />
 
           <Route
             path="/profile"
