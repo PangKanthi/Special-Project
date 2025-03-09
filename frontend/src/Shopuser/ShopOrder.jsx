@@ -57,14 +57,11 @@ function ShopOrder() {
     }
     const formData = new FormData();
     formData.append("slip", form.images[0].file);
-    formData.append("orderId", orderId);
-
-    setLoading(true);
-    setErrorMessage("");
-
+  
     try {
-      const response = await fetch("http://localhost:1234/api/upload-slip", {
+      const response = await fetch(`http://localhost:1234/api/orders/${orderId}/upload-slip`, {
         method: "POST",
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         body: formData,
       });
       const result = await response.json();
@@ -76,11 +73,11 @@ function ShopOrder() {
       setUploadedSlipUrl(result.imageUrl);
       setLoading(false);
     } catch (error) {
-      console.error("❌ Error:", error);
-      setErrorMessage("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
-      setLoading(false);
+      console.error(error);
+      alert("เกิดข้อผิดพลาดในการอัปโหลดสลิป");
     }
   };
+  
 
   const handleCheckSlip = async () => {
     if (!form.images.length) {
