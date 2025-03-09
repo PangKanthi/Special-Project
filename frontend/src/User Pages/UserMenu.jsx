@@ -5,21 +5,21 @@ const UserMenu = () => {
     const navigate = useNavigate();
     const [user, setUser] = useState(null);
     const [dropdownVisible, setDropdownVisible] = useState(false);
-    const [cartCount, setCartCount] = useState(3); // จำนวนแจ้งเตือนในตะกร้า
-    const [isVisible, setIsVisible] = useState(false); // ควบคุม Animation
+    const [cartCount, setCartCount] = useState(0); // ✅ จำนวนสินค้าในตะกร้า
+    const [isVisible, setIsVisible] = useState(false); // ✅ ควบคุม Animation
     const dropdownRef = useRef(null);
 
+    // ✅ อัปเดตจำนวนสินค้าในตะกร้าแบบเรียลไทม์
     useEffect(() => {
         const updateCartCount = () => {
             const cart = JSON.parse(localStorage.getItem("cart")) || [];
             const totalItems = cart.reduce((acc, item) => acc + item.quantity, 0);
             setCartCount(totalItems);
         };
-    
-        // โหลดค่าตอนเปิดหน้า
-        updateCartCount();
-    
-        // ฟัง event เมื่อมีการอัปเดตตะกร้า
+
+        updateCartCount(); // โหลดค่าตอนเปิดหน้า
+
+        // ✅ ฟัง event เมื่อมีการอัปเดตตะกร้า
         window.addEventListener("cartUpdated", updateCartCount);
         
         return () => {
@@ -27,14 +27,13 @@ const UserMenu = () => {
         };
     }, []);
 
+    // ✅ โหลดข้อมูลผู้ใช้จาก localStorage และเปิดแอนิเมชัน
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (token) {
             const storedUser = JSON.parse(localStorage.getItem('user')) || { name: "User" };
             setUser(storedUser);
-            setTimeout(() => {
-                setIsVisible(true);
-            }, 300);
+            setTimeout(() => setIsVisible(true), 300);
         } else {
             setUser(null);
             setIsVisible(false);
@@ -63,7 +62,6 @@ const UserMenu = () => {
 
     return (
         <div className={`flex items-center space-x-4 relative transition-all duration-500 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-[-10px]"}`}>
-            {/* ไอคอนตะกร้าสินค้า + Badge แจ้งเตือน */}
             <div className="relative cursor-pointer mr-5" onClick={() => navigate("/shop-cart")}>
                 <i className="pi pi-shopping-bag text-2xl text-gray-700"></i>
                 {cartCount > 0 && (
@@ -73,16 +71,14 @@ const UserMenu = () => {
                 )}
             </div>
 
-            {/* ชื่อผู้ใช้ + Dropdown */}
+            {/* ✅ ชื่อผู้ใช้ + Dropdown */}
             <div className="relative" ref={dropdownRef}>
                 <button
                     className="p-link flex items-center text-lg text-gray-700 font-medium hover:text-gray-900 mr-5"
                     onClick={() => setDropdownVisible(!dropdownVisible)}
                 >
                     {user ? user.name : "User"}
-                    <div>
-                        <i className="pi pi-angle-down ml-2 text-sm"></i>
-                    </div>
+                    <i className="pi pi-angle-down ml-2 text-sm"></i>
                 </button>
 
                 {dropdownVisible && (
@@ -92,7 +88,7 @@ const UserMenu = () => {
                                 className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer rounded-t-lg"
                                 onClick={() => {
                                     navigate("/profile");
-                                    setDropdownVisible(false); // ✅ ปิด dropdown หลังจากคลิก
+                                    setDropdownVisible(false);
                                 }}
                             >
                                 โปรไฟล์

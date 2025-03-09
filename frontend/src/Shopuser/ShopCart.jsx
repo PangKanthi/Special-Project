@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from 'primereact/button';
-import { Card } from 'primereact/card';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "primereact/button";
+import { Card } from "primereact/card";
 import { Carousel } from "primereact/carousel";
 
 function ShopCart() {
@@ -9,20 +9,56 @@ function ShopCart() {
   const [cart, setCart] = useState([]);
 
   useEffect(() => {
-    const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
-    setCart(storedCart);
+    const fetchCart = async () => {
+      try {
+        const response = await fetch("http://localhost:1234/api/cart", {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        });
+
+        if (!response.ok) throw new Error("ไม่สามารถดึงข้อมูลตะกร้าได้");
+
+        const data = await response.json();
+        console.log("🛒 ตะกร้าสินค้า:", data.items);
+        setCart(data.items);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchCart();
   }, []);
 
-  const handleRemoveItem = (productId) => {
-    let updatedCart = cart.filter(item => item.product.id !== productId);
-    setCart(updatedCart);
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
+  const handleRemoveItem = async (productId) => {
+    if (!productId) {
+      console.error("❌ Error: productId is undefined or null");
+      return;
+    }
 
-    // แจ้งให้ `UserMenu` อัปเดตจำนวนสินค้า
-    window.dispatchEvent(new Event("cartUpdated"));
+    console.log("🗑 Removing productId:", productId);
 
-    if (updatedCart.length === 0) {
-      navigate('/automatic');
+    try {
+      const response = await fetch("http://localhost:1234/api/cart/remove", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({ productId }),
+      });
+
+      if (!response.ok) {
+        const result = await response.json();
+        throw new Error(result.error || "ลบสินค้าออกจากตะกร้าไม่สำเร็จ");
+      }
+
+      console.log("✅ ลบสินค้าออกจากตะกร้าสำเร็จ");
+
+      // อัปเดต UI หลังจากลบ
+      setCart(cart.filter((item) => item.product?.id !== productId));
+      window.dispatchEvent(new Event("cartUpdated"));
+    } catch (error) {
+      console.error("❌ API Error:", error.message);
+      alert("เกิดข้อผิดพลาดในการลบสินค้า");
     }
   };
 
@@ -32,59 +68,109 @@ function ShopCart() {
         key={index}
         src={imageUrl}
         alt="Product"
+        onError={(e) => (e.target.src = "https://via.placeholder.com/300")}
         style={{
-          width: "100%",        // ทำให้รูปขยายเต็ม container
-          maxWidth: "300px",    // จำกัดขนาดรูป
-          height: "auto",       // ปรับความสูงอัตโนมัติ
-          maxHeight: "300px",   // จำกัดความสู00ง
-          objectFit: "contain", // ปรับขนาดให้แสดงครบ ไม่ถูกครอบตัด
+          width: "100%",
+          maxWidth: "300px",
+          height: "auto",
+          maxHeight: "300px",
+          objectFit: "contain",
           borderRadius: "8px",
-          backgroundColor: "#fff"
+          backgroundColor: "#fff",
         }}
       />
     );
   };
 
   if (cart.length === 0) {
-    return <p>ไม่มีสินค้าในตะกร้า</p>;
+    return (
+      <div
+        className="flex justify-content-center align-items-center"
+        style={{ minHeight: "50vh", padding: "1rem" }}
+      >
+        <div
+          className="surface-card p-6 shadow-2 border-round-lg text-center"
+          style={{ maxWidth: "500px", width: "100%" }}
+        >
+          <i className="pi pi-shopping-cart text-6xl text-blue-500 mb-4"></i>
+          <h2 className="text-blue-600">ตะกร้าสินค้าว่าง</h2>
+          <p className="text-gray-600">
+            ยังไม่มีสินค้าในตะกร้า กรุณาเลือกซื้อสินค้า
+          </p>
+          <Button
+            label="เลือกซื้อสินค้า"
+            className="p-button-primary w-full mt-3"
+            onClick={() => navigate("/automatic")}
+          />
+        </div>
+      </div>
+    );
   }
 
-  const handleOrder = () => {
-    navigate('/shop-order', {
-      state: {
-        cart
-      }
-    });
-  }
+  const handleOrder = async () => {
+    try {
+      const response = await fetch(
+        "http://localhost:1234/api/orders/from-cart",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ addressId: 1 }),
+        }
+      );
 
-  // ✅ คำนวณยอดรวมสินค้าและค่าติดตั้ง
+      if (!response.ok) throw new Error("ไม่สามารถสร้างคำสั่งซื้อได้");
+
+      const result = await response.json();
+      alert("สั่งซื้อสำเร็จ!");
+      navigate("/shop-order", { state: { order: result } });
+    } catch (error) {
+      console.error(error);
+      alert("เกิดข้อผิดพลาดในการสั่งซื้อ");
+    }
+  };
+
   const totalProductPrice = cart.reduce((sum, item) => {
-    const price = typeof item.product.price === "number"
-      ? item.product.price
-      : parseInt(item.product.price.replace(/,| บาท/g, ''), 10);
+    if (!item?.product || item.product.price === undefined) {
+      console.warn(
+        "❌ พบสินค้าที่ไม่มีข้อมูล `price` หรือ `product` ในตะกร้า:",
+        item
+      );
+      return sum;
+    }
 
-    return sum + (price * item.quantity);
+    const price =
+      typeof item.product.price === "number"
+        ? item.product.price
+        : parseFloat(item.product.price) || 0;
+
+    return sum + price * item.quantity;
   }, 0);
 
-  const totalInstallationFee = cart.reduce((sum, item) => (
-    sum + (item.installation === 'ติดตั้ง' ? 150 : 0)
-  ), 0);
+  const totalInstallationFee = cart.reduce((sum, item) => {
+    if (!item || !item.installation) return sum;
+    return sum + (item.installation === "ติดตั้ง" ? 150 : 0);
+  }, 0);
 
   const grandTotal = totalProductPrice + totalInstallationFee;
 
   return (
-    <div className='px-4 sm:px-6 md:px-8 lg:pl-8 pr-8'>
-      <div className='lg:flex-1 flex justify-content-between flex-wrap pt-8'>
-        <div className='lg:pl-8'>
-          <div className='lg:pl-5'>
+    <div className="px-4 sm:px-6 md:px-8 lg:pl-8 pr-8">
+      <div className="lg:flex-1 flex justify-content-between flex-wrap pt-8">
+        <div className="lg:pl-8">
+          <div className="lg:pl-5">
             <h2>ตะกร้าสินค้า</h2>
           </div>
           {cart.map((item, index) => (
-            <div key={index} className='lg:flex'>
+            <div key={index} className="lg:flex">
               <div className="pt-5">
-                {item.product.images && item.product.images.length > 0 ? (
+                {item.product?.images && item.product.images.length > 0 ? (
                   <Carousel
-                    value={item.product.images}  // ใช้ array ของรูป
+                    value={item.product.images.map(
+                      (img) => `http://localhost:1234${img}`
+                    )}
                     numVisible={1}
                     numScroll={1}
                     itemTemplate={imageTemplate}
@@ -97,40 +183,46 @@ function ShopCart() {
                     style={{
                       width: "300px",
                       height: "300px",
-                      objectFit: 'cover'
+                      objectFit: "cover",
                     }}
                   />
                 )}
               </div>
 
-              <div className='pl-4'>
+              <div className="pl-4">
                 <div className="flex-1 text-left">
-                  <h3 className="text-sm lg:text-xl">{item.product.name}</h3>
+                  <h3 className="text-sm lg:text-xl">
+                    {item.product?.name || "ไม่พบข้อมูลสินค้า"}
+                  </h3>
                   <p className="text-xs lg:text-base">{item.installation}</p>
                   <p className="text-xs lg:text-base flex items-center">
                     สีที่เลือก:
-                    <span style={{
-                      backgroundColor: item.selectedColor || "transparent",
-                      borderRadius: "50%",
-                      border: "1px solid #ccc",
-                      display: "inline-block",
-                      width: "20px",
-                      height: "20px",
-                      marginLeft: "10px"
-                    }}>
-                    </span>
+                    <span
+                      style={{
+                        backgroundColor: item.color || "transparent",
+                        borderRadius: "50%",
+                        border: "1px solid #ccc",
+                        display: "inline-block",
+                        width: "20px",
+                        height: "20px",
+                        marginLeft: "10px",
+                      }}
+                    ></span>
                   </p>
                   <p className="text-xs lg:text-base sm:text-sm">
-                    กว้าง {item.dimensions?.width || '-'} ตร.ม. |
-                    ยาว {item.dimensions?.height || '-'} ตร.ม. |
-                    หนา {item.dimensions?.thickness || '-'} มม.
+                    กว้าง {item.width || "-"} ตร.ม. | ยาว {item.length || "-"}{" "}
+                    ตร.ม. | หนา {item.thickness || "-"} มม.
                   </p>
-                  <p className="text-sm font-bold text-red-500 lg:text-lg">฿{item.product.price.toLocaleString()}</p>
+                  <p className="text-sm font-bold text-red-500 lg:text-lg">
+                    {item.product?.price !== undefined
+                      ? `฿${Number(item.product.price).toLocaleString()}`
+                      : "ไม่ระบุราคา"}
+                  </p>
                 </div>
                 <p>จำนวน: {item.quantity}</p>
                 <Button
                   label="ลบออก"
-                  size='small'
+                  size="small"
                   icon="pi pi-trash"
                   className="p-button-danger text-xs lg:mt-2"
                   onClick={() => handleRemoveItem(item.product.id)}
@@ -143,37 +235,18 @@ function ShopCart() {
         <div className="w-full lg:w-auto pt-7 flex justify-end">
           <Card
             style={{
-              width: '500px',
+              width: "500px",
               height: "300px",
-              borderRadius: '10px',
-              boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-              padding: '20px',
-              backgroundColor: '#f6f6f6',
+              borderRadius: "10px",
+              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+              padding: "20px",
+              backgroundColor: "#f6f6f6",
             }}
           >
-            {/* ✅ แสดงยอดรวมของสินค้า */}
             <div className="flex justify-content-between text-lg">
               <p>ยอดรวม</p>
               <p>฿{totalProductPrice.toLocaleString()}</p>
             </div>
-
-            {/* ✅ แสดงค่าธรรมเนียมการติดตั้ง */}
-            <div className="flex justify-content-between mb-3">
-              <p>ค่าธรรมเนียมการติดตั้ง</p>
-              <p>฿{totalInstallationFee.toLocaleString()}</p>
-            </div>
-
-            {/* ✅ เส้นคั่น */}
-            <div className="border-t border-gray-300 my-3"></div>
-
-            <div
-              className="flex justify-content-between mb-3 border-t border-gray-300 pt-3"
-              style={{ borderTop: '1px solid #ddd', paddingTop: '15px' }}
-            >
-              <strong>ยอดรวม</strong>
-              <strong>฿{grandTotal.toLocaleString()}</strong>
-            </div>
-
             <Button
               label="สั่งซื้อ"
               onClick={handleOrder}
@@ -183,7 +256,7 @@ function ShopCart() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default ShopCart
+export default ShopCart;

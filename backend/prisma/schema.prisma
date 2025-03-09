@@ -22,6 +22,7 @@ model product {
   images         String[]
   order_items    order_item[]
   reviews        review[]
+  cart_item      cart_item[]
 }
 
 model user {
@@ -40,6 +41,7 @@ model user {
   orders         order[]
   reviews        review[]
   repair_request repair_request[]
+  cart           cart?
 }
 
 model Address {
@@ -135,4 +137,28 @@ model repair_request {
 
   user    user    @relation(fields: [userId], references: [id], onDelete: Cascade)
   address Address @relation(fields: [addressId], references: [id], onDelete: Cascade)
+}
+
+model cart {
+  id     Int         @id @default(autoincrement())
+  userId Int         @unique
+  user   user        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items  cart_item[]
+}
+
+model cart_item {
+  id        Int      @id @default(autoincrement())
+  cartId    Int
+  productId Int
+  quantity  Int
+  price     Decimal  @db.Decimal(10, 2)
+  color     String?  @db.VarChar(50)
+  width     Decimal? @db.Decimal(10, 2)
+  length    Decimal? @db.Decimal(10, 2)
+  thickness Decimal? @db.Decimal(10, 2)
+
+  cart    cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([cartId, productId, color, width, length, thickness])
 }

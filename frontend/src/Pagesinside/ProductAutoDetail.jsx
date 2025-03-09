@@ -1,19 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import CustomerReviews from "./CustomerReviews component/CustomerReviews";
 
-// PrimeReact
 import { Carousel } from "primereact/carousel";
 import { RadioButton } from "primereact/radiobutton";
 import { InputText } from "primereact/inputtext";
 import { Button } from "primereact/button";
-import { Dialog } from 'primereact/dialog';
+import { Dialog } from "primereact/dialog";
 import { useNavigate } from "react-router-dom";
+import { Toast } from "primereact/toast";
 
-// PrimeFlex
 import "primeflex/primeflex.css";
 
-// หมวดหมู่กรณีสินค้าไม่ใช่ชิ้นส่วน (is_part === false)
 const normalCategoryOptions = [
   { label: "ทั้งหมด", value: null },
   { label: "ประตูม้วนแบบไฟฟ้า", value: "electric_shutter" },
@@ -21,7 +19,6 @@ const normalCategoryOptions = [
   { label: "ประตูม้วนแบบสปริง", value: "spring_shutter" },
 ];
 
-// หมวดหมู่กรณีสินค้าเป็นชิ้นส่วน (is_part === true)
 const partCategoryOptions = [
   { label: "ทั้งหมด", value: null },
   { label: "แผ่นประตูม้วน", value: "shutter_panel" },
@@ -46,15 +43,15 @@ const ProductAutoDetail = () => {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
 
-  const [installOption, setInstallOption] = useState(null); // ติดตั้ง/ไม่ติดตั้ง
+  const [installOption, setInstallOption] = useState(null);
   const [showDialog, setShowDialog] = useState(false);
-  const [quantity, setQuantity] = useState(1); // จำนวน
-  const [width, setWidth] = useState(""); // กว้าง
-  const [length, setLength] = useState(""); // ยาว
-  const [thickness, setThickness] = useState(""); // หนา (เพิ่มใหม่)
-  const [selectedColor, setSelectedColor] = useState(null);
+  const [quantity, setQuantity] = useState(1);
+  const [selectedColor, setSelectedColor] = useState("default");
+  const [width, setWidth] = useState("");
+  const [length, setLength] = useState("");
+  const [thickness, setThickness] = useState("");
+  const toast = useRef(null);
   const navigate = useNavigate();
-
   const isLoggedIn = checkLogin();
 
   const handleIncrease = () => {
@@ -78,22 +75,18 @@ const ProductAutoDetail = () => {
     return <div className="text-center p-4">Loading...</div>;
   }
 
-  // เลือกชุด category ตาม is_part
   const categoryOptions = product.is_part
     ? partCategoryOptions
     : normalCategoryOptions;
 
-  // แปลงค่า category => label
   const matchedCategory = categoryOptions.find(
     (option) => option.value === product.category
   );
   const categoryLabel = matchedCategory ? matchedCategory.label : "ไม่ระบุ";
 
-  // เตรียมรูปภาพสำหรับ Carousel
   const productImages =
     product.images?.map((img) => `http://localhost:1234${img}`) || [];
 
-  // Render item แต่ละรูปใน Carousel
   const imageItemTemplate = (imageUrl) => {
     return (
       <img
@@ -115,64 +108,73 @@ const ProductAutoDetail = () => {
       return;
     }
 
-    handleAddToCart(); // เพิ่มสินค้าเข้าตะกร้า
-    navigate("/shop-cart"); // ไปที่หน้าตะกร้าสินค้า
+    handleAddToCart();
+    navigate("/shop-cart");
   };
 
-  const handleAddToCart = () => {
+  const isOutOfStock = product.stock_quantity === 0;
+
+  const handleAddToCart = async () => {
     if (!isLoggedIn) {
       window.location.href = "/login";
       return;
     }
-  
-    let cart = JSON.parse(localStorage.getItem("cart")) || [];
-  
-    // ตรวจสอบว่าสินค้านี้มีอยู่ในตะกร้าหรือไม่
-    const existingItem = cart.find(item => item.product.id === product.id);
-    const totalQuantity = existingItem ? existingItem.quantity + quantity : quantity;
-  
-    if (totalQuantity > product.stock_quantity) {
-      alert(`สินค้าคงเหลือในสต็อกมี ${product.stock_quantity} ชิ้นเท่านั้น`);
-      return;
+    try {
+      const response = await fetch("http://localhost:1234/api/cart/add", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          productId: product.id,
+          quantity,
+          price: product.price,
+          color: selectedColor || "default",
+          width,
+          length,
+          thickness
+        }),
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || "เพิ่มสินค้าลงตะกร้าไม่สำเร็จ");
+      }
+
+      toast.current.show({
+        severity: "success",
+        summary: "✅ เพิ่มสินค้าลงตะกร้า",
+        detail: `${product.name} ถูกเพิ่มลงตะกร้าแล้ว`,
+        life: 3000,
+      });
+
+      window.dispatchEvent(new Event("cartUpdated"));
+    } catch (error) {
+      toast.current?.show({
+        severity: "warn",
+        summary: "⚠️ ไม่สามารถเพิ่มสินค้า",
+        detail: error.message,
+        life: 3000,
+      });
     }
-  
-    const cartItem = {
-      product: {
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        images: product.images?.map(img => `http://localhost:1234${img}`) || ["https://via.placeholder.com/300"]
-      },
-      quantity,
-      installation: installOption,
-      selectedColor,
-      dimensions: { width, height: length, thickness }
-    };
-  
-    if (existingItem) {
-      existingItem.quantity += quantity;
-    } else {
-      cart.push(cartItem);
-    }
-  
-    localStorage.setItem("cart", JSON.stringify(cart));
-  
-    // แจ้งให้ `UserMenu` อัปเดตตะกร้า
-    window.dispatchEvent(new Event("cartUpdated"));
   };
 
   const handleDecrease = () => {
     if (quantity > 1) {
-      setQuantity(prev => prev - 1);
+      setQuantity((prev) => prev - 1);
     }
   };
 
   return (
     <div>
+      <Toast ref={toast} />
       <div className="flex justify-content-center align-items-center mt-8">
-        <div className="surface-card p-4 border-round shadow-2" style={{ maxWidth: "1000px", width: "100%" }}>
+        <div
+          className="surface-card p-4 border-round shadow-2"
+          style={{ maxWidth: "1000px", width: "100%" }}
+        >
           <div className="grid">
-            {/* โซนแสดง Carousel รูปภาพ */}
             <div className="col-12 md:col-6 flex align-items-center justify-content-center">
               {productImages.length > 0 ? (
                 <Carousel
@@ -198,22 +200,33 @@ const ProductAutoDetail = () => {
 
             <div className="col-12 md:col-6 mt-4 md:mt-0">
               <h2 className="mt-0">{product.name}</h2>
+              {isOutOfStock && (
+                <div className="p-message p-message-error text-red-600 text-lg font-bold">
+                  ❌ สินค้าหมด ไม่สามารถสั่งซื้อได้
+                </div>
+              )}
               {!product.is_part &&
                 product.colors &&
                 product.colors.length > 0 && (
                   <div className="flex gap-3 mb-3">
-                    {product.colors.map((color) => (
+                    {product.colors?.map((color) => (
                       <div
                         key={color}
-                        onClick={() => setSelectedColor(color)} // กดแล้วเปลี่ยนค่า
+                        onClick={() => setSelectedColor(color)}
                         style={{
                           width: "20px",
                           height: "20px",
                           borderRadius: "50%",
                           backgroundColor: color,
-                          border: selectedColor === color ? "3px solid #ffffff" : "1px solid #ccc", // ไฮไลต์สีที่ถูกเลือก
+                          border:
+                            selectedColor === color
+                              ? "3px solid #ffffff"
+                              : "1px solid #ccc",
                           cursor: "pointer",
-                          boxShadow: selectedColor === color ? "0 0 5px rgba(0,0,0,0.5)" : "none", // เพิ่มเอฟเฟกต์เงา
+                          boxShadow:
+                            selectedColor === color
+                              ? "0 0 5px rgba(0,0,0,0.5)"
+                              : "none",
                         }}
                       />
                     ))}
@@ -291,7 +304,10 @@ const ProductAutoDetail = () => {
               </p>
 
               <div className="flex-auto">
-                <label htmlFor="minmax-buttons" className="font-bold block mb-2">
+                <label
+                  htmlFor="minmax-buttons"
+                  className="font-bold block mb-2"
+                >
                   จำนวน:
                 </label>
                 <div className="flex align-items-center">
@@ -300,25 +316,25 @@ const ProductAutoDetail = () => {
                     className="p-button-secondary"
                     onClick={handleDecrease}
                     style={{
-                      width: '30px',
-                      height: '30px',
-                      backgroundColor: '#ffffff',
-                      color: '#000000',
-                      fontSize: '30px',
-                      justifyContent: 'center',
-                      paddingBottom: '14px'
+                      width: "30px",
+                      height: "30px",
+                      backgroundColor: "#ffffff",
+                      color: "#000000",
+                      fontSize: "30px",
+                      justifyContent: "center",
+                      paddingBottom: "14px",
                     }}
                   />
                   <InputText
                     value={quantity}
                     readOnly
                     style={{
-                      width: '57px',
-                      height: '30px',
-                      textAlign: 'center',
-                      fontSize: '16px',
-                      fontWeight: 'bold',
-                      border: '1px solid #424242',
+                      width: "57px",
+                      height: "30px",
+                      textAlign: "center",
+                      fontSize: "16px",
+                      fontWeight: "bold",
+                      border: "1px solid #424242",
                     }}
                   />
                   <Button
@@ -326,13 +342,13 @@ const ProductAutoDetail = () => {
                     className="p-button-secondary"
                     onClick={handleIncrease}
                     style={{
-                      width: '30px',
-                      height: '30px',
-                      backgroundColor: '#ffffff',
-                      color: '#000000',
-                      fontSize: '30px',
-                      justifyContent: 'center',
-                      paddingBottom: '14px'
+                      width: "30px",
+                      height: "30px",
+                      backgroundColor: "#ffffff",
+                      color: "#000000",
+                      fontSize: "30px",
+                      justifyContent: "center",
+                      paddingBottom: "14px",
                     }}
                   />
                 </div>
@@ -340,16 +356,21 @@ const ProductAutoDetail = () => {
 
               <p
                 onClick={() => setShowDialog(true)}
-                style={{ color: 'red', cursor: 'pointer', textDecoration: 'underline', fontSize: '17px' }}
+                style={{
+                  color: "red",
+                  cursor: "pointer",
+                  textDecoration: "underline",
+                  fontSize: "17px",
+                }}
               >
                 *รายละเอียดและคำแจ้งเตือนเมื่อซื้อ
               </p>
               <Dialog
                 visible={showDialog}
-                style={{ width: '1080px', height: '840px' }}
+                style={{ width: "1080px", height: "840px" }}
                 onHide={() => setShowDialog(false)}
               >
-                <div className='lg:flex-1 flex justify-content-center flex-wrap'>
+                <div className="lg:flex-1 flex justify-content-center flex-wrap">
                   {productImages.length > 0 ? (
                     <Carousel
                       value={productImages}
@@ -371,12 +392,14 @@ const ProductAutoDetail = () => {
                     />
                   )}
                 </div>
-                <div className='pl-5 pr-5'>
+                <div className="pl-5 pr-5">
                   <div>
                     <h3>รายละเอียด</h3>
-                    <p className="text-sm text-500">หมวดหมู่: {categoryLabel}</p>
+                    <p className="text-sm text-500">
+                      หมวดหมู่: {categoryLabel}
+                    </p>
                   </div>
-                  <div className='pt-8'>
+                  <div className="pt-8">
                     <h3>การรับประกัน</h3>
                     {product.description && (
                       <p className="mt-2" style={{ whiteSpace: "pre-line" }}>

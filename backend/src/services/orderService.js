@@ -84,6 +84,33 @@ class OrderService {
 
         return order.payment_slip;
     }
+
+    static async createOrderFromCart(userId, addressId) {
+        const cart = await CartService.getCart(userId);
+        if (!cart || cart.items.length === 0) {
+            throw new Error("Cart is empty");
+        }
+    
+        const orderItems = cart.items.map(item => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            price: item.price
+        }));
+    
+        const order = await this.createOrder(userId, addressId, orderItems);
+    
+        await CartService.clearCart(userId);
+    
+        return order;
+    }
+    
+    static async getLatestOrder(userId) {
+        return await prisma.order.findFirst({
+            where: { userId },
+            orderBy: { order_date: "desc" },
+            include: { order_items: true }
+        });
+    }    
 }
 
 export default OrderService;

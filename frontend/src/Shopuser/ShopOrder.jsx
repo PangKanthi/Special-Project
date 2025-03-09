@@ -20,9 +20,24 @@ function ShopOrder() {
   const [orderId, setOrderId] = useState("999");
 
   useEffect(() => {
-    const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
-    setCart(storedCart);
-  }, []);
+    const fetchOrder = async () => {
+      try {
+        const response = await fetch("http://localhost:1234/api/orders/latest", {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        });
+  
+        if (!response.ok) throw new Error("ไม่สามารถดึงข้อมูลคำสั่งซื้อได้");
+  
+        const data = await response.json();
+        setOrderId(data.id);
+        setCart(data.items);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+  
+    fetchOrder();
+  }, []);  
 
   const mockAddress = {
     name: "Ben Tennyson",
@@ -40,37 +55,28 @@ function ShopOrder() {
       alert("กรุณาอัปโหลดสลิปก่อน");
       return;
     }
-
+  
     const formData = new FormData();
     formData.append("slip", form.images[0].file);
-    formData.append("orderId", orderId);
-
-    setLoading(true);
-    setErrorMessage("");
-
+  
     try {
-      const response = await fetch("http://localhost:1234/api/upload-slip", {
+      const response = await fetch(`http://localhost:1234/api/orders/${orderId}/upload-slip`, {
         method: "POST",
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         body: formData,
       });
-
+  
       const result = await response.json();
-      console.log("📨 Upload Response:", result);
-
-      if (!response.ok) {
-        setErrorMessage(result.error || "เกิดข้อผิดพลาดในการอัปโหลดสลิป");
-        setLoading(false);
-        return;
-      }
-
-      setUploadedSlipUrl(result.imageUrl);
-      setLoading(false);
+      if (!response.ok) throw new Error(result.error || "อัปโหลดสลิปไม่สำเร็จ");
+  
+      setUploadedSlipUrl(result.payment_slip);
+      alert("อัปโหลดสลิปสำเร็จ!");
     } catch (error) {
-      console.error("❌ Error:", error);
-      setErrorMessage("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
-      setLoading(false);
+      console.error(error);
+      alert("เกิดข้อผิดพลาดในการอัปโหลดสลิป");
     }
   };
+  
 
   const handleCheckSlip = async () => {
     if (!form.images.length) {
