@@ -40,6 +40,7 @@ export const createRepairRequest = async (req, res, next) => {
                 addressId: finalAddressId,
                 problem_description: problemDescription,
                 service_type: serviceType,
+                status: 'pending',
                 images: imagePaths // 📌 PostgreSQL รองรับ `String[]`
             }
         });
@@ -71,17 +72,32 @@ export const getRepairRequestById = async (req, res, next) => {
     }
 };
 
+export const getAllRepairRequests = async (req, res) => {
+    try {
+        const allRequests = await prisma.repair_request.findMany({
+            include: {
+                user: true,
+                address: true
+            }
+        });
+        return res.status(200).json({ message: "ดึงข้อมูลคำขอซ่อมทั้งหมดสำเร็จ", data: allRequests });
+    } catch (err) {
+        return res.status(500).json({ error: "เกิดข้อผิดพลาดในการดึงข้อมูลทั้งหมด" });
+    }
+};
+
+
 export const updateRepairRequest = async (req, res, next) => {
     try {
-        const { problemDescription, serviceType } = req.body;
+        const { problemDescription, serviceType, status } = req.body;
         const repairRequestId = req.params.id;
 
         const existingRequest = await RepairRequestService.getRepairRequestById(repairRequestId);
         if (!existingRequest) return res.status(404).json({ error: "ไม่พบคำขอซ่อม" });
 
         let imageUrls = existingRequest.images;
-        if (req.files && req.files.length > 0) {
 
+        if (req.files && req.files.length > 0) {
             existingRequest.images.forEach(imagePath => {
                 const filePath = `.${imagePath}`;
                 if (fs.existsSync(filePath)) {
@@ -90,13 +106,23 @@ export const updateRepairRequest = async (req, res, next) => {
             });
 
             imageUrls = req.files.map(file => `/uploads/repair_requests/${file.filename}`);
+        } else {
+            // ไม่มีไฟล์แนบ => คงรูปเก่าไว้เหมือนเดิม
+            imageUrls = existingRequest.images;
         }
+
+        const allowedStatuses = ['pending', 'confirm', 'complete', 'cancle'];
+
+        const finalStatus = (status && allowedStatuses.includes(status))
+            ? status
+            : existingRequest.status;
 
         const updatedRequest = await RepairRequestService.updateRepairRequest(
             repairRequestId,
             problemDescription,
             serviceType,
-            imageUrls
+            imageUrls,
+            finalStatus
         );
 
         res.status(200).json({ message: "อัปเดตคำขอซ่อมสำเร็จ", data: updatedRequest });

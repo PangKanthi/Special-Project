@@ -53,16 +53,26 @@ const Repair = () => {
 
   // ✅ ฟังก์ชันเพิ่มไฟล์ลง state
   const handleImageUpload = (event) => {
-    const uploadedFiles = event.files.map((file) => ({
-      file,
-      previewUrl: URL.createObjectURL(file),
-    }));
-
-    setForm((prevForm) => ({
-      ...prevForm,
-      images: [...prevForm.images, ...uploadedFiles],
-    }));
+    // เช็คว่าถูกเรียกกี่ครั้ง
+    console.log("uploadHandler is called with:", event.files);
+  
+    setForm((prevForm) => {
+      const newFiles = [];
+      event.files.forEach((file) => {
+        // ถ้าชื่อไฟล์ตรงกัน หรือ file.size ตรงกัน ให้ถือว่าซ้ำ
+        const isDuplicate = prevForm.images.some((img) => img.file.name === file.name && img.file.size === file.size);
+        if (!isDuplicate) {
+          newFiles.push({ file, previewUrl: URL.createObjectURL(file) });
+        }
+      });
+  
+      return {
+        ...prevForm,
+        images: [...prevForm.images, ...newFiles],
+      };
+    });
   };
+  
 
   // ✅ ฟังก์ชันลบรูปภาพออกจาก state
   const handleRemoveImage = (event) => {
@@ -126,7 +136,7 @@ const Repair = () => {
           images: [],
       });
       fileUploadRef.current.clear();
-        navigate("/repair");
+        navigate("/profile");
       } else {
         const errorData = await response.json();
         alert(`เกิดข้อผิดพลาด: ${errorData.error}`);

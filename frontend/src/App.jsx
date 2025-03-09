@@ -10,7 +10,6 @@ import Home from "./Pages/Home";
 import Automatic from "./Pages/Automatic";
 import Manual from "./Pages/Manual";
 import GeneralParts from "./Pages/GeneralParts";
-import SpecialParts from "./Pages/SpecialParts";
 import Repair from "./Pages/Repair";
 import About from "./Pages/About";
 import Portfolio from "./Pages/Portfolio";
@@ -23,7 +22,7 @@ import Navadmin from "./Navbar/Navadmin";
 import Manageorders from "./AdminPages/Manageorders";
 import Manageproducts from "./AdminPages/Manageproducts";
 import Manageusers from "./AdminPages/Manageusers";
-import Managepromotions from "./AdminPages/Managepromotions";
+import Managerepairrequests from "./AdminPages/Managerepairrequests";
 import Manageportfolios from "./AdminPages/Manageportfolios";
 import History from "./AdminPages/History";
 import ShopCart from "./Shopuser/ShopCart";
@@ -47,7 +46,7 @@ const App = () => {
     location.pathname.startsWith("/manageorders") ||
     location.pathname.startsWith("/manageproducts") ||
     location.pathname.startsWith("/manageusers") ||
-    location.pathname.startsWith("/managepromotions") ||
+    location.pathname.startsWith("/managerepairrequests") ||
     location.pathname.startsWith("/manageportfolios") ||
     location.pathname.startsWith("/history");
 
@@ -103,7 +102,7 @@ const App = () => {
           <Route path="/manageorders" element={<Manageorders />} />
           <Route path="/manageproducts" element={<Manageproducts />} />
           <Route path="/manageusers" element={<Manageusers />} />
-          <Route path="/managepromotions" element={<Managepromotions />} />
+          <Route path="/managerepairrequests" element={<Managerepairrequests />} />
           <Route path="/manageportfolios" element={<Manageportfolios />} />
           <Route path="/history" element={<History />} />
         </Routes>

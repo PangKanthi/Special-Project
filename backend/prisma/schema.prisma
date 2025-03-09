@@ -7,6 +7,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum RepairStatus {
+  pending
+  confirm
+  complete
+  cancle
+}
+
 model product {
   id             Int          @id @default(autoincrement())
   name           String       @db.VarChar(100)
@@ -125,12 +132,13 @@ model work_sample {
 }
 
 model repair_request {
-  id                  Int      @id @default(autoincrement())
-  problem_description String   @db.Text
-  service_type        String   @db.VarChar(50)
-  request_date        DateTime @default(now()) @db.Timestamp(6)
+  id                  Int          @id @default(autoincrement())
+  problem_description String       @db.Text
+  service_type        String       @db.VarChar(50)
+  request_date        DateTime     @default(now()) @db.Timestamp(6)
   userId              Int
   addressId           Int
+  status              RepairStatus @default(pending)
   images              String[]
 
   user    user    @relation(fields: [userId], references: [id], onDelete: Cascade)

@@ -2,7 +2,7 @@ import fs from 'fs';
 import prisma from '../config/db.js';
 
 class RepairRequestService {
-    static async createRepairRequest(userId, addressId, problemDescription, serviceType, imageUrls = []) {
+    static async createRepairRequest(userId, addressId, problemDescription, serviceType, imageUrls = [], status = 'pending') {
         try {
             return await prisma.repair_request.create({
                 data: {
@@ -11,6 +11,7 @@ class RepairRequestService {
                     problem_description: problemDescription,
                     service_type: serviceType,
                     images: imageUrls,
+                    status, // 👈 เพิ่ม status ที่นี่
                     request_date: new Date()
                 }
             });
@@ -41,32 +42,28 @@ class RepairRequestService {
         }
     }
 
-    static async updateRepairRequest(id, problemDescription, serviceType, imageUrls = []) {
+    static async updateRepairRequest(id, problemDescription, serviceType, imageUrls = [], status) {
         try {
             const existingRequest = await prisma.repair_request.findUnique({
                 where: { id: Number(id) }
             });
-
+    
             if (!existingRequest) return null;
-
-            if (imageUrls.length > 0 && existingRequest.images.length > 0) {
-                existingRequest.images.forEach(imagePath => {
-                    const filePath = `.${imagePath}`;
-                    if (fs.existsSync(filePath)) {
-                        fs.unlinkSync(filePath);
-                    }
-                });
-            }
-
+    
             return await prisma.repair_request.update({
                 where: { id: Number(id) },
                 data: {
                     problem_description: problemDescription || existingRequest.problem_description,
                     service_type: serviceType || existingRequest.service_type,
-                    images: imageUrls.length > 0 ? imageUrls : existingRequest.images
+                    images: imageUrls.length > 0 ? imageUrls : existingRequest.images,
+                    status: status || existingRequest.status // 👈 เพิ่ม status ที่นี่
+                },
+                include: {
+                    address: true
                 }
             });
         } catch (error) {
+            console.error(error);
             throw new Error("ไม่สามารถอัปเดตคำขอซ่อมได้");
         }
     }
