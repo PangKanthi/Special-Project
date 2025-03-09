@@ -1,11 +1,18 @@
 import React from "react";
 import { Card } from "primereact/card";
 
-function SummaryCard({
-  totalProductPrice,
-  totalInstallationFee,
-  grandTotal,
-}) {
+function SummaryCard({ totalProductPrice, totalInstallationFee, grandTotal }) {
+  const VAT_RATE = 0.07;
+  const SHIPPING_COST = totalProductPrice > 1000 ? 0 : 50;
+  const DISCOUNT = totalProductPrice > 2000 ? 200 : 0;
+  const vatAmount = totalProductPrice * VAT_RATE;
+  const grandtotal =
+    totalProductPrice +
+    totalInstallationFee +
+    vatAmount +
+    SHIPPING_COST -
+    DISCOUNT;
+
   return (
     <Card
       style={{
@@ -26,6 +33,24 @@ function SummaryCard({
         <p>ค่าธรรมเนียมการติดตั้ง</p>
         <p>฿{totalInstallationFee.toLocaleString()}</p>
       </div>
+      <div className="flex justify-content-between text-lg">
+        <p>VAT (7%)</p>
+        <p>฿{vatAmount.toLocaleString()}</p>
+      </div>
+
+      <div className="flex justify-content-between text-lg">
+        <p>ค่าจัดส่ง</p>
+        <p>
+          {SHIPPING_COST === 0 ? "ฟรี" : `฿${SHIPPING_COST.toLocaleString()}`}
+        </p>
+      </div>
+
+      {DISCOUNT > 0 && (
+        <div className="flex justify-content-between text-lg text-red-500 font-bold">
+          <p>ส่วนลด</p>
+          <p>-฿{DISCOUNT.toLocaleString()}</p>
+        </div>
+      )}
 
       <div className="border-t border-gray-300 my-3"></div>
 

@@ -1,75 +1,68 @@
 import React from "react";
-import { Button } from "primereact/button";
 import { Dropdown } from "primereact/dropdown";
 
 function ShopOrderHeader({
   addresses,
-  address,
-  selectedAddressIndex,
+  selectedAddress,
+  setSelectedAddress,
   setSelectedAddressIndex,
+  user,
 }) {
-  // ถ้าไม่มีที่อยู่เลย
-  if (!address) {
+  if (!addresses || addresses.length === 0) {
     return (
       <div className="lg:pl-5">
-        <h1>สั่งซื้อ</h1>
+        <h1 className="text-2xl font-bold">📦 รายละเอียดการจัดส่ง</h1>
         <div className="mb-3">
-          <h3>ที่อยู่จัดส่ง</h3>
-          <p>ยังไม่มีข้อมูลที่อยู่</p>
+          <h3 className="text-lg font-semibold">🏠 ที่อยู่จัดส่ง</h3>
+          <p className="text-red-500">
+            ⚠️ ยังไม่มีข้อมูลที่อยู่ กรุณาเพิ่มที่อยู่ก่อนทำการสั่งซื้อ
+          </p>
         </div>
       </div>
     );
   }
 
-  const formatAddress = (addr) => {
-    const line = addr.addressLine || "ไม่ระบุ";
-    const apt = addr.apartment ? `, ${addr.apartment}` : "";
-    const sd = addr.subdistrict ? `ต.${addr.subdistrict}` : "";
-    const dt = addr.district ? `อ.${addr.district}` : "";
-    const pv = addr.province ? `จ.${addr.province}` : "";
-    const pc = addr.postalCode || "";
-    return `${line}${apt}, ${sd}, ${dt}, ${pv} ${pc}`;
-  };
-
-  // เตรียม options สำหรับ PrimeReact Dropdown
-  const addressOptions = addresses.map((addr, idx) => ({
-    label: formatAddress(addr),
-    value: idx, // เก็บ index
-  }));
-
-  // สร้างข้อความเต็มเพื่อแสดงในหน้า
-  const fullAddress = formatAddress(address);
+  const currentAddress = selectedAddress || addresses[0];
 
   return (
     <div className="lg:pl-5">
-      <h1>สั่งซื้อ</h1>
+      <h1 className="text-2xl font-bold mb-3">รายละเอียดการจัดส่ง</h1>
+
       <div className="mb-3">
-        <h3>เลือกที่อยู่ที่ต้องการจัดส่ง</h3>
+        <h3 className="text-lg font-semibold">เลือกที่อยู่จัดส่ง</h3>
 
         {addresses.length > 1 && (
           <div className="mb-2" style={{ maxWidth: "400px" }}>
             <Dropdown
-              value={selectedAddressIndex}
-              options={addressOptions}
-              onChange={(e) => setSelectedAddressIndex(e.value)}
+              value={currentAddress.id}
+              options={addresses}
+              onChange={(e) => {
+                const selected = addresses.find((addr) => addr.id === e.value);
+                setSelectedAddress(selected);
+                setSelectedAddressIndex(addresses.indexOf(selected));
+              }}
+              optionLabel={(address) =>
+                `${address.addressLine}, ตำบล${address.subdistrict}, อำเภอ${address.district}, จังหวัด${address.province}, ${address.postalCode}`
+              }
+              optionValue="id"
               placeholder="เลือกที่อยู่"
               className="w-full"
             />
           </div>
         )}
 
-        <div
-          style={{
-            border: "1px solid #ddd",
-            padding: "15px",
-            backgroundColor: "#f9f9f9",
-          }}
-        >
+        <div className="border p-3 rounded bg-gray-100">
           <p>
-            <strong>{address.contactName || "ชื่อผู้รับ"}</strong> |{" "}
-            {address.phone || "เบอร์โทร"}
+            <strong>ที่อยู่ :</strong> {currentAddress.addressLine}, ตำบล
+            {currentAddress.subdistrict}, อำเภอ{currentAddress.district}, จังหวัด
+            {currentAddress.province}, {currentAddress.postalCode}
           </p>
-          <p>{fullAddress}</p>
+          <p>
+            <strong>ชื่อ-นามสกุล:</strong> {user?.firstname} {user?.lastname}
+          </p>
+          <p>
+            <strong>เบอร์โทร :</strong> {user?.phone}
+          </p>
         </div>
       </div>
     </div>

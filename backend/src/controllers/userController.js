@@ -75,3 +75,40 @@ export const resetPassword = async (req, res, next) => {
   }
 };
 
+export const getUserProfile = async (req, res) => {
+  try {
+    console.log("🔍 req.user:", req.user);  // ✅ ตรวจสอบค่า user
+
+    if (!req.user || !req.user.id) {
+      return res.status(400).json({ error: "User ID is missing in request" });
+    }
+
+    const userId = Number(req.user.id);
+    console.log("🆔 User ID:", userId);  // ✅ ตรวจสอบค่า ID
+
+    const user = await UserService.getUserById(userId);
+    if (!user) {
+      console.log("❌ User not found in DB:", userId);
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    console.log("✅ User found:", user);
+    res.json({
+      id: user.id,
+      username: user.username,
+      firstname: user.firstname,
+      lastname: user.lastname,
+      email: user.email,
+      phone: user.phone,
+    });
+  } catch (error) {
+    console.error("[ERROR] Failed to fetch user profile:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+
+
+
+
+

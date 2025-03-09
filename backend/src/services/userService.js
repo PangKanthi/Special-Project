@@ -19,9 +19,18 @@ class UserService {
   }
 
   static async getUserById(id) {
+    console.log("🔍 Checking Database for User ID:", id);
     return await prisma.user.findUnique({
       where: { id: Number(id) },
-      select: { id, username, firstname, lastname, email, phone, role }
+      select: {
+        id: true,
+        username: true,
+        firstname: true,
+        lastname: true,
+        email: true,
+        phone: true,
+        role: true
+      }
     });
   }
 

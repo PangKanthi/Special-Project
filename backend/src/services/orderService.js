@@ -1,5 +1,6 @@
 import fs from 'fs';
 import prisma from '../config/db.js';
+import CartService from './cartService.js';
 
 class OrderService {
     static async createOrder(userId, addressId, orderItems) {
@@ -16,7 +17,6 @@ class OrderService {
                     status: 'pending',
                     order_date: new Date(),
                     payment_status: 'pending',
-                    type: orderItems.length > 0 ? "purchase" : "repair"
                 }
             });
 
@@ -86,31 +86,53 @@ class OrderService {
     }
 
     static async createOrderFromCart(userId, addressId) {
-        const cart = await CartService.getCart(userId);
-        if (!cart || cart.items.length === 0) {
-            throw new Error("Cart is empty");
+        try {
+            console.log("📌 Checking addressId:", addressId);
+
+            if (!addressId) {
+                throw new Error("Address ID is missing");
+            }
+
+            const addressExists = await prisma.address.findUnique({
+                where: { id: addressId },
+            });
+
+            console.log("📌 Address found:", addressExists);
+
+            if (!addressExists) {
+                throw new Error(`Address ID ${addressId} not found`);
+            }
+
+            const cart = await CartService.getCart(userId);
+            if (!cart || !cart.items || cart.items.length === 0) {
+                throw new Error("Cart is empty");
+            }
+
+            const orderItems = cart.items.map(item => ({
+                productId: item.productId,
+                quantity: item.quantity,
+                price: item.price,
+                installOption: item.installOption || "",
+            }));
+
+            const order = await this.createOrder(userId, addressId, orderItems);
+            await CartService.clearCart(userId);
+            return order;
+        } catch (error) {
+            console.error("[ERROR] Failed to create order from cart:", error);
+            throw new Error("Failed to create order from cart");
         }
-    
-        const orderItems = cart.items.map(item => ({
-            productId: item.productId,
-            quantity: item.quantity,
-            price: item.price
-        }));
-    
-        const order = await this.createOrder(userId, addressId, orderItems);
-    
-        await CartService.clearCart(userId);
-    
-        return order;
     }
-    
+
+
+
     static async getLatestOrder(userId) {
         return await prisma.order.findFirst({
             where: { userId },
             orderBy: { order_date: "desc" },
             include: { order_items: true }
         });
-    }    
+    }
 }
 
 export default OrderService;

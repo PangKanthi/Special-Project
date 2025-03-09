@@ -7,7 +7,6 @@ import { Carousel } from "primereact/carousel";
 function ShopCart() {
   const navigate = useNavigate();
   const [cart, setCart] = useState([]);
-
   useEffect(() => {
     const fetchCart = async () => {
       try {
@@ -108,28 +107,7 @@ function ShopCart() {
   }
 
   const handleOrder = async () => {
-    try {
-      const response = await fetch(
-        "http://localhost:1234/api/orders/from-cart",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ addressId: 1 }),
-        }
-      );
-
-      if (!response.ok) throw new Error("ไม่สามารถสร้างคำสั่งซื้อได้");
-
-      const result = await response.json();
-      alert("สั่งซื้อสำเร็จ!");
-      navigate("/shop-order", { state: { order: result } });
-    } catch (error) {
-      console.error(error);
-      alert("เกิดข้อผิดพลาดในการสั่งซื้อ");
-    }
+    navigate("/shop-order", { state: { cart } });
   };
 
   const totalProductPrice = cart.reduce((sum, item) => {
@@ -150,11 +128,24 @@ function ShopCart() {
   }, 0);
 
   const totalInstallationFee = cart.reduce((sum, item) => {
-    if (!item || !item.installation) return sum;
-    return sum + (item.installation === "ติดตั้ง" ? 150 : 0);
+    return (
+      sum +
+      (!item.product?.is_part && item.installOption === "ติดตั้ง"
+        ? 150 * item.quantity
+        : 0)
+    );
   }, 0);
 
-  const grandTotal = totalProductPrice + totalInstallationFee;
+  const VAT_RATE = 0.07;
+  const SHIPPING_COST = totalProductPrice > 1000 ? 0 : 50;
+  const DISCOUNT = totalProductPrice > 2000 ? 200 : 0;
+  const vatAmount = totalProductPrice * VAT_RATE;
+  const grandTotal =
+    totalProductPrice +
+    totalInstallationFee +
+    vatAmount +
+    SHIPPING_COST -
+    DISCOUNT;
 
   return (
     <div className="px-4 sm:px-6 md:px-8 lg:pl-8 pr-8">
@@ -164,7 +155,7 @@ function ShopCart() {
             <h2>ตะกร้าสินค้า</h2>
           </div>
           {cart.map((item, index) => (
-            <div key={index} className="lg:flex">
+            <div key={index} className="lg:flex border-b pb-4 mb-4">
               <div className="pt-5">
                 {item.product?.images && item.product.images.length > 0 ? (
                   <Carousel
@@ -173,7 +164,24 @@ function ShopCart() {
                     )}
                     numVisible={1}
                     numScroll={1}
-                    itemTemplate={imageTemplate}
+                    itemTemplate={(imageUrl) => (
+                      <img
+                        src={imageUrl}
+                        alt="Product"
+                        onError={(e) =>
+                          (e.target.src = "https://via.placeholder.com/300")
+                        }
+                        style={{
+                          width: "100%",
+                          maxWidth: "300px",
+                          height: "auto",
+                          maxHeight: "300px",
+                          objectFit: "contain",
+                          borderRadius: "8px",
+                          backgroundColor: "#fff",
+                        }}
+                      />
+                    )}
                     style={{ maxWidth: "400px", width: "100%" }}
                   />
                 ) : (
@@ -194,32 +202,54 @@ function ShopCart() {
                   <h3 className="text-sm lg:text-xl">
                     {item.product?.name || "ไม่พบข้อมูลสินค้า"}
                   </h3>
-                  <p className="text-xs lg:text-base">{item.installation}</p>
-                  <p className="text-xs lg:text-base flex items-center">
-                    สีที่เลือก:
-                    <span
-                      style={{
-                        backgroundColor: item.color || "transparent",
-                        borderRadius: "50%",
-                        border: "1px solid #ccc",
-                        display: "inline-block",
-                        width: "20px",
-                        height: "20px",
-                        marginLeft: "10px",
-                      }}
-                    ></span>
+
+                  {!item.product?.is_part && (
+                    <p className="text-xs lg:text-base">
+                      <strong>ตัวเลือกติดตั้ง:</strong>{" "}
+                      {item.installOption || "ไม่ระบุ"}
+                    </p>
+                  )}
+
+                  {!item.product?.is_part && (
+                    <p className="text-xs lg:text-base flex items-center">
+                      สีที่เลือก:
+                      <span
+                        style={{
+                          backgroundColor: item.color || "transparent",
+                          borderRadius: "50%",
+                          border: "1px solid #ccc",
+                          display: "inline-block",
+                          width: "20px",
+                          height: "20px",
+                          marginLeft: "10px",
+                        }}
+                      ></span>
+                    </p>
+                  )}
+
+                  {!item.product?.is_part && (
+                    <p className="text-xs lg:text-base sm:text-sm">
+                      กว้าง {item.width || "-"} ตร.ม. | ยาว {item.length || "-"}{" "}
+                      ตร.ม. | หนา {item.thickness || "-"} มม.
+                    </p>
+                  )}
+                  {/* ✅ แสดงจำนวนสินค้าในตะกร้า */}
+                  <p className="text-xs lg:text-base">
+                    <strong>จำนวน:</strong> {item.quantity} ชิ้น
                   </p>
-                  <p className="text-xs lg:text-base sm:text-sm">
-                    กว้าง {item.width || "-"} ตร.ม. | ยาว {item.length || "-"}{" "}
-                    ตร.ม. | หนา {item.thickness || "-"} มม.
+                  {/* ✅ แสดงราคาต่อชิ้น และรวมทั้งหมดตามจำนวน */}
+                  <p className="text-sm lg:text-base">
+                    <strong>ราคาต่อชิ้น:</strong> ฿
+                    {Number(item.product.price).toLocaleString()}
                   </p>
                   <p className="text-sm font-bold text-red-500 lg:text-lg">
-                    {item.product?.price !== undefined
-                      ? `฿${Number(item.product.price).toLocaleString()}`
-                      : "ไม่ระบุราคา"}
+                    <strong>ราคารวม:</strong> ฿
+                    {Number(
+                      item.product.price * item.quantity
+                    ).toLocaleString()}
                   </p>
                 </div>
-                <p>จำนวน: {item.quantity}</p>
+
                 <Button
                   label="ลบออก"
                   size="small"
@@ -236,7 +266,6 @@ function ShopCart() {
           <Card
             style={{
               width: "500px",
-              height: "300px",
               borderRadius: "10px",
               boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
               padding: "20px",
@@ -244,9 +273,43 @@ function ShopCart() {
             }}
           >
             <div className="flex justify-content-between text-lg">
-              <p>ยอดรวม</p>
+              <p>ยอดรวมสินค้า</p>
               <p>฿{totalProductPrice.toLocaleString()}</p>
             </div>
+
+            {totalInstallationFee > 0 && (
+              <div className="flex justify-content-between text-lg">
+                <p>ค่าติดตั้ง</p>
+                <p>฿{totalInstallationFee.toLocaleString()}</p>
+              </div>
+            )}
+
+            <div className="flex justify-content-between text-lg">
+              <p>ภาษีมูลค่าเพิ่ม (7%)</p>
+              <p>฿{vatAmount.toLocaleString()}</p>
+            </div>
+
+            <div className="flex justify-content-between text-lg">
+              <p>ค่าจัดส่ง</p>
+              <p className={SHIPPING_COST === 0 ? "text-green-500" : ""}>
+                {SHIPPING_COST === 0
+                  ? "ฟรี"
+                  : `฿${SHIPPING_COST.toLocaleString()}`}
+              </p>
+            </div>
+
+            {DISCOUNT > 0 && (
+              <div className="flex justify-content-between text-lg text-red-500 font-bold">
+                <p>ส่วนลด</p>
+                <p>-฿{DISCOUNT.toLocaleString()}</p>
+              </div>
+            )}
+
+            <div className="flex justify-content-between text-lg font-bold border-t pt-2">
+              <p>ยอดรวมทั้งหมด</p>
+              <p>฿{grandTotal.toLocaleString()}</p>
+            </div>
+
             <Button
               label="สั่งซื้อ"
               onClick={handleOrder}

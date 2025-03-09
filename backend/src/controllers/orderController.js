@@ -71,7 +71,8 @@ export const createOrderFromCart = async (req, res, next) => {
         const order = await OrderService.createOrderFromCart(req.user.id, addressId);
         res.status(201).json(order);
     } catch (error) {
-        next(error);
+        console.error("[ERROR] createOrderFromCart failed:", error);
+        res.status(500).json({ error: "Failed to create order from cart" });
     }
 };
 

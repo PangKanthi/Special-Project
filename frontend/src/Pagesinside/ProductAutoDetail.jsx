@@ -119,6 +119,52 @@ const ProductAutoDetail = () => {
       window.location.href = "/login";
       return;
     }
+
+    let finalColor = product.is_part ? "" : selectedColor || "default";
+    let finalInstallOption = product.is_part ? "" : installOption;
+    let finalWidth = product.is_part ? 0 : width ? parseFloat(width) : 0;
+    let finalLength = product.is_part ? 0 : length ? parseFloat(length) : 0;
+    let finalThickness = product.is_part
+      ? 0
+      : thickness
+      ? parseFloat(thickness)
+      : 0;
+
+    if (
+      !product.is_part &&
+      product.colors &&
+      product.colors.length > 0 &&
+      !selectedColor
+    ) {
+      toast.current?.show({
+        severity: "warn",
+        summary: "⚠️ กรุณาเลือกสี",
+        detail: "โปรดเลือกสีของสินค้าก่อนเพิ่มลงตะกร้า",
+        life: 3000,
+      });
+      return;
+    }
+
+    if (!product.is_part && !installOption) {
+      toast.current?.show({
+        severity: "warn",
+        summary: "⚠️ กรุณาเลือกตัวเลือกการติดตั้ง",
+        detail: "กรุณาเลือกว่าจะติดตั้งสินค้าหรือไม่",
+        life: 3000,
+      });
+      return;
+    }
+
+    if (!product.is_part && (!width || !length || !thickness)) {
+      toast.current?.show({
+        severity: "warn",
+        summary: "⚠️ กรุณากรอกขนาดให้ครบ",
+        detail: "โปรดกรอก กว้าง, ยาว และ หนา ให้ครบทุกช่อง",
+        life: 3000,
+      });
+      return;
+    }
+
     try {
       const response = await fetch("http://localhost:1234/api/cart/add", {
         method: "POST",
@@ -130,10 +176,11 @@ const ProductAutoDetail = () => {
           productId: product.id,
           quantity,
           price: product.price,
-          color: selectedColor || "default",
-          width,
-          length,
-          thickness
+          color: finalColor,
+          width: finalWidth,
+          length: finalLength,
+          thickness: finalThickness,
+          installOption: finalInstallOption,
         }),
       });
 
@@ -341,6 +388,7 @@ const ProductAutoDetail = () => {
                     label="+"
                     className="p-button-secondary"
                     onClick={handleIncrease}
+                    disabled={quantity >= product.stock_quantity} // Prevent exceeding stock
                     style={{
                       width: "30px",
                       height: "30px",
@@ -352,6 +400,9 @@ const ProductAutoDetail = () => {
                     }}
                   />
                 </div>
+                <p className="text-sm mt-2">
+                  สินค้าคงเหลือ: {product.stock_quantity} ชิ้น
+                </p>
               </div>
 
               <p

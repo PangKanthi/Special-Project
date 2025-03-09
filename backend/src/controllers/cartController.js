@@ -12,13 +12,13 @@ export const getCart = async (req, res, next) => {
 export const addToCart = async (req, res, next) => {
     console.log("🛒 Adding to cart:", req.body);
     try {
-        const { productId, quantity, price, color, width, length,thickness } = req.body;
+        const { productId, quantity, price, color, width, length,thickness, installOption } = req.body;
 
         if (!productId || !quantity || !price) {
             return res.status(400).json({ error: "ข้อมูลไม่ครบถ้วน" });
         }
 
-        const cartItem = await CartService.addToCart(req.user.id, productId, quantity, price, color,  width, length,thickness );
+        const cartItem = await CartService.addToCart(req.user.id, productId, quantity, price, color,  width, length,thickness, installOption);
         
         res.status(200).json(cartItem);
     } catch (error) {

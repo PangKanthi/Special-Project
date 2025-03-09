@@ -14,7 +14,6 @@ function SlipPayment({
   handleCheckSlip,
   handleOrderConfirmation,
 }) {
-  
   const handleImageUpload = (event) => {
     const uploadedFiles = event.files.map((file) => ({
       file,
@@ -59,7 +58,7 @@ function SlipPayment({
         </div>
 
         <div className="p-field p-col-12 pt-2">
-          <label>เพิ่มรูปภาพ</label>
+          <label>เพิ่มรูปภาพสลิปโอนเงิน</label>
           <div className="pt-2">
             <FileUpload
               name="images"
@@ -104,6 +103,13 @@ function SlipPayment({
             className="bg-yellow-500 text-white py-2 text-lg font-bold rounded"
           />
         </div>
+        {!form.images.length && (
+          <Message
+            severity="warn"
+            text="กรุณาอัปโหลดสลิปก่อนกดตรวจสอบ"
+            className="mt-2"
+          />
+        )}
       </Card>
 
       <div className="md:text-center pt-5">

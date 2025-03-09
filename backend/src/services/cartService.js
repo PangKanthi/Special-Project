@@ -11,8 +11,8 @@ class CartService {
             }
         });
     }
-    s
-    static async addToCart(userId, productId, quantity, price, color, width, length, thickness) {
+    
+    static async addToCart(userId, productId, quantity, price, color, width, length, thickness, installOption) {
         console.log(`🛒 Adding to cart - User ID: ${userId}, Product ID: ${productId}, Quantity: ${quantity}, Color: ${color}`);
 
         let cart = await prisma.cart.findUnique({ where: { userId } });
@@ -30,13 +30,14 @@ class CartService {
 
         const updatedCartItem = await prisma.cart_item.upsert({
             where: {
-                cartId_productId_color_width_length_thickness: {
+                cartId_productId_color_width_length_thickness_installOption : {
                     cartId: cart.id,
                     productId,
                     color: color || "default",
                     width,
                     length,
-                    thickness
+                    thickness,
+                    installOption
                 }
             },
             update: { quantity: { increment: quantity } },
@@ -48,7 +49,8 @@ class CartService {
                 color: color || "default",
                 width,
                 length,
-                thickness
+                thickness, 
+                installOption
             }
         });
 

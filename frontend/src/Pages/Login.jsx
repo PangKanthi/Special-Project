@@ -34,30 +34,18 @@ const Login = () => {
         event.preventDefault();
         setErrorMessage('');
         setSuccessMessage('');
-
-        if (!validateUsername(username)) {
-            setUsernameError('กรุณากรอกชื่อผู้ใช้ที่ถูกต้อง (เฉพาะตัวอักษรภาษาอังกฤษและตัวเลข)');
-            return;
-        }
-
-        setUsernameError('');
-
-        let url = 'http://localhost:1234/api/auth/login';
-
+    
         try {
-            const response = await axios.post(url, { username, password });
-
+            const response = await axios.post("http://localhost:1234/api/auth/login", { username, password });
+            console.log("🔑 Login Response:", response.data); // ตรวจสอบข้อมูลที่ได้รับจาก API
+    
             if (response.data.success) {
                 localStorage.setItem('token', response.data.data.token);
-                console.log(response.data)
+    
                 setIsLoggedIn(true);
                 setSuccessMessage(response.data.message);
-                if (checked) {
-                    localStorage.setItem('username', username);
-                }
-
-                const userRole = response.data.data.role;
-                if (userRole === 'A') {
+    
+                if (response.data.data.role === 'A') {
                     setTimeout(() => navigate("/homeadmin"), 1000);
                 } else {
                     setTimeout(() => navigate("/home"), 1000);
