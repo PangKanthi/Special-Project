@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 import { InputText } from "primereact/inputtext";
@@ -8,6 +8,7 @@ import { classNames } from "primereact/utils";
 import OrderPage from "./Profile component/OrderPage";
 import AddressPage from "./Profile component/AddressPage";
 import RepairPage from "./Profile component/RepairPage";
+import axios from "axios";
 
 const Profile = () => {
     const [selectedMenu, setSelectedMenu] = useState("คำสั่งซื้อของฉัน");
@@ -20,6 +21,29 @@ const Profile = () => {
         password: ""
     });
     const [oldPassword, setOldPassword] = useState("");
+
+    useEffect(() => {
+        getUserProfile();
+    }, [])
+
+
+
+    const getUserProfile = async () => {
+
+        try {
+            const response = await axios.get(`${process.env.REACT_APP_API}/users/me`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                }
+
+            });
+
+
+            console.log(response)
+        } catch (error) {
+            console.error(error)
+        }
+    }
 
     const openEditDialog = () => {
         setEditDialog(true);
@@ -108,14 +132,6 @@ const Profile = () => {
                     <div className="p-field pt-2">
                         <label>โทรศัพท์</label>
                         <InputText name="phone" value={profile.phone} onChange={handleChange} />
-                    </div>
-                    <div className="p-field pt-2">
-                        <label>รหัสผ่านเก่า</label>
-                        <Password name="oldPassword" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} toggleMask feedback={false} />
-                    </div>
-                    <div className="p-field pt-2">
-                        <label>รหัสผ่านใหม่</label>
-                        <Password name="password" value={profile.password} onChange={handleChange} toggleMask feedback={false} />
                     </div>
                 </div>
             </Dialog>

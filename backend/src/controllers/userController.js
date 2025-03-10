@@ -76,6 +76,7 @@ export const resetPassword = async (req, res, next) => {
 };
 
 export const getUserProfile = async (req, res) => {
+
   try {
     console.log("🔍 req.user:", req.user);  // ✅ ตรวจสอบค่า user
 
@@ -88,11 +89,9 @@ export const getUserProfile = async (req, res) => {
 
     const user = await UserService.getUserById(userId);
     if (!user) {
-      console.log("❌ User not found in DB:", userId);
       return res.status(404).json({ error: "User not found" });
     }
 
-    console.log("✅ User found:", user);
     res.json({
       id: user.id,
       username: user.username,
@@ -101,7 +100,9 @@ export const getUserProfile = async (req, res) => {
       email: user.email,
       phone: user.phone,
     });
-  } catch (error) {
+
+  }
+  catch (error) {
     console.error("[ERROR] Failed to fetch user profile:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
