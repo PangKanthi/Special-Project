@@ -12,6 +12,7 @@ const PortfolioDialog = ({
   onWorkSampleAdded,
   onUpdate,
   selectedPortfolio,
+  fetchPortfolios
 }) => {
   const [localPortfolio, setLocalPortfolio] = useState(null);
   const [title, setTitle] = useState("");
@@ -30,9 +31,8 @@ const PortfolioDialog = ({
         selectedPortfolio.images.map((img) =>
           img.startsWith("http")
             ? img
-            : `http://localhost:1234/${
-                img.startsWith("/") ? img.substring(1) : img
-              }`
+            : `http://localhost:1234/${img.startsWith("/") ? img.substring(1) : img
+            }`
         )
       );
 
@@ -52,8 +52,13 @@ const PortfolioDialog = ({
       previewUrl: URL.createObjectURL(file),
     }));
 
-    setUploadedFiles([...uploadedFiles, ...newFiles]);
+    // console.log(newFiles)
+
+    // setUploadedFiles([...uploadedFiles, ...newFiles]);
+    setUploadedFiles(newFiles);
   };
+
+  console.log(uploadedFiles)
 
   const onRemoveFile = (event) => {
     const removedFile = event.file;
@@ -65,14 +70,19 @@ const PortfolioDialog = ({
   const handleRemoveImage = (index, e) => {
     e.preventDefault();
     e.stopPropagation();
-
     const updatedImages = [...images];
+    console.log(updatedImages)
     updatedImages.splice(index, 1);
     setImages(updatedImages);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    console.log(images)
+
+
+
     if (!title.trim() || !description.trim()) {
       alert("กรุณากรอกชื่อผลงานและคำอธิบาย");
       return;
@@ -88,6 +98,8 @@ const PortfolioDialog = ({
       }
     });
 
+
+
     uploadedFiles.forEach((file) => {
       formData.append("images", file.file);
     });
@@ -98,9 +110,14 @@ const PortfolioDialog = ({
       return;
     }
 
+    console.log("localPortfolio",localPortfolio)
+
     try {
       let response;
+
+
       if (localPortfolio) {
+        console.log("on edit");
         response = await fetch(`${API_URL}/${localPortfolio.id}`, {
           method: "PUT",
           headers: {
@@ -108,7 +125,15 @@ const PortfolioDialog = ({
           },
           body: formData,
         });
-      } else {
+        console.log(response)
+        if (response.status === 200) {
+          const data = await response.json();
+          onWorkSampleAdded(data)
+          handleCloseDialog();
+        }
+      } else if (localPortfolio === null) {
+        console.log("on upload");
+
         response = await fetch(API_URL, {
           method: "POST",
           headers: {
@@ -116,19 +141,39 @@ const PortfolioDialog = ({
           },
           body: formData,
         });
+        console.log(response)
+        if(response.status === 201){
+          // const data = await response.json();
+          // onWorkSampleAdded(data)
+          fetchPortfolios();
+          handleCloseDialog();
+        }
       }
 
-      const data = await response.json();
-      if (response.ok) {
-        if (localPortfolio) {
-          onUpdate(data);
-        } else {
-          onWorkSampleAdded(data);
-        }
-        handleCloseDialog();
-      } else {
-        alert("Error: " + data.message);
-      }
+
+      // }
+
+      // else {
+      //   response = await fetch(API_URL, {
+      //     method: "POST",
+      //     headers: {
+      //       Authorization: `Bearer ${token}`,
+      //     },
+      //     body: formData,
+      //   });
+      // }
+
+      // const data = await response.json();
+      // if (response.ok) {
+      //   if (localPortfolio) {
+      //     onUpdate(data);
+      //   } else {
+      //     onWorkSampleAdded(data);
+      //   }
+      //   handleCloseDialog();
+      // } else {
+      //   alert("Error: " + data.message);
+      // }
     } catch (error) {
       console.error("Upload error:", error);
       alert("เกิดข้อผิดพลาดในการอัปโหลด");
@@ -178,7 +223,6 @@ const PortfolioDialog = ({
             />
           </div>
 
-          {/* ✅ แสดงรูปภาพที่มีอยู่แล้ว */}
           {images.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-4">
               {images.map((img, index) => (
@@ -199,7 +243,6 @@ const PortfolioDialog = ({
             </div>
           )}
 
-          {/* ✅ FileUpload รองรับหลายไฟล์ */}
           <FileUpload
             multiple
             accept="image/*"
@@ -212,7 +255,6 @@ const PortfolioDialog = ({
             className="mb-4"
           />
 
-          {/* ✅ ปุ่ม Submit และ Cancel */}
           <div className="flex justify-content-between w-full mt-6">
             <Button
               type="button"

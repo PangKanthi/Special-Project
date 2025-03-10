@@ -13,57 +13,92 @@ import axios from "axios";
 const Profile = () => {
     const [selectedMenu, setSelectedMenu] = useState("คำสั่งซื้อของฉัน");
     const [editDialog, setEditDialog] = useState(false);
+    const [passwordDialog, setPasswordDialog] = useState(false);
     const [profile, setProfile] = useState({
-        firstname: "Ben",
-        lastname: "Tennyson",
-        email: "ben.tennyson@example.com",
-        phone: "0812345678",
+        firstname: "",
+        lastname: "",
+        email: "",
+        phone: "",
         password: ""
     });
     const [oldPassword, setOldPassword] = useState("");
+    const [newPassword, setNewPassword] = useState("");
+    const [userId, setuseId] = useState(null);
 
     useEffect(() => {
         getUserProfile();
-    }, [])
-
-
+    }, []);
 
     const getUserProfile = async () => {
-
         try {
             const response = await axios.get(`${process.env.REACT_APP_API}/users/me`, {
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem("token")}`,
-                }
-
+                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
             });
-
-
-            console.log(response)
+            setProfile({
+                firstname: response.data.firstname,
+                lastname: response.data.lastname,
+                email: response.data.email,
+                phone: response.data.phone,
+                password: ""  // เพื่อความปลอดภัย ไม่ควรดึงรหัสผ่านมา
+            });
+            setuseId(
+                response.data.id
+            );
         } catch (error) {
-            console.error(error)
+            console.error("Error fetching user profile:", error);
         }
-    }
-
-    const openEditDialog = () => {
-        setEditDialog(true);
-    };
-
-    const hideEditDialog = () => {
-        setEditDialog(false);
     };
 
     const handleChange = (e) => {
         setProfile({ ...profile, [e.target.name]: e.target.value });
     };
 
-    const saveProfile = () => {
-        if (!oldPassword) {
-            alert("กรุณากรอกรหัสผ่านเก่าก่อนทำการเปลี่ยนรหัสผ่าน");
+    const saveProfile = async () => {
+        try {
+            await axios.put(
+                `${process.env.REACT_APP_API}/users/me/profile`,
+                { profile }, // หากไม่มีข้อมูลที่ต้องส่ง ให้ใส่ {} 
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`
+                    }
+                }
+            );
+            alert("อัปเดตโปรไฟล์สำเร็จ");
+            setEditDialog(false);
+        } catch (error) {
+            console.error("Error updating profile:", error);
+            if (error.response) {
+                console.log("Server Response:", error.response.data); // ดู error message จาก backend
+                alert(`เกิดข้อผิดพลาด: ${error.response.data.error || "ไม่สามารถอัปเดตโปรไฟล์ได้"}`);
+            } else {
+                alert("เกิดข้อผิดพลาดในการอัปเดตโปรไฟล์");
+            }
+        }
+    };
+
+
+
+    const changePassword = async () => {
+        if (!oldPassword || !newPassword) {
+            alert("กรุณากรอกรหัสผ่านเก่าและรหัสผ่านใหม่");
             return;
         }
-        console.log("Updated Profile:", profile);
-        hideEditDialog();
+        try {
+            await axios.put(`${process.env.REACT_APP_API}/users/me/password`, {
+                oldPassword,
+                newPassword
+            }, {
+                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+            });
+            alert("เปลี่ยนรหัสผ่านสำเร็จ");
+            setOldPassword("");
+            setProfile({ ...profile, password: "" });
+            setPasswordDialog(false);
+        } catch (error) {
+            console.error("Error changing password:", error);
+            alert("เกิดข้อผิดพลาดในการเปลี่ยนรหัสผ่าน");
+        }
     };
 
     const sidebarItems = [
@@ -74,11 +109,11 @@ const Profile = () => {
 
     return (
         <div className="flex flex-column lg:flex-row p-4">
-            {/* Sidebar */}
             <aside className="lg:w-1/5 bg-blue-600 text-white p-4 border-round-lg shadow-2" style={{ width: "300px", height: "350px" }}>
                 <div className="flex flex-column align-items-center">
                     <h2 className="text-lg font-semibold">{profile.firstname} {profile.lastname}</h2>
-                    <Button label="แก้ไขโปรไฟล์" className="p-button-text mt-2 text-white" onClick={openEditDialog} />
+                    <Button label="แก้ไขโปรไฟล์" onClick={() => setEditDialog(true)} />
+                    <Button label="เปลี่ยนรหัสผ่าน" onClick={() => setPasswordDialog(true)} className="p-button-secondary ml-2" />
                 </div>
                 <Divider className="my-3 border-white" />
                 <nav>
@@ -103,38 +138,38 @@ const Profile = () => {
                 {selectedMenu === "ที่อยู่" && <AddressPage />}
                 {selectedMenu === "แจ้งซ่อม" && <RepairPage />}
             </main>
+            <div className="flex">
+                <Dialog
+                    draggable={false}
+                    visible={editDialog}
+                    style={{ width: "500px", height: "auto" }}
+                    position="center"
+                    modal
+                    onHide={() => setEditDialog(false)}
+                    header="แก้ไขโปรไฟล์"
+                >
+                    <div className="p-fluid">
+                        <p>ชื่อ</p>
+                        <InputText name="firstname" value={profile.firstname} onChange={handleChange} placeholder="ชื่อ" />
 
-            <Dialog
-                visible={editDialog}
-                onHide={hideEditDialog}
-                header="แก้ไขโปรไฟล์"
-                draggable={false}
-                style={{ width: "500px", height: "550px", objectFit: "cover" }}
-                modal footer={
-                    <div className="pr-2">
-                        <Button label="ยกเลิก" icon="pi pi-times" onClick={hideEditDialog} className="p-button-text" />
-                        <Button label="บันทึก" icon="pi pi-check" onClick={saveProfile} autoFocus />
+                        <p>นามสกุล</p>
+                        <InputText name="lastname" value={profile.lastname} onChange={handleChange} placeholder="นามสกุล" />
+
+                        <p>โทรศัพท์</p>
+                        <InputText name="phone" value={profile.phone} onChange={handleChange} placeholder="เบอร์โทรศัพท์" />
+
+                        <p>Email</p>
+                        <InputText name="email" value={profile.email} placeholder="Email" />
+
+                        <Button label="บันทึก" onClick={saveProfile} className="mt-3" />
                     </div>
-                }>
-                <div className="p-fluid">
-                    <div className="p-field">
-                        <label>ชื่อ</label>
-                        <InputText name="firstname" value={profile.firstname} onChange={handleChange} />
-                    </div>
-                    <div className="p-field pt-2">
-                        <label>นามสกุล</label>
-                        <InputText name="lastname" value={profile.lastname} onChange={handleChange} />
-                    </div>
-                    <div className="p-field pt-2">
-                        <label>Email</label>
-                        <InputText name="email" value={profile.email} onChange={handleChange} disabled />
-                    </div>
-                    <div className="p-field pt-2">
-                        <label>โทรศัพท์</label>
-                        <InputText name="phone" value={profile.phone} onChange={handleChange} />
-                    </div>
-                </div>
-            </Dialog>
+                </Dialog>
+                <Dialog visible={passwordDialog} onHide={() => setPasswordDialog(false)} header="เปลี่ยนรหัสผ่าน">
+                    <Password value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} placeholder="รหัสผ่านเก่า" />
+                    <Password value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="รหัสผ่านใหม่" />
+                    <Button label="เปลี่ยนรหัสผ่าน" onClick={changePassword} />
+                </Dialog>
+            </div>
         </div>
     );
 };

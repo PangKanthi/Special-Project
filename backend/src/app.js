@@ -40,11 +40,11 @@ app.use((req, res, next) => {
     next();
 });
 
-if (process.env.NODE_ENV === 'development') {
-    app.use(morgan('dev'));
-} else {
-    app.use(morgan('combined'));
-}
+// if (process.env.NODE_ENV === 'development') {
+//     // app.use(morgan('dev'));
+// } else {
+//     app.use(morgan('combined'));
+// }
 
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 app.use('/api/auth', authRoute);

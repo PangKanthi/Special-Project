@@ -137,6 +137,7 @@ const ManagePortfolios = () => {
                 visible={visible}
                 onClose={() => setVisible(false)}
                 onWorkSampleAdded={handleAddWorkSample}
+                fetchPortfolios={fetchPortfolios}
                 onUpdate={handleUpdate}
                 selectedPortfolio={selectedPortfolio}
             />

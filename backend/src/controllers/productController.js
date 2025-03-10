@@ -27,7 +27,8 @@ export const createProduct = async (req, res, next) => {
 
 export const updateProduct = async (req, res, next) => {
   try {
-    console.log("📥 Data received:", req.body);
+    // console.log("📥 Data received:", req.body);
+    // console.log(req.body);
 
     const isPart = req.body.is_part === "true" || req.body.is_part === true;
     const stockQuantity = req.body.stock_quantity ? parseInt(req.body.stock_quantity, 10) : null;
