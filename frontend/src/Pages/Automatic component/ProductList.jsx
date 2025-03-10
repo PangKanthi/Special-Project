@@ -16,11 +16,19 @@ const ProductList = ({ products }) => {
     <div className="lg:flex-1 flex gap-4 justify-content-center flex-wrap lg:pt-4">
       {products.map((product) => (
         <div key={product.id} style={{ width: "325px" }}>
-          <Link to={`/productAuto/${product.id}`} style={{ textDecoration: "none" }}>
+          <Link
+            to={`/productAuto/${product.id}`}
+            style={{ textDecoration: "none" }}
+          >
             <Card
               title={product.name}
               subTitle={product.description}
-              style={{ marginBottom: "1rem", height: "100%" }}
+              style={{
+                marginBottom: "1rem",
+                height: "100%",
+                cursor: "pointer",
+                transition: "transform 0.2s",
+              }}
               header={
                 <img
                   alt={product.name}
@@ -47,6 +55,10 @@ const ProductList = ({ products }) => {
                 </span>
               }
               className="m-2 p-shadow-5"
+              onMouseOver={(e) =>
+                (e.currentTarget.style.transform = "scale(1.05)")
+              }
+              onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
             />
           </Link>
         </div>

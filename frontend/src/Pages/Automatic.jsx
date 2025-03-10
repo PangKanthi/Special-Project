@@ -50,12 +50,7 @@ const Automatic = () => {
     { label: 'ประตูม้วนแบบสปริง', value: 'spring_shutter' },
   ];
 
-  // กรองฝั่ง Frontend
   let filteredProducts = products.filter((product) => {
-    // เงื่อนไขหลักๆ:
-    // 1) ต้อง is_part === false
-    // 2) ค้นหาจาก search ใน name
-    // 3) ถ้า selectedMenu != null ต้อง product.category === selectedMenu
     const matchPart = product.is_part === false;
     const matchSearch = product.name
       .toLowerCase()
@@ -127,11 +122,12 @@ const Automatic = () => {
       </div>
 
       {/* Category Menu (เมื่อจอใหญ่) + ส่วนแสดงผล */}
-      <div className="flex flex-column lg:flex-row">
+      <div className="flex flex-column lg:flex-row ">
         <CategoryMenu
           menuOptions={menuOptions}
           selectedMenu={selectedMenu}
           setSelectedMenu={setSelectedMenu}
+          
         />
         
         <ProductList products={paginatedProducts} />

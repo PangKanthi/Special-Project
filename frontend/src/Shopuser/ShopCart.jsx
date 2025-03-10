@@ -137,15 +137,10 @@ function ShopCart() {
   }, 0);
 
   const VAT_RATE = 0.07;
-  const SHIPPING_COST = totalProductPrice > 1000 ? 0 : 50;
   const DISCOUNT = totalProductPrice > 2000 ? 200 : 0;
   const vatAmount = totalProductPrice * VAT_RATE;
   const grandTotal =
-    totalProductPrice +
-    totalInstallationFee +
-    vatAmount +
-    SHIPPING_COST -
-    DISCOUNT;
+    totalProductPrice + totalInstallationFee + vatAmount - DISCOUNT;
 
   return (
     <div className="px-4 sm:px-6 md:px-8 lg:pl-8 pr-8">
@@ -287,15 +282,6 @@ function ShopCart() {
             <div className="flex justify-content-between text-lg">
               <p>ภาษีมูลค่าเพิ่ม (7%)</p>
               <p>฿{vatAmount.toLocaleString()}</p>
-            </div>
-
-            <div className="flex justify-content-between text-lg">
-              <p>ค่าจัดส่ง</p>
-              <p className={SHIPPING_COST === 0 ? "text-green-500" : ""}>
-                {SHIPPING_COST === 0
-                  ? "ฟรี"
-                  : `฿${SHIPPING_COST.toLocaleString()}`}
-              </p>
             </div>
 
             {DISCOUNT > 0 && (
