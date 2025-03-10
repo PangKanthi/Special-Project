@@ -25,7 +25,7 @@ function SummaryCard({ totalProductPrice, totalInstallationFee, grandTotal }) {
       }}
     >
       <div className="flex justify-content-between text-lg">
-        <p>ยอดรวม</p>
+        <p>ยอดรวมสินค้า</p>
         <p>฿{totalProductPrice.toLocaleString()}</p>
       </div>
 

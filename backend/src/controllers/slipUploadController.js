@@ -23,7 +23,6 @@ export const uploadSlip = async (req, res, next) => {
 
     console.log("📂 ไฟล์ที่อัปโหลดสำเร็จ:", req.file.path);
 
-    // ✅ บันทึกสลิปลงฐานข้อมูล
     const savedSlip = await saveSlipToDatabase(orderId, req.file.path, false);
 
     res.status(201).json({
@@ -37,17 +36,10 @@ export const uploadSlip = async (req, res, next) => {
   }
 };
 
-// ✅ ฟังก์ชันตรวจสอบสลิปผ่าน SlipOK API
 export const checkSlip = async (req, res, next) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: "❌ กรุณาอัปโหลดไฟล์สลิป" });
-    }
-
-    const { amount } = req.body;
-
-    if (!amount) {
-      return res.status(400).json({ error: "❌ กรุณาระบุจำนวนเงิน" });
     }
 
     console.log("📡 กำลังส่งข้อมูลไปยัง SlipOK API...");
@@ -55,25 +47,47 @@ export const checkSlip = async (req, res, next) => {
     const formData = new FormData();
     formData.append("files", fs.createReadStream(req.file.path));
     formData.append("log", "true");
-    formData.append("amount", amount.toString());
 
     const apiResponse = await fetch(SLIPOK_API_URL, {
       method: "POST",
       headers: { "x-authorization": SLIPOK_API_KEY },
-      body: formData
+      body: formData,
     });
 
     const apiResult = await apiResponse.json();
     console.log("📨 ได้รับข้อมูลจาก SlipOK API:", apiResult);
 
     if (!apiResult.success) {
-      return res.status(400).json({ error: "สลิปไม่ถูกต้อง", apiResponse: apiResult });
+      return res.status(400).json({ error: "❌ สลิปไม่ถูกต้อง", apiResponse: apiResult });
+    }
+
+    // ✅ ดึงข้อมูลจากสลิป
+    const slipAmount = parseFloat(apiResult.data.amount);
+    const receivingBank = apiResult.data.receivingBank; // ✅ ธนาคารปลายทาง
+    const receiverName = apiResult.data.receiver.name?.trim(); // ✅ ชื่อบัญชีปลายทาง
+
+    // ✅ ตรวจสอบว่าธนาคารปลายทางถูกต้องหรือไม่
+    if (receivingBank !== STORE_BANK_CODE) {
+      return res.status(400).json({
+        error: `❌ ธนาคารปลายทางไม่ถูกต้อง (คาดหวัง: ${STORE_BANK_CODE}, ได้รับ: ${receivingBank})`,
+      });
+    }
+
+    // ✅ ตรวจสอบว่าชื่อบัญชีปลายทางตรงกันหรือไม่ (ใช้ `includes()` ป้องกันชื่อไม่ตรง 100%)
+    if (!receiverName || !receiverName.toUpperCase().includes(STORE_BANK_NAME.toUpperCase())) {
+      return res.status(400).json({
+        error: `❌ ชื่อบัญชีปลายทางไม่ถูกต้อง (คาดหวัง: ${STORE_BANK_NAME}, ได้รับ: ${receiverName || "ไม่พบข้อมูล"})`,
+      });
     }
 
     res.status(200).json({
       message: "✅ สลิปถูกต้อง",
-      apiResponse: apiResult
+      slipAmount,
+      receiverName,
+      receivingBank,
+      apiResponse: apiResult,
     });
+
   } catch (error) {
     console.error("❌ เกิดข้อผิดพลาดในการตรวจสอบสลิป:", error);
     res.status(500).json({ error: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์", details: error.message });

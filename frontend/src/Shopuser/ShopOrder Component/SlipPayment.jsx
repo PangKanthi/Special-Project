@@ -1,124 +1,119 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card } from "primereact/card";
 import { FileUpload } from "primereact/fileupload";
-import { ProgressSpinner } from "primereact/progressspinner";
-import { Message } from "primereact/message";
 import { Button } from "primereact/button";
 
-function SlipPayment({
-  form,
-  setForm,
-  loading,
-  errorMessage,
-  orderStatus,
-  handleCheckSlip,
-  handleOrderConfirmation,
-}) {
+function SlipPayment({ grandTotal, handleOrderConfirmation }) {
+  const [loading, setLoading] = useState(false);
+  const [slipAmount, setSlipAmount] = useState(null);
+  const [error, setError] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+
+  // ✅ ฟังก์ชันจัดเก็บไฟล์ที่อัปโหลด
   const handleImageUpload = (event) => {
-    const uploadedFiles = event.files.map((file) => ({
-      file,
-      previewUrl: URL.createObjectURL(file),
-    }));
-    setForm((prevForm) => ({
-      ...prevForm,
-      images: [...prevForm.images, ...uploadedFiles],
-    }));
+    const file = event.files[0];
+    if (!file) return;
+    setSelectedFile(file);
   };
 
-  const handleRemoveImage = (event) => {
-    setForm((prevForm) => {
-      const updatedImages = prevForm.images.filter(
-        (image) => image.file.name !== event.file.name
+  // ✅ ฟังก์ชันส่งรูปไป Backend เพื่อตรวจสอบสลิป
+  const checkSlip = async () => {
+    if (!selectedFile) {
+      alert("กรุณาอัปโหลดสลิปก่อนตรวจสอบ");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("slip", selectedFile); // ✅ เปลี่ยนจาก "file" เป็น "slip"
+
+      const response = await fetch("http://localhost:1234/api/check-slip", {
+        method: "POST",
+        body: formData,
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }, // ❌ ห้ามใส่ "Content-Type"
+      });
+
+      const data = await response.json();
+      if (!response.ok)
+        throw new Error(data.error || "เกิดข้อผิดพลาดในการตรวจสอบสลิป");
+
+      const slipAmount = parseFloat(data.apiResponse.data.amount);
+      setSlipAmount(slipAmount);
+
+      if (slipAmount !== grandTotal) {
+        setError(
+          `❌ จำนวนเงินในสลิป (${slipAmount} บาท) ไม่ตรงกับยอดรวม (${grandTotal} บาท)`
+        );
+      }
+    } catch (err) {
+      setError(err.message);
+    }
+
+    setLoading(false);
+  };
+
+  const validateAndConfirm = () => {
+    if (!selectedFile) {
+      alert("กรุณาอัปโหลดสลิปก่อน");
+      return;
+    }
+
+    if (slipAmount !== grandTotal) {
+      alert(
+        `❌ จำนวนเงินที่โอน (${slipAmount} บาท) ไม่ตรงกับยอดรวมที่ต้องจ่าย (${grandTotal} บาท)`
       );
-      return { ...prevForm, images: updatedImages };
-    });
+      return;
+    }
+
+    handleOrderConfirmation();
   };
 
   return (
-    <div style={{ width: "100%" }}>
-      <Card
-        style={{
-          width: "100%",
-          maxWidth: "500px",
-          height: "auto",
-          maxHeight: "800px",
-          borderRadius: "10px",
-          padding: "20px",
-          backgroundColor: "#f6f6f6",
-        }}
-      >
+    <div>
+      <Card>
         <div>
-          <p>บัญชี กสิกร</p>
-        </div>
-        <div>
-          <p>เลขบัญชี 0591344439</p>
-        </div>
-        <div>
-          <p>ชื่อบัญชี กันต์ธี จิตรแก้ว</p>
-        </div>
-
-        <div className="p-field p-col-12 pt-2">
           <label>เพิ่มรูปภาพสลิปโอนเงิน</label>
-          <div className="pt-2">
-            <FileUpload
-              name="images"
-              mode="advanced"
-              accept="image/*"
-              maxFileSize={1000000}
-              customUpload
-              uploadHandler={handleImageUpload}
-              onRemove={handleRemoveImage}
-              chooseLabel="เลือกไฟล์"
-              auto
-            />
-          </div>
+          <FileUpload
+            name="file"
+            mode="advanced"
+            accept="image/*"
+            maxFileSize={1000000}
+            customUpload
+            uploadHandler={handleImageUpload}
+            chooseLabel="เลือกไฟล์"
+            auto
+          />
         </div>
 
-        <h2 className="text-lg font-bold mt-4">สถานะการโอนเงิน</h2>
+        <div className="mt-4">
+          <Button
+            label="ตรวจสอบสลิป"
+            onClick={checkSlip}
+            className="w-full bg-yellow-500 text-white py-2 text-lg font-bold rounded"
+            disabled={loading}
+          />
+        </div>
 
-        {loading && (
-          <ProgressSpinner style={{ width: "50px", height: "50px" }} />
+        {loading && <p>🔄 กำลังตรวจสอบสลิป...</p>}
+        {slipAmount !== null && (
+          <p className="mt-2 text-green-600">
+            ✅ ยอดเงิน: {slipAmount} บาท
+          </p>
         )}
-
-        {!loading && orderStatus && (
-          <div
-            className={`p-3 rounded-lg mt-2 text-white ${
-              orderStatus === "PAID" ? "bg-green-500" : "bg-yellow-500"
-            }`}
-          >
-            {orderStatus === "PAID"
-              ? "✅ การชำระเงินสำเร็จ"
-              : "⏳ รอการตรวจสอบ"}
-          </div>
-        )}
-
-        {errorMessage && (
-          <Message severity="error" text={errorMessage} className="mt-2" />
-        )}
+        {error && <p className="text-red-500">{error}</p>}
 
         <div className="pt-3">
           <Button
-            label="ตรวจสอบสลิป"
-            onClick={handleCheckSlip}
-            className="bg-yellow-500 text-white py-2 text-lg font-bold rounded"
+            label="ยืนยันการสั่งซื้อ"
+            onClick={validateAndConfirm}
+            className="w-full bg-blue-600 text-white py-2 text-lg font-bold rounded"
+            disabled={slipAmount === null || slipAmount !== grandTotal}
           />
         </div>
-        {!form.images.length && (
-          <Message
-            severity="warn"
-            text="กรุณาอัปโหลดสลิปก่อนกดตรวจสอบ"
-            className="mt-2"
-          />
-        )}
       </Card>
-
-      <div className="md:text-center pt-5">
-        <Button
-          label="ยืนยันการสั่งซื้อ"
-          onClick={handleOrderConfirmation}
-          className="w-full bg-blue-600 text-white py-2 text-lg font-bold rounded"
-        />
-      </div>
     </div>
   );
 }

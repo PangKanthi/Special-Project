@@ -38,7 +38,7 @@ function ShopOrder() {
       } catch (err) {
         console.error("เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้:", err);
       }
-    };    
+    };
 
     fetchAddresses();
     fetchUser();
@@ -143,8 +143,8 @@ function ShopOrder() {
           <SlipPayment
             form={form}
             setForm={setForm}
-            handle
-            OrderConfirmation={handleOrderConfirmation}
+            grandTotal={grandTotal}
+            handleOrderConfirmation={handleOrderConfirmation}
           />
         </Card>
       </div>
