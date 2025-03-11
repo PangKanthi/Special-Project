@@ -10,16 +10,41 @@ export const getCart = async (req, res, next) => {
 };
 
 export const addToCart = async (req, res, next) => {
-    console.log("🛒 Adding to cart:", req.body);
     try {
-        const { productId, quantity, price, color, width, length,thickness, installOption } = req.body;
+        const {
+            productId,
+            quantity,
+            price,
+            color,
+            width,
+            length,
+            thickness,
+            installOption,
+            doorType,
+        } = req.body;
 
-        if (!productId || !quantity || !price) {
-            return res.status(400).json({ error: "ข้อมูลไม่ครบถ้วน" });
+        // ถ้าเป็นประตู => productId จะเป็น null
+        // แต่เราต้องตรวจว่ามี doorType / dimension ครบไหม
+        // ส่วนกรณีสินค้า => productId ต้องไม่ null
+        if (!quantity) {
+            return res.status(400).json({ error: "quantity is required" });
         }
+        // สมมติถ้ายังต้องการให้ส่ง price มาด้วย (กรณีอะไหล่)
+        // หรือจะให้ Backend คำนวณเสมอก็ได้ แล้วแต่
 
-        const cartItem = await CartService.addToCart(req.user.id, productId, quantity, price, color,  width, length,thickness, installOption);
-        
+        const cartItem = await CartService.addToCart(
+            req.user.id,
+            productId ? parseInt(productId, 10) : null,
+            parseInt(quantity, 10),
+            price ? parseFloat(price) : null,
+            color,
+            width ? parseFloat(width) : null,
+            length ? parseFloat(length) : null,
+            thickness,
+            installOption,
+            doorType
+        );
+
         res.status(200).json(cartItem);
     } catch (error) {
         next(error);
