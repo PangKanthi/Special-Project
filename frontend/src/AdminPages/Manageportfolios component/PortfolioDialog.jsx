@@ -71,7 +71,6 @@ const PortfolioDialog = ({
     e.preventDefault();
     e.stopPropagation();
     const updatedImages = [...images];
-    console.log(updatedImages)
     updatedImages.splice(index, 1);
     setImages(updatedImages);
   };

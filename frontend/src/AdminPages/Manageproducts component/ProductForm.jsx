@@ -21,11 +21,9 @@ const ProductForm = ({
 }) => {
     const fileUploadRef = useRef(null);
 
-    // ✅ ฟังก์ชันลบภาพทั้งจาก UI และ FileUpload
     const handleRemoveImage = (event) => {
         setNewProduct((prev) => {
             let updatedImages;
-
             if (event.file) {
                 updatedImages = prev.images.filter(
                     (image) => image.file && image.file.name !== event.file.name
@@ -36,7 +34,6 @@ const ProductForm = ({
                     (image) => image.previewUrl !== event.previewUrl
                 );
             }
-
             return { ...prev, images: updatedImages };
         });
     };
@@ -91,7 +88,9 @@ const ProductForm = ({
                                         <Button
                                             icon="pi pi-times"
                                             className="p-button-rounded p-button-danger p-button-sm absolute top-0 right-0"
-                                            onClick={(event) => handleRemoveImage(img, event)} // ✅ ส่ง event ไปให้ stopPropagation
+                                            onClick={(event) => {
+                                                handleRemoveImage(img, event)
+                                            }}
                                         />
                                     </div>
                                 ))}
