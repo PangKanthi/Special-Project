@@ -5,7 +5,8 @@ import { Button } from "primereact/button";
 import { Tag } from "primereact/tag";
 import { Avatar } from "primereact/avatar";
 
-const ProductTable = ({ products, handleEdit, handleDelete }) => {
+const ProductTable = ({ products, handleEdit, handleDelete,}) => {
+  console.log(products)
   return (
     <div className="shadow-md p-4 rounded-lg bg-white">
       <DataTable value={products} paginator rows={10}>
@@ -62,7 +63,7 @@ const ProductTable = ({ products, handleEdit, handleDelete }) => {
           header="Available Color"
           body={(rowData) => (
             <div className="flex space-x-2">
-              {rowData.colors.map((color, i) => (
+                {rowData.colors.map((color, i) => (
                 <Tag
                   key={i}
                   style={{

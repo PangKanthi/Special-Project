@@ -49,8 +49,12 @@ const ManageProducts = () => {
 
     setNewProduct((prev) => {
       // ใช้ Set เพื่อเช็คว่าชื่อไฟล์ซ้ำหรือไม่
-      const existingFileNames = new Set(prev.images.map(img => img.file?.name));
-      const uniqueFiles = uploadedFiles.filter(img => !existingFileNames.has(img.file.name));
+      const existingFileNames = new Set(
+        prev.images.map((img) => img.file?.name)
+      );
+      const uniqueFiles = uploadedFiles.filter(
+        (img) => !existingFileNames.has(img.file.name)
+      );
 
       return {
         ...prev,
@@ -77,7 +81,12 @@ const ManageProducts = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (!newProduct.name || !newProduct.category || !newProduct.price || !newProduct.stock_quantity) {
+    if (
+      !newProduct.name ||
+      !newProduct.category ||
+      !newProduct.price ||
+      !newProduct.stock_quantity
+    ) {
       alert("กรุณากรอกข้อมูลให้ครบก่อนทำการเพิ่มสินค้า");
       return;
     }
@@ -102,7 +111,9 @@ const ManageProducts = () => {
       description: product.description || "",
       warranty: product.warranty || "",
       images: product.images
-        ? product.images.map((img) => ({ previewUrl: `http://localhost:1234${img}` }))
+        ? product.images.map((img) => ({
+            previewUrl: `http://localhost:1234${img}`,
+          }))
         : [],
     });
     setEditMode(true);
@@ -174,7 +185,11 @@ const ManageProducts = () => {
         </div>
       </div>
 
-      <ProductTable products={products} handleEdit={handleEdit} handleDelete={handleDelete} />
+      <ProductTable
+        products={products}
+        handleEdit={handleEdit}
+        handleDelete={handleDelete}
+      />
 
       <ProductForm
         visible={visible}
@@ -197,10 +212,14 @@ const ManageProducts = () => {
           { label: "แดง (Red)", value: "red" },
           { label: "ขาว (White)", value: "white" },
         ]}
-        categoryOptions={{ // ✅ ส่ง categoryOptions ไปให้ ProductForm
+        categoryOptions={{
+          // ✅ ส่ง categoryOptions ไปให้ ProductForm
           shutter: [
             { label: "ประตูม้วนแบบไฟฟ้า", value: "electric_shutter" },
-            { label: "ประตูม้วนแบบรอกโซ่ไฟฟ้า", value: "chain_electric_shutter" },
+            {
+              label: "ประตูม้วนแบบรอกโซ่ไฟฟ้า",
+              value: "chain_electric_shutter",
+            },
             { label: "ประตูม้วนแบบสปริง", value: "spring_shutter" },
           ],
           shutter_parts: [
