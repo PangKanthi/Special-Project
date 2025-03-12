@@ -27,37 +27,43 @@ enum DoorType {
 // MODELS
 // ----------------------------------------------------------------------------------
 model product {
-  id             Int     @id @default(autoincrement())
-  name           String  @db.VarChar(100)
-  description    String?
-  price          Decimal @db.Decimal(10, 2)      // ราคาต่อชิ้น (อะไหล่)
-  category       String  @db.VarChar(50)         // เช่น "shaft", "sheet", "rails"
-  stock_quantity Int     @default(0)             // สต็อกคงเหลือ
+  id             Int       @id @default(autoincrement())
+  name           String    @db.VarChar(100)
+  description    String?   @db.Text
+  price          Decimal   @db.Decimal(10, 2)  // ราคา default หรือใช้ในกรณีเป็นอะไหล่
+  category       String    @db.VarChar(50)
+  warranty       String?   @db.VarChar(50)
+  is_part        Boolean?  @default(false)     // true = อะไหล่, false = ประตู
+  doorType       DoorType?                 // ชนิดประตู (กรณีเป็นประตู)
 
-  created_at DateTime? @default(now())
-  updated_at DateTime  @updatedAt
+  // ฟิลด์ JSON สำหรับเก็บ config/bom/priceRules
+  // ตัวอย่างเช่น `{ "bom": [...], "priceTiers": [...], "extraOptions": {...} }`
+  config         Json?
 
-  // ความสัมพันธ์กับ order/cart
+  stock_quantity Int?      @default(0)
+  created_at     DateTime? @default(now()) @db.Timestamp(6)
+  updated_at     DateTime  @updatedAt
+  colors         String[]
+  images         String[]
+
+  // ความสัมพันธ์กับตารางอื่น ๆ
   order_items order_item[]
+  reviews     review[]
   cart_item   cart_item[]
 
-  // ความสัมพันธ์กับ door_parts (BOM)
+  // ตัวอย่างหากยังต้องการใช้ประโยชน์จาก door_parts แบบ Relation 
   door_parts_doorProduct door_parts[] @relation("DoorProduct")
   door_parts_partProduct door_parts[] @relation("PartProduct")
-
-  // ความสัมพันธ์กับรีวิว
-  review review[]
 }
 
 model door_parts {
-  id       Int @id @default(autoincrement())
-  doorId   Int
-  partId   Int
-  quantity Int
+  id          Int      @id @default(autoincrement())
+  doorId      Int
+  partId      Int
+  quantity    Int
 
-  // ตั้งชื่อ Relation ให้ต่างกัน เพื่อไม่ให้ชนกัน
-  doorProduct product @relation("DoorProduct", fields: [doorId], references: [id])
-  partProduct product @relation("PartProduct", fields: [partId], references: [id])
+  doorProduct product  @relation("DoorProduct", fields: [doorId], references: [id])
+  partProduct product  @relation("PartProduct", fields: [partId], references: [id])
 
   @@map("door_parts")
 }
@@ -101,38 +107,32 @@ model Address {
 
 model order {
   id             Int      @id @default(autoincrement())
-  order_date     DateTime @default(now())
-  status         String   @default("pending")
+  order_date     DateTime @default(now()) @db.Timestamp(6)
+  status         String   @db.VarChar(20)
   total_amount   Decimal  @db.Decimal(10, 2)
   userId         Int
-  payment_status String   @default("unpaid")
+  addressId      Int
+  payment_status String   @db.VarChar(20)
 
-  // ความสัมพันธ์
-  user         user           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  order_items  order_item[]
-  Address      Address?       @relation(fields: [addressId], references: [id])
-  addressId    Int?
-  payment_slip payment_slip[]
+  user          user           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  address       Address        @relation(fields: [addressId], references: [id], onDelete: Cascade)
+  order_items   order_item[]
+  payment_slips payment_slip[]
+
+  @@map("orders")
 }
 
 model order_item {
   id        Int     @id @default(autoincrement())
   orderId   Int
-  productId Int?    // null ถ้าเป็นประตู (virtual)
-
+  productId Int
   quantity  Int
-  price     Decimal @db.Decimal(10, 2) // ราคาต่อหน่วย (กรณีประตูหรืออะไหล่)
+  price     Decimal @db.Decimal(10, 2)
 
-  // ข้อมูล “ประตู” (ถ้า productId == null)
-  doorType  DoorType?
-  width     Decimal?  @db.Decimal(10, 2)
-  length    Decimal?  @db.Decimal(10, 2)
-  color     String?
-  thickness String? // หรือใช้ enum ก็ได้
-  install   Boolean? // ติดตั้งหรือไม่
+  order   order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
-  order   order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product product? @relation(fields: [productId], references: [id])
+  @@map("order_items")
 }
 
 model payment_slip {
@@ -173,7 +173,7 @@ model repair_request {
   id                  Int          @id @default(autoincrement())
   problem_description String       @db.Text
   service_type        String       @db.VarChar(50)
-  request_date        DateTime     @default(now())
+  request_date        DateTime     @default(now()) @db.Timestamp(6)
   userId              Int
   addressId           Int
   status              RepairStatus @default(pending)
@@ -194,23 +194,19 @@ model cart {
 }
 
 model cart_item {
-  id        Int     @id @default(autoincrement())
-  cartId    Int
-  productId Int?    // null ถ้าเป็นประตู (virtual)
-  quantity  Int
-  price     Decimal @db.Decimal(10, 2)
+  id            Int      @id @default(autoincrement())
+  cartId        Int
+  productId     Int
+  quantity      Int
+  price         Decimal  @db.Decimal(10, 2)
+  color         String?  @db.VarChar(50)
+  width         Decimal? @db.Decimal(10, 2)
+  length        Decimal? @db.Decimal(10, 2)
+  thickness     String?  @db.VarChar(20) // หรือจะใช้ Enum ก็ได้
+  installOption String?  @db.VarChar(20)
 
-  // ข้อมูลประตู
-  doorType  DoorType?
-  width     Decimal? @db.Decimal(10, 2)
-  length    Decimal? @db.Decimal(10, 2)
-  color     String?
-  thickness String?
-  install   Boolean?
+  cart    cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
-  cart    cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  product product? @relation(fields: [productId], references: [id])
-
-  // กันซ้ำภายในตะกร้า (Option)
-  @@unique([cartId, productId, doorType, width, length, thickness, color, install])
+  @@unique([cartId, productId, color, width, length, thickness, installOption])
 }
