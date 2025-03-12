@@ -5,8 +5,8 @@ import { Button } from "primereact/button";
 import { Tag } from "primereact/tag";
 import { Avatar } from "primereact/avatar";
 
-const ProductTable = ({ products, handleEdit, handleDelete,}) => {
-  console.log(products)
+const ProductTable = ({ products, handleEdit, handleDelete }) => {
+  console.log(products);
   return (
     <div className="shadow-md p-4 rounded-lg bg-white">
       <DataTable value={products} paginator rows={10}>
@@ -31,23 +31,23 @@ const ProductTable = ({ products, handleEdit, handleDelete,}) => {
           body={(rowData) => {
             const categoryMap = {
               // 🔹 หมวดหมู่ประตูม้วน
-              "electric_rolling_shutter": "ประตูม้วนแบบไฟฟ้า",
-              "chain_electric_shutter": "ประตูม้วนแบบรอกโซ่",
-              "manual_rolling_shutter": "ประตูม้วนมือดึง",
+              electric_rolling_shutter: "ประตูม้วนแบบไฟฟ้า",
+              chain_electric_shutter: "ประตูม้วนแบบรอกโซ่",
+              manual_rolling_shutter: "ประตูม้วนมือดึง",
 
               // 🔹 หมวดหมู่อะไหล่ประตูม้วน
-              "shutter_panel": "แผ่นประตูม้วน",
-              "door_track": "รางประตู",
-              "shaft": "เพลา",
-              "spring": "สปริง",
-              "shaft_cover": "ฝาครอบเพลา",
-              "door_lock": "ตัวล็อกประตู",
-              "motor": "มอเตอร์",
-              "control_box": "กล่องควบคุม",
-              "remote_control": "รีโมทคอนโทรล / ปุ่มควบคุม",
-              "sensor_system": "ระบบเซนเซอร์",
-              "backup_battery": "แบตเตอรี่สำรอง",
-              "emergency_crank": "มือหมุนฉุกเฉิน"
+              shutter_panel: "แผ่นประตูม้วน",
+              door_track: "รางประตู",
+              shaft: "เพลา",
+              spring: "สปริง",
+              shaft_cover: "ฝาครอบเพลา",
+              door_lock: "ตัวล็อกประตู",
+              motor: "มอเตอร์",
+              control_box: "กล่องควบคุม",
+              remote_control: "รีโมทคอนโทรล / ปุ่มควบคุม",
+              sensor_system: "ระบบเซนเซอร์",
+              backup_battery: "แบตเตอรี่สำรอง",
+              emergency_crank: "มือหมุนฉุกเฉิน",
             };
 
             return categoryMap[rowData.category] || "ไม่ระบุ";
@@ -56,14 +56,16 @@ const ProductTable = ({ products, handleEdit, handleDelete,}) => {
         <Column
           field="price"
           header="Price"
-          body={(rowData) => `$${rowData.price}`}
+          body={(rowData) =>
+            rowData.price !== null ? `$${rowData.price}` : " "
+          }
         />
         <Column field="stock_quantity" header="Piece" />
         <Column
           header="Available Color"
           body={(rowData) => (
             <div className="flex space-x-2">
-                {rowData.colors.map((color, i) => (
+              {rowData.colors.map((color, i) => (
                 <Tag
                   key={i}
                   style={{

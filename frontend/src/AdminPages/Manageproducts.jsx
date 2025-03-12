@@ -14,9 +14,9 @@ const ManageProducts = () => {
 
   // 3) สร้าง map ระหว่างค่าที่ Dropdown ส่งมา (manual_rolling_shutter ฯลฯ) ไปเป็นคีย์ใน doorConfig (MANUAL, CHAIN, ELECTRIC)
   const categoryMap = {
-    manual_rolling_shutter: "MANUAL",
-    chain_electric_shutter: "CHAIN",
-    electric_rolling_shutter: "ELECTRIC",
+    manual_rolling_shutter: "manual_rolling_shutter",
+    chain_electric_shutter: "chain_electric_shutter",
+    electric_rolling_shutter: "electric_rolling_shutter",
   };
 
   const [search, setSearch] = useState("");

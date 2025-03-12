@@ -13,7 +13,7 @@ import { Dropdown } from "primereact/dropdown";
 
 import useLocationData from "../Hooks/useLocationData";
 import { calculateTotalDoorPrice } from "../utils";
-
+import { fetchDoorConfig } from "../services/doorConfigService";
 
 import "primeflex/primeflex.css";
 
@@ -22,6 +22,14 @@ const normalCategoryOptions = [
   { label: "ประตูม้วนไฟฟ้า", value: "electric_rolling_shutter" },
   { label: "ประตูม้วนแบบรอกโซ่", value: "chain_electric_shutter" },
   { label: "ประตูม้วนมือดึง", value: "manual_rolling_shutter" },
+];
+
+const cities = [
+  { name: "New York", code: "NY" },
+  { name: "Rome", code: "RM" },
+  { name: "London", code: "LDN" },
+  { name: "Istanbul", code: "IST" },
+  { name: "Paris", code: "PRS" },
 ];
 
 const partCategoryOptions = [
@@ -45,8 +53,6 @@ const checkLogin = () => {
 };
 
 const ProductAutoDetail = () => {
-
-
   const { doorConfigData } = useLocationData();
   const { id } = useParams();
   const [product, setProduct] = useState(null);
@@ -58,14 +64,14 @@ const ProductAutoDetail = () => {
   const [width, setWidth] = useState("");
   const [length, setLength] = useState("");
   const [thickness, setThickness] = useState("");
-  const [thicknessStr, setThicknessStr] = useState("0.6-0.7 mm (เบอร์ 22)");
-  const [area, setArea] = useState(null);
+  const [totalPrice, setTotalPrice] = useState(null);
+  const [errorMessage, setErrorMessage] = useState(null);
   const toast = useRef(null);
   const navigate = useNavigate();
   const isLoggedIn = checkLogin();
 
-  // (product.category, width, height, ThicknessString)
-  // const {result, errorMessage } = calculateTotalDoorPrice("chain_electric_shutter", 2, 2, '0.6-0.7 mm (เบอร์ 22)');
+  const [thicknessOptions, setThicknessOptions] = useState([]);
+  const [selectedThickness, setSelectedThickness] = useState("");
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -80,41 +86,50 @@ const ProductAutoDetail = () => {
     fetchProduct();
   }, [id]);
 
+  useEffect(() => {
+    const loadConfig = async () => {
+      try {
+        if (!product?.category) return;
+
+        const data = await fetchDoorConfig();
+        if (data[product.category]) {
+          const allThickness = new Set();
+
+          data[product.category].priceTiers?.forEach((tier) => {
+            allThickness.add(tier.thickness);
+          });
+
+          setThicknessOptions([...allThickness]);
+        } else {
+          setThicknessOptions([]);
+        }
+      } catch (error) {
+        console.error("Error fetching door config:", error);
+      }
+    };
+
+    loadConfig();
+  }, [product?.category]);
+
   const handleCalculate = async () => {
-    // if (!product || !width || !length || !thicknessStr) {
-    //   // setError("กรุณากรอกข้อมูลให้ครบ");
-    //   console.log("กรอกให้ครบ")
-    //   return;
-    // }
+    if (!product || !width || !length || !selectedThickness) {
+      setErrorMessage("กรุณากรอกข้อมูลให้ครบ");
+      return;
+    }
 
     const { result, errorMessage } = await calculateTotalDoorPrice(
-      // product.category,
-      // parseFloat(width),
-      // parseFloat(length),
-      // thicknessStr
-      "chain_electric_shutter",
-      4,
-      5,
-      "0.6-0.7 mm (เบอร์ 22)"
+      product.category,
+      parseFloat(width),
+      parseFloat(length),
+      selectedThickness
     );
 
-    console.log("DoorPrice", result)
-    
-
-    // setPrice(result);
-    // setError(errorMessage);
+    setTotalPrice(result);
+    setErrorMessage(errorMessage);
   };
 
-  handleCalculate();
-
-  const [pricePerSqm, setPricePerSqm] = useState(null);
-
-
-
-
-
   const handleIncrease = () => {
-    setQuantity((prev) => (prev < product.stock_quantity ? prev + 1 : prev));
+    setQuantity((prev) => prev + 1);
   };
 
   if (!product) {
@@ -148,14 +163,43 @@ const ProductAutoDetail = () => {
     );
   };
 
-  const handleBuy = () => {
+  const handleBuy = async () => {
     if (!isLoggedIn) {
       window.location.href = "/login";
       return;
     }
 
-    handleAddToCart();
-    navigate("/shop-cart");
+    const isPart = product.is_part;
+
+    if (!isPart && totalPrice === null) {
+      toast.current?.show({
+        severity: "warn",
+        summary: "⚠️ กรุณาคำนวณราคาก่อน",
+        detail: "โปรดกดปุ่ม 'คำนวณราคา' ก่อนซื้อสินค้า",
+        life: 3000,
+      });
+      return;
+    }
+
+    if (
+      !isPart &&
+      (!selectedColor ||
+        !installOption ||
+        !width ||
+        !length ||
+        !selectedThickness)
+    ) {
+      toast.current?.show({
+        severity: "warn",
+        summary: "⚠️ กรุณากรอกข้อมูลให้ครบ",
+        detail: "โปรดกรอกข้อมูลทั้งหมดให้ครบถ้วนก่อนดำเนินการซื้อ",
+        life: 3000,
+      });
+      return;
+    }
+
+    await handleAddToCart();
+    window.location.href = "/shop-cart";
   };
 
   const isOutOfStock = product.stock_quantity === 0;
@@ -166,46 +210,36 @@ const ProductAutoDetail = () => {
       return;
     }
 
-    let finalColor = product.is_part ? "" : selectedColor || "default";
-    let finalInstallOption = product.is_part ? "" : installOption;
-    let finalWidth = product.is_part ? 0 : width ? parseFloat(width) : 0;
-    let finalLength = product.is_part ? 0 : length ? parseFloat(length) : 0;
-    let finalThickness = product.is_part
-      ? 0
+    const isPart = product.is_part;
+
+    if (!isPart && totalPrice === null) {
+      toast.current?.show({
+        severity: "warn",
+        summary: "⚠️ กรุณาคำนวณราคาก่อน",
+        detail: "โปรดกดปุ่ม 'คำนวณราคา' ก่อนเพิ่มสินค้าลงตะกร้าหรือซื้อสินค้า",
+        life: 3000,
+      });
+      return;
+    }
+
+    const finalColor = isPart ? "" : selectedColor || "default";
+    const finalInstallOption = isPart ? "" : installOption;
+    const finalWidth = isPart ? 0 : width ? parseFloat(width) : 0;
+    const finalLength = isPart ? 0 : length ? parseFloat(length) : 0;
+    const finalThickness = isPart
+      ? ""
       : thickness
-        ? parseFloat(thickness)
-        : 0;
+      ? parseFloat(thickness)
+      : selectedThickness;
 
     if (
-      !product.is_part &&
-      product.colors &&
-      product.colors.length > 0 &&
-      !selectedColor
+      !isPart &&
+      (!selectedColor || !installOption || !width || !length || !finalThickness)
     ) {
       toast.current?.show({
         severity: "warn",
-        summary: "⚠️ กรุณาเลือกสี",
-        detail: "โปรดเลือกสีของสินค้าก่อนเพิ่มลงตะกร้า",
-        life: 3000,
-      });
-      return;
-    }
-
-    if (!product.is_part && !installOption) {
-      toast.current?.show({
-        severity: "warn",
-        summary: "⚠️ กรุณาเลือกตัวเลือกการติดตั้ง",
-        detail: "กรุณาเลือกว่าจะติดตั้งสินค้าหรือไม่",
-        life: 3000,
-      });
-      return;
-    }
-
-    if (!product.is_part && (!width || !length || !thickness)) {
-      toast.current?.show({
-        severity: "warn",
-        summary: "⚠️ กรุณากรอกขนาดให้ครบ",
-        detail: "โปรดกรอก กว้าง, ยาว และ หนา ให้ครบทุกช่อง",
+        summary: "⚠️ กรุณากรอกข้อมูลให้ครบ",
+        detail: "โปรดกรอกข้อมูลทั้งหมดให้ครบถ้วนก่อนดำเนินการ",
         life: 3000,
       });
       return;
@@ -221,7 +255,7 @@ const ProductAutoDetail = () => {
         body: JSON.stringify({
           productId: product.id,
           quantity,
-          price: product.price,
+          price: isPart ? product.price : totalPrice,
           color: finalColor,
           width: finalWidth,
           length: finalLength,
@@ -231,9 +265,8 @@ const ProductAutoDetail = () => {
       });
 
       const result = await response.json();
-      if (!response.ok) {
+      if (!response.ok)
         throw new Error(result.error || "เพิ่มสินค้าลงตะกร้าไม่สำเร็จ");
-      }
 
       toast.current.show({
         severity: "success",
@@ -254,9 +287,7 @@ const ProductAutoDetail = () => {
   };
 
   const handleDecrease = () => {
-    if (quantity > 1) {
-      setQuantity((prev) => prev - 1);
-    }
+    setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
   };
 
   return (
@@ -354,55 +385,58 @@ const ProductAutoDetail = () => {
                   </div>
                 </div>
               )}
-              <p>ขนาด ( 2000/ตร.ม. )</p>
               {!product.is_part && (
-                <div className="flex">
-                  <div className="flex align-items-center">
+                <div>
+                  <div className="flex gap-2">
                     <input
                       type="text"
                       value={width}
                       onChange={(e) => setWidth(e.target.value)}
                       placeholder="กว้าง = ตร.ม."
                       className="p-inputtext p-component"
-                      style={{ width: "100px" }}
+                      style={{ width: "100px", height: "55px" }}
                     />
-                  </div>
-                  <div className="flex align-items-center pl-2">
                     <input
                       type="text"
                       value={length}
                       onChange={(e) => setLength(e.target.value)}
                       placeholder="ยาว = ตร.ม."
                       className="p-inputtext p-component"
-                      style={{ width: "100px" }}
+                      style={{ width: "100px", height: "55px" }}
+                    />
+                    <Dropdown
+                      value={selectedThickness}
+                      onChange={(e) => setSelectedThickness(e.value)}
+                      options={thicknessOptions}
+                      optionLabel="name"
+                      placeholder="เลือกความหนา"
+                      className="p-inputtext p-component"
+                      style={{ width: "250px" }}
                     />
                   </div>
-                  <div className="flex align-items-center pl-2">
-                    <input
-                      type="text"
-                      value={thickness}
-                      onChange={(e) => setThickness(e.target.value)}
-                      placeholder="หนา = มิน"
-                      className="p-inputtext p-component"
-                      style={{ width: "100px" }}
+                  <div className="flex flex-column mt-3">
+                    <Button
+                      label="คำนวณราคาต่อบาน"
+                      onClick={handleCalculate}
+                      className="p-button-primary"
                     />
+
+                    {totalPrice !== null && (
+                      <p className="text-2xl font-bold mt-3">
+                        ราคาประตู: {totalPrice.toLocaleString()} บาท
+                      </p>
+                    )}
+
+                    {errorMessage && (
+                      <p className="text-red-500 mt-2">{errorMessage}</p>
+                    )}
                   </div>
                 </div>
               )}
-
-              <p className="text-2xl font-bold mb-3">
-                {/* ถ้า totalPrice มีค่า ก็แสดงผล */}
-                {/* {totalPrice
-                  ? `${Number(totalPrice).toLocaleString()} บาท`
-                  : "จุดระบุราคา"
-                } */}
-                1 บาท
-              </p>
-
               <div className="flex-auto">
                 <label
                   htmlFor="minmax-buttons"
-                  className="font-bold block mb-2"
+                  className="font-bold block mb-2 mt-1"
                 >
                   จำนวน:
                 </label>
@@ -437,7 +471,6 @@ const ProductAutoDetail = () => {
                     label="+"
                     className="p-button-secondary"
                     onClick={handleIncrease}
-                    disabled={quantity >= product.stock_quantity} // Prevent exceeding stock
                     style={{
                       width: "30px",
                       height: "30px",
@@ -449,11 +482,7 @@ const ProductAutoDetail = () => {
                     }}
                   />
                 </div>
-                <p className="text-sm mt-2">
-                  สินค้าคงเหลือ: {product.stock_quantity} ชิ้น
-                </p>
               </div>
-
               <p
                 onClick={() => setShowDialog(true)}
                 style={{
