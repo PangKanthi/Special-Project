@@ -14,25 +14,19 @@ enum RepairStatus {
   cancle
 }
 
-enum DoorType {
-   MANUAL
-   CHAIN
-   ELECTRIC
- }
- 
 model product {
-  id          Int       @id @default(autoincrement())
-  name        String    @db.VarChar(100)
-  description String?   @db.Text
-  price       Decimal   @db.Decimal(10, 2) // ราคา default หรือใช้ในกรณีเป็นอะไหล่
-  category    String    @db.VarChar(50)
-  warranty    String?   @db.VarChar(50)
-  is_part     Boolean?  @default(false) // true = อะไหล่, false = ประตู
-  doorType    DoorType? // ชนิดประตู (กรณีเป็นประตู)
+  id             Int       @id @default(autoincrement())
+  name           String    @db.VarChar(100)
+  description    String?   @db.Text
+  price          Decimal   @db.Decimal(10, 2)  // ราคา default หรือใช้ในกรณีเป็นอะไหล่
+  category       String    @db.VarChar(50)
+  warranty       String?   @db.VarChar(50)
+  is_part        Boolean?  @default(false)     // true = อะไหล่, false = ประตู
+  doorType       DoorType?                 // ชนิดประตู (กรณีเป็นประตู)
 
   // ฟิลด์ JSON สำหรับเก็บ config/bom/priceRules
   // ตัวอย่างเช่น `{ "bom": [...], "priceTiers": [...], "extraOptions": {...} }`
-  config Json?
+  config         Json?
 
   stock_quantity Int?      @default(0)
   created_at     DateTime? @default(now()) @db.Timestamp(6)
@@ -51,13 +45,13 @@ model product {
 }
 
 model door_parts {
-  id       Int @id @default(autoincrement())
-  doorId   Int
-  partId   Int
-  quantity Int
+  id          Int      @id @default(autoincrement())
+  doorId      Int
+  partId      Int
+  quantity    Int
 
-  doorProduct product @relation("DoorProduct", fields: [doorId], references: [id])
-  partProduct product @relation("PartProduct", fields: [partId], references: [id])
+  doorProduct product  @relation("DoorProduct", fields: [doorId], references: [id])
+  partProduct product  @relation("PartProduct", fields: [partId], references: [id])
 
   @@map("door_parts")
 }
@@ -185,23 +179,19 @@ model cart {
 }
 
 model cart_item {
-  id        Int     @id @default(autoincrement())
-  cartId    Int
-  productId Int? // null ถ้าเป็นประตู (virtual)
-  quantity  Int
-  price     Decimal @db.Decimal(10, 2)
+  id            Int      @id @default(autoincrement())
+  cartId        Int
+  productId     Int
+  quantity      Int
+  price         Decimal  @db.Decimal(10, 2)
+  color         String?  @db.VarChar(50)
+  width         Decimal? @db.Decimal(10, 2)
+  length        Decimal? @db.Decimal(10, 2)
+  thickness     String?  @db.VarChar(20) // หรือจะใช้ Enum ก็ได้
+  installOption String?  @db.VarChar(20)
 
-  // ข้อมูลประตู
-  doorType  DoorType?
-  width     Decimal?  @db.Decimal(10, 2)
-  length    Decimal?  @db.Decimal(10, 2)
-  color     String?
-  thickness String?
-  install   Boolean?
+  cart    cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
-  cart    cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  product product? @relation(fields: [productId], references: [id])
-
-  // กันซ้ำภายในตะกร้า (Option)
-  @@unique([cartId, productId, doorType, width, length, thickness, color, install])
+  @@unique([cartId, productId, color, width, length, thickness, installOption])
 }
