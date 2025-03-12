@@ -26,9 +26,12 @@ function CartItem({ item }) {
     <div className="flex flex-col lg:flex-row items-start border-b border-gray-300 pb-4 mb-4">
       {/* 🔹 ส่วนแสดงรูปสินค้า */}
       <div className="w-[200px] lg:w-[300px] lg:mr-6">
-        {Array.isArray(item.product.images) && item.product.images.length > 0 ? (
+        {Array.isArray(item.product.images) &&
+        item.product.images.length > 0 ? (
           <Carousel
-            value={item.product.images.map((img) => `http://localhost:1234${img}`)}
+            value={item.product.images.map(
+              (img) => `http://localhost:1234${img}`
+            )}
             numVisible={1}
             numScroll={1}
             itemTemplate={imageTemplate}
@@ -51,12 +54,13 @@ function CartItem({ item }) {
       {/* 🔹 ส่วนแสดงรายละเอียดสินค้า */}
       <div className="flex-1 text-left">
         <h3 className="text-lg font-semibold">{item.product.name}</h3>
-        
+
         {/* 🔸 แสดงตัวเลือกติดตั้งและสี เฉพาะสินค้าที่ไม่ใช่อะไหล่ */}
         {!item.product.is_part && (
           <>
             <p className="text-sm text-gray-700">
-              <strong>ตัวเลือกติดตั้ง:</strong> {item.installOption || "ไม่ระบุ"}
+              <strong>ตัวเลือกติดตั้ง:</strong>{" "}
+              {item.installOption || "ไม่ระบุ"}
             </p>
             <p className="text-sm text-gray-700 flex items-center">
               <strong>สีที่เลือก:</strong>
@@ -78,16 +82,21 @@ function CartItem({ item }) {
         {/* 🔹 แสดงขนาดสินค้า (ถ้าไม่ใช่อะไหล่) */}
         {!item.product.is_part && (
           <p className="text-sm text-gray-700">
-            <strong>ขนาด:</strong> กว้าง {item.width || "-"} ตร.ม. | ยาว {item.length || "-"} ตร.ม. | หนา {item.thickness || "-"} มม.
+            <strong>ขนาด:</strong> กว้าง {item.width || "-"} ตร.ม. | ยาว{" "}
+            {item.length || "-"} ตร.ม. | หนา {item.thickness || "-"} มม.
           </p>
         )}
 
         {/* 🔹 แสดงราคาสินค้า */}
         <p className="text-sm text-gray-700">
-          <strong>ราคาต่อชิ้น:</strong> ฿{item.product.price.toLocaleString()}
+          <strong>ราคาต่อชิ้น:</strong> ฿
+          {Number(item.price ?? item.product?.price ?? 0).toLocaleString()}
         </p>
         <p className="text-lg font-bold text-red-500">
-          <strong>ราคารวม:</strong> ฿{(item.product.price * item.quantity).toLocaleString()}
+          <strong>ราคารวม:</strong> ฿
+          {Number(
+            (item.price ?? item.product?.price ?? 0) * (item.quantity ?? 1)
+          ).toLocaleString()}
         </p>
 
         {/* 🔹 แสดงจำนวนสินค้า */}

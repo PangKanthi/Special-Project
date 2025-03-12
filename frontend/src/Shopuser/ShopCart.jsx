@@ -7,6 +7,7 @@ import { Carousel } from "primereact/carousel";
 function ShopCart() {
   const navigate = useNavigate();
   const [cart, setCart] = useState([]);
+
   useEffect(() => {
     const fetchCart = async () => {
       try {
@@ -111,14 +112,10 @@ function ShopCart() {
   };
 
   const totalProductPrice = cart.reduce((sum, item) => {
-    const itemPrice = item.price !== undefined && item.price !== null 
-      ? Number(item.price) 
-      : item.product?.price !== undefined && item.product.price !== null 
-        ? Number(item.product.price) 
-        : 0;
-  
-    return sum + (itemPrice * (item.quantity || 1)); 
-  }, 0);  
+    const price = Number(item.price ?? item.product?.price ?? 0);
+    const quantity = Number(item.quantity ?? 1);
+    return sum + price * quantity;
+  }, 0);
 
   const VAT_RATE = 0.07;
   const vatAmount = totalProductPrice * VAT_RATE;
@@ -216,13 +213,14 @@ function ShopCart() {
                   <p className="text-sm lg:text-base">
                     <strong>ราคาต่อชิ้น:</strong> ฿
                     {Number(
-                      item.price || item.product.price || 0
+                      item.price ?? item.product?.price ?? 0
                     ).toLocaleString()}
                   </p>
                   <p className="text-sm font-bold text-red-500 lg:text-lg">
                     <strong>ราคารวม:</strong> ฿
                     {Number(
-                      (item.price || item.product.price || 0) * item.quantity
+                      (item.price ?? item.product?.price ?? 0) *
+                        (item.quantity ?? 1)
                     ).toLocaleString()}
                   </p>
                 </div>
