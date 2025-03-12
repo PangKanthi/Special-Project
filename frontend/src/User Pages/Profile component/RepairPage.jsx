@@ -3,6 +3,7 @@ import { TabMenu } from "primereact/tabmenu";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Tag } from "primereact/tag";
+import moment from "moment";
 
 const RepairPage = () => {
     const [repairRequests, setRepairRequests] = useState([]);
@@ -19,6 +20,11 @@ const RepairPage = () => {
     useEffect(() => {
         filterRepairs(activeTab);
     }, [repairRequests, activeTab]);
+
+    // ✅ ฟังก์ชันจัดรูปแบบวันที่
+    const dateTemplate = (rowData) => {
+        return moment(rowData.request_date).format("DD/MM/YYYY HH:mm");  // เปลี่ยนรูปแบบวันที่
+    };
 
 
     const fetchRepairRequests = async () => {
@@ -59,7 +65,6 @@ const RepairPage = () => {
     };
 
     const imageTemplate = (rowData) => {
-        console.log("Images:", rowData.images); // ✅ Debug จุดนี้
         return (
             <div>
                 {rowData.images && rowData.images.length > 0 ? (
@@ -98,7 +103,7 @@ const RepairPage = () => {
                 break;
             default:
                 severity = "secondary"; // สีฟ้า
-                
+
         }
 
         return <Tag value={rowData.status} severity={severity} />;
@@ -125,9 +130,9 @@ const RepairPage = () => {
                 first={first}
                 onPage={onPageChange}
             >
-                <Column field="id" header="ID" />
                 <Column field="service_type" header="ประเภทการซ่อม" />
                 <Column field="problem_description" header="รายละเอียด" />
+                <Column body={dateTemplate} header="วันที่แจ้งซ่อม" />
                 <Column field="address.addressLine" header="ที่อยู่" />
                 <Column field="address.province" header="จังหวัด" />
                 <Column field="address.district" header="เขต/อำเภอ" />

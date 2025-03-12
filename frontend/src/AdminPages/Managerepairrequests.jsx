@@ -5,6 +5,7 @@ import { Tag } from 'primereact/tag';
 import { TabMenu } from "primereact/tabmenu";
 import { Dropdown } from 'primereact/dropdown';
 import { Card } from 'primereact/card';
+import moment from "moment";
 
 const API_URL = "http://localhost:1234/api/repair-requests/all";
 
@@ -54,8 +55,6 @@ const Managerepairrequests = () => {
     { label: "ทั้งหมด", value: "ทั้งหมด", icon: "pi pi-list" },
     { label: "รอการยืนยัน", value: "pending", icon: "pi pi-clock" },
     { label: "ได้รับการยืนยัน", value: "confirm", icon: "pi pi-check-circle" },
-    { label: "เสร็จแล้ว", value: "complete", icon: "pi pi-check" },
-    { label: "ยกเลิก", value: "cancle", icon: "pi pi-times-circle" }
   ];
 
   const filterRepairs = (status) => {
@@ -89,7 +88,7 @@ const Managerepairrequests = () => {
         // data.data คือ repair_request ที่อัปเดตแล้ว พร้อม address
         const updatedItem = data.data;
         // แทนที่ของเดิมใน state ด้วย updatedItem ตัวใหม่
-        const newList = repairRequests.map(req => 
+        const newList = repairRequests.map(req =>
           req.id === updatedItem.id ? updatedItem : req
         );
         setRepairRequests(newList);
@@ -182,43 +181,51 @@ const Managerepairrequests = () => {
     );
   };
 
+  // ✅ ฟังก์ชันจัดรูปแบบวันที่
+  const dateTemplate = (rowData) => {
+    return moment(rowData.request_date).format("DD/MM/YYYY HH:mm");  // เปลี่ยนรูปแบบวันที่
+  };
+
   return (
-    <Card title="แจ้งซ่อม (Admin)">
-      <TabMenu
-        model={items}
-        activeIndex={activeIndex}
-        onTabChange={(e) => {
-          setActiveTab(e.value.value);
-          setActiveIndex(items.findIndex((tab) => tab.value === e.value.value));
-          filterRepairs(e.value.value);
-        }}
-      />
+    <div className="p-6 min-h-screen">
+      <h1 className="text-2xl font-bold">แจ้งซ่อม</h1>
+      <Card>
+        <TabMenu
+          model={items}
+          activeIndex={activeIndex}
+          onTabChange={(e) => {
+            setActiveTab(e.value.value);
+            setActiveIndex(items.findIndex((tab) => tab.value === e.value.value));
+            filterRepairs(e.value.value);
+          }}
+        />
 
-      <DataTable
-        value={filteredRepairs}
-        emptyMessage="ไม่มีรายการแจ้งซ่อม"
-        paginator
-        rows={rowsPerPage}
-        first={first}
-        onPage={onPageChange}
-        style={{ marginTop: '1rem' }}
-      >
-        <Column field="id" header="ID" />
-        <Column field="service_type" header="ประเภทการซ่อม" />
-        <Column field="problem_description" header="รายละเอียด" />
+        <DataTable
+          value={repairRequests.filter(req => req.status !== "complete" && req.status !== "cancle")}
+          emptyMessage="ไม่มีรายการแจ้งซ่"
+          paginator
+          rows={rowsPerPage}
+          first={first}
+          onPage={onPageChange}
+          style={{ marginTop: '1rem' }}
+        >
+          <Column body={(rowData) => rowData.user?.username || "ไม่ระบุ"} header="Username" />
+          <Column field="service_type" header="ประเภทการซ่อม" />
+          <Column field="problem_description" header="รายละเอียด" />
+          <Column body={dateTemplate} header="วันที่แจ้งซ่อม" />
+          <Column body={(rowData) => rowData.address?.addressLine || "ไม่มี"} header="ที่อยู่" />
+          <Column body={(rowData) => rowData.address?.province || "ไม่มี"} header="จังหวัด" />
+          <Column body={(rowData) => rowData.address?.district || "ไม่มี"} header="เขต/อำเภอ" />
+          <Column body={(rowData) => rowData.address?.subdistrict || "ไม่มี"} header="ตำบล" />
+          <Column body={(rowData) => rowData.address?.postalCode || "ไม่มี"} header="รหัสไปรษณีย์" />
 
-        <Column body={(rowData) => rowData.address?.addressLine || "ไม่มี"} header="ที่อยู่" />
-        <Column body={(rowData) => rowData.address?.province || "ไม่มี"} header="จังหวัด" />
-        <Column body={(rowData) => rowData.address?.district || "ไม่มี"} header="เขต/อำเภอ" />
-        <Column body={(rowData) => rowData.address?.subdistrict || "ไม่มี"} header="ตำบล" />
-        <Column body={(rowData) => rowData.address?.postalCode || "ไม่มี"} header="รหัสไปรษณีย์" />
-
-        <Column body={imageTemplate} header="รูปภาพ" />
-        <Column body={statusTemplate} field="status" header="สถานะ" />
-        <Column body={statusEditor} header="เปลี่ยนสถานะ" />
-        <Column body={deleteButton} header="ลบ" />
-      </DataTable>
-    </Card>
+          <Column body={imageTemplate} header="รูปภาพ" />
+          <Column body={statusTemplate} field="status" header="สถานะ" />
+          <Column body={statusEditor} header="เปลี่ยนสถานะ" />
+          <Column body={deleteButton} header="ลบ" />
+        </DataTable>
+      </Card>
+    </div>
   );
 };
 

@@ -14,9 +14,9 @@ const ManageProducts = () => {
 
   // 3) สร้าง map ระหว่างค่าที่ Dropdown ส่งมา (manual_rolling_shutter ฯลฯ) ไปเป็นคีย์ใน doorConfig (MANUAL, CHAIN, ELECTRIC)
   const categoryMap = {
-    manual_rolling_shutter: "MANUAL",
-    chain_electric_shutter: "CHAIN",
-    electric_rolling_shutter: "ELECTRIC",
+    manual_rolling_shutter: "manual_rolling_shutter",
+    chain_electric_shutter: "chain_electric_shutter",
+    electric_rolling_shutter: "electric_rolling_shutter",
   };
 
   const [search, setSearch] = useState("");
@@ -77,7 +77,7 @@ const ManageProducts = () => {
 
         // รวม description + BOM เข้าด้วยกัน
         let bomText = formatBOM(bom);
-        let fullDesc = description + bomText; 
+        let fullDesc = description + bomText;
         // หรือจะต่อ string เพิ่มเช่น "\n\n-- BOM --\n... "
 
         setNewProduct((prev) => ({
@@ -249,6 +249,27 @@ const ManageProducts = () => {
         products={products}
         handleEdit={handleEdit}
         handleDelete={handleDelete}
+        categoryOptions={{
+          shutter: [
+            { label: "ประตูม้วนมือดึง", value: "manual_rolling_shutter" },
+            { label: "ประตูม้วนแบบรอกโซ่", value: "chain_electric_shutter" },
+            { label: "ประตูม้วนไฟฟ้า", value: "electric_rolling_shutter" },
+          ],
+          shutter_parts: [
+            { label: "แผ่นประตูม้วน", value: "shutter_panel" },
+            { label: "รางประตู", value: "door_track" },
+            { label: "เพลา", value: "shaft" },
+            { label: "สปริง", value: "spring" },
+            { label: "ฝาครอบเพลา", value: "shaft_cover" },
+            { label: "ตัวล็อกประตู", value: "door_lock" },
+            { label: "มอเตอร์", value: "motor" },
+            { label: "กล่องควบคุม", value: "control_box" },
+            { label: "รีโมทคอนโทรล / ปุ่มควบคุม", value: "remote_control" },
+            { label: "ระบบเซนเซอร์", value: "sensor_system" },
+            { label: "แบตเตอรี่สำรอง", value: "backup_battery" },
+            { label: "มือหมุนฉุกเฉิน", value: "emergency_crank" },
+          ],
+        }}
       />
 
       {/* Dialog ฟอร์ม เพิ่ม/แก้ไข */}
