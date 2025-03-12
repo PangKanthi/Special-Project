@@ -1,27 +1,18 @@
 import { fetchDoorConfig } from "../services/doorConfigService";
 
 export const calculateTotalDoorPrice = async (category, width, height, thickStr) => {
-
     let errorMessage = null;
     let result = null;
 
-    console.log(category)
-    console.log(width)
-    console.log(height)
-    console.log(thickStr)
-
-
     const doorConfig = await fetchDoorConfig();
-
     const doorDataType = doorConfig[category];
-    // console.log("doorDataType", doorDataType)
 
     if (!doorDataType || !doorDataType["priceTiers"]) {
         return { result, errorMessage: "ไม่พบข้อมูลประเภทประตู" };
     }
 
-    const allThicknessPrice = doorDataType["priceTiers"]
-    // console.log("allThicknessPrice", allThicknessPrice)
+    const allThicknessPrice = doorDataType["priceTiers"];
+    const area = width * height;
 
     const selectedThickness = allThicknessPrice.find(item => item.thickness === thickStr);
 
@@ -29,20 +20,25 @@ export const calculateTotalDoorPrice = async (category, width, height, thickStr)
         return { result, errorMessage: "ความหนาที่เลือกไม่มีในระบบ" };
     }
 
-    // console.log("selectedThickness", selectedThickness);
-
-    const area = width * height;
-    // console.log("area", area)
-
-
-    if (area >= selectedThickness.minArea && area <= selectedThickness.maxArea) {
-        result = selectedThickness.pricePerSqm * area;
-    } else {
-        errorMessage = "มั่วขนาด"
+    if (selectedThickness.pricePerSqm) {
+        if (area >= selectedThickness.minArea && area <= selectedThickness.maxArea) {
+            result = selectedThickness.pricePerSqm * area;
+        } else {
+            errorMessage = "ขนาดไม่อยู่ในช่วงที่กำหนด";
+        }
     }
 
+    if (selectedThickness.priceRanges) {
+        const matchedRange = selectedThickness.priceRanges.find(range => 
+            area >= range.minArea && area <= range.maxArea
+        );
 
-    return { result, errorMessage }
+        if (matchedRange) {
+            result = matchedRange.pricePerSqm * area;
+        } else {
+            errorMessage = "ขนาดไม่อยู่ในช่วงที่กำหนด";
+        }
+    }
 
+    return { result, errorMessage };
 };
-
