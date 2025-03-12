@@ -5,7 +5,7 @@ import { ConfirmDialog } from "primereact/confirmdialog";
 import UserTable from "./Manageusers component/UserTable";
 import UserDialog from "./Manageusers component/UserDialog";
 
-const API_BASE_URL = "http://localhost:1234/api/users";
+const API_USERS_URL = "http://localhost:1234/api/users";
 
 const ManageUsers = () => {
   const [users, setUsers] = useState([]);
@@ -15,38 +15,20 @@ const ManageUsers = () => {
   const [editDialogVisible, setEditDialogVisible] = useState(false);
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const token = localStorage.getItem("token");
-
-        const response = await axios.get(API_BASE_URL, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        setUsers(response.data);
-        setFilteredUsers(response.data);
-      } catch (error) {
-    
-      }
-    };
-
-    fetchUsers();
-  }, []);
-
- useEffect(() => {
-  if (!search.trim()) {
-    setFilteredUsers([...users].sort((a, b) => a.id - b.id));
-  } else {
-    const filtered = users.filter(
-      (user) =>
-        user.username?.toLowerCase().includes(search.toLowerCase()) ||
-        user.firstname?.toLowerCase().includes(search.toLowerCase()) ||
-        user.lastname?.toLowerCase().includes(search.toLowerCase()) ||
-        user.email?.toLowerCase().includes(search.toLowerCase())
-    );
-    setFilteredUsers(filtered.sort((a, b) => a.id - b.id));
-  }
-}, [search, users]);
+    if (!search.trim()) {
+      setFilteredUsers([...users].sort((a, b) => a.id - b.id));
+    } else {
+      const filtered = users.filter(
+        (user) =>
+          user.username?.toLowerCase().includes(search.toLowerCase()) ||
+          user.firstname?.toLowerCase().includes(search.toLowerCase()) ||
+          user.lastname?.toLowerCase().includes(search.toLowerCase()) ||
+          user.email?.toLowerCase().includes(search.toLowerCase()) ||
+          user.address?.toLowerCase().includes(search.toLowerCase())
+      );
+      setFilteredUsers(filtered.sort((a, b) => a.id - b.id));
+    }
+  }, [search, users]);
 
   const handleEditUser = (user) => {
     setEditingUser(user);
@@ -56,28 +38,24 @@ const ManageUsers = () => {
   const handleSaveUser = async (updatedUser) => {
     try {
       const { id, ...userData } = updatedUser;
-      await axios.put(`${API_BASE_URL}/${id}`, userData, {
+      await axios.put(`${API_USERS_URL}/${id}`, userData, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
 
       setUsers(users.map((user) => (user.id === id ? updatedUser : user)));
       setEditDialogVisible(false);
-    } catch (error) {
-      
-    }
+    } catch (error) {}
   };
 
   const handleDeleteUser = async (id) => {
     try {
-      await axios.delete(`${API_BASE_URL}/${id}`, {
+      await axios.delete(`${API_USERS_URL}/${id}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
 
       setUsers(users.filter((user) => user.id !== id));
       setFilteredUsers(filteredUsers.filter((user) => user.id !== id));
-    } catch (error) {
-      
-    }
+    } catch (error) {}
   };
 
   return (

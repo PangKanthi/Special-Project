@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import useLocationData from "../../../Hooks/useLocationData";
 
-const API_URL = "http://localhost:1234/api/addresses"; // ✅ Backend URL
+const API_URL = "http://localhost:1234/api/addresses";
 
 const useAddressForm = () => {
   const { provinces, amphures, tambons } = useLocationData();
