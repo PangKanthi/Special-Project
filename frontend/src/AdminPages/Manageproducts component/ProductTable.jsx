@@ -97,7 +97,7 @@ const ProductTable = ({ products, handleEdit, handleDelete, categoryOptions }) =
         <Column
           field="price"
           header="Price"
-          body={(rowData) => `$${rowData.price}`}
+          body={(rowData) => `${rowData.price}`}
         />
         <Column field="stock_quantity" header="Piece" />
         <Column

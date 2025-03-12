@@ -47,10 +47,18 @@ const ProductList = ({ products }) => {
 
         return (
           <div key={product.id} style={{ width: "325px" }}>
-            <Link to={`/productAuto/${product.id}`} style={{ textDecoration: "none" }}>
+            <Link
+              to={`/productAuto/${product.id}`}
+              style={{ textDecoration: "none" }}
+            >
               <Card
                 title={product.name}
-                style={{ marginBottom: "1rem", height: "100%" }}
+                style={{
+                  marginBottom: "1rem",
+                  height: "100%",
+                  cursor: "pointer",
+                  transition: "transform 0.2s",
+                }}
                 header={
                   <img
                     alt={product.name}
@@ -72,32 +80,56 @@ const ProductList = ({ products }) => {
                 footer={
                   <div>
                     {info && (
-                      <div style={{
-                        marginTop: "12px",
-                        padding: "12px",
-                        backgroundColor: "#f9f9f9",
-                        borderRadius: "10px",
-                        border: "1px solid #ddd",
-                        textAlign: "left"
-                      }}>
-                        <h4 style={{ color: "#0056b3", fontWeight: "bold", fontSize: "1.1rem" }}>
+                      <div
+                        style={{
+                          marginTop: "12px",
+                          padding: "12px",
+                          backgroundColor: "#f9f9f9",
+                          borderRadius: "10px",
+                          border: "1px solid #ddd",
+                          textAlign: "left",
+                        }}
+                      >
+                        <h4
+                          style={{
+                            color: "#0056b3",
+                            fontWeight: "bold",
+                            fontSize: "1.1rem",
+                          }}
+                        >
                           {info.title}
                         </h4>
                         <ul style={{ paddingLeft: "20px", fontSize: "1rem" }}>
                           {info.details.map((detail, index) => (
-                            <li key={index} style={{ marginBottom: "6px" }}>{detail}</li>
+                            <li key={index} style={{ marginBottom: "6px" }}>
+                              {detail}
+                            </li>
                           ))}
                         </ul>
                       </div>
                     )}
                     <div className="pt-2">
-                      <span style={{ color: "red", fontWeight: "bold", fontSize: "1.2rem" }}>
-                        {product.price ? `${Number(product.price).toLocaleString()} บาท` : "ราคาขึ้นอยู่กับขนาด"}
+                      <span
+                        style={{
+                          color: "red",
+                          fontWeight: "bold",
+                          fontSize: "1.2rem",
+                        }}
+                      >
+                        {product.price
+                          ? `${Number(product.price).toLocaleString()} บาท`
+                          : "ราคาขึ้นอยู่กับขนาด"}
                       </span>
                     </div>
                   </div>
                 }
                 className="m-2 p-shadow-5"
+                onMouseOver={(e) =>
+                  (e.currentTarget.style.transform = "scale(1.05)")
+                }
+                onMouseOut={(e) =>
+                  (e.currentTarget.style.transform = "scale(1)")
+                }
               />
             </Link>
           </div>
