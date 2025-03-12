@@ -9,14 +9,19 @@ import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 import { useNavigate } from "react-router-dom";
 import { Toast } from "primereact/toast";
+import { Dropdown } from "primereact/dropdown";
+
+import useLocationData from "../Hooks/useLocationData";
+import { calculateTotalDoorPrice } from "../utils";
+
 
 import "primeflex/primeflex.css";
 
 const normalCategoryOptions = [
   { label: "ทั้งหมด", value: null },
-  { label: "ประตูม้วนแบบไฟฟ้า", value: "electric_shutter" },
+  { label: "ประตูม้วนไฟฟ้า", value: "electric_rolling_shutter" },
   { label: "ประตูม้วนแบบรอกโซ่", value: "chain_electric_shutter" },
-  { label: "ประตูม้วนแบบสปริง", value: "spring_shutter" },
+  { label: "ประตูม้วนมือดึง", value: "manual_rolling_shutter" },
 ];
 
 const partCategoryOptions = [
@@ -40,6 +45,9 @@ const checkLogin = () => {
 };
 
 const ProductAutoDetail = () => {
+
+
+  const { doorConfigData } = useLocationData();
   const { id } = useParams();
   const [product, setProduct] = useState(null);
 
@@ -50,13 +58,14 @@ const ProductAutoDetail = () => {
   const [width, setWidth] = useState("");
   const [length, setLength] = useState("");
   const [thickness, setThickness] = useState("");
+  const [thicknessStr, setThicknessStr] = useState("0.6-0.7 mm (เบอร์ 22)");
+  const [area, setArea] = useState(null);
   const toast = useRef(null);
   const navigate = useNavigate();
   const isLoggedIn = checkLogin();
 
-  const handleIncrease = () => {
-    setQuantity((prev) => (prev < product.stock_quantity ? prev + 1 : prev));
-  };
+  // (product.category, width, height, ThicknessString)
+  // const {result, errorMessage } = calculateTotalDoorPrice("chain_electric_shutter", 2, 2, '0.6-0.7 mm (เบอร์ 22)');
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -70,6 +79,43 @@ const ProductAutoDetail = () => {
     };
     fetchProduct();
   }, [id]);
+
+  const handleCalculate = async () => {
+    // if (!product || !width || !length || !thicknessStr) {
+    //   // setError("กรุณากรอกข้อมูลให้ครบ");
+    //   console.log("กรอกให้ครบ")
+    //   return;
+    // }
+
+    const { result, errorMessage } = await calculateTotalDoorPrice(
+      // product.category,
+      // parseFloat(width),
+      // parseFloat(length),
+      // thicknessStr
+      "chain_electric_shutter",
+      4,
+      5,
+      "0.6-0.7 mm (เบอร์ 22)"
+    );
+
+    console.log("DoorPrice", result)
+    
+
+    // setPrice(result);
+    // setError(errorMessage);
+  };
+
+  handleCalculate();
+
+  const [pricePerSqm, setPricePerSqm] = useState(null);
+
+
+
+
+
+  const handleIncrease = () => {
+    setQuantity((prev) => (prev < product.stock_quantity ? prev + 1 : prev));
+  };
 
   if (!product) {
     return <div className="text-center p-4">Loading...</div>;
@@ -127,8 +173,8 @@ const ProductAutoDetail = () => {
     let finalThickness = product.is_part
       ? 0
       : thickness
-      ? parseFloat(thickness)
-      : 0;
+        ? parseFloat(thickness)
+        : 0;
 
     if (
       !product.is_part &&
@@ -345,9 +391,12 @@ const ProductAutoDetail = () => {
               )}
 
               <p className="text-2xl font-bold mb-3">
-                {product.price
-                  ? `${Number(product.price).toLocaleString()} บาท`
-                  : "ไม่ระบุราคา"}
+                {/* ถ้า totalPrice มีค่า ก็แสดงผล */}
+                {/* {totalPrice
+                  ? `${Number(totalPrice).toLocaleString()} บาท`
+                  : "จุดระบุราคา"
+                } */}
+                1 บาท
               </p>
 
               <div className="flex-auto">
@@ -446,15 +495,18 @@ const ProductAutoDetail = () => {
                 <div className="pl-5 pr-5">
                   <div>
                     <h3>รายละเอียด</h3>
-                    <p className="text-sm text-500">
-                      หมวดหมู่: {categoryLabel}
-                    </p>
-                  </div>
-                  <div className="pt-8">
-                    <h3>การรับประกัน</h3>
                     {product.description && (
                       <p className="mt-2" style={{ whiteSpace: "pre-line" }}>
                         {product.description}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="pt-8">
+                    <h3>การรับประกัน</h3>
+                    {product.warranty && (
+                      <p className="mt-2" style={{ whiteSpace: "pre-line" }}>
+                        {product.warranty}
                       </p>
                     )}
                   </div>

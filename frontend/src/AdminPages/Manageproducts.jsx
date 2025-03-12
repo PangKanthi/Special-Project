@@ -5,13 +5,27 @@ import ProductService from "./Manageproducts component/ProductService";
 import ProductTable from "./Manageproducts component/ProductTable";
 import ProductForm from "./Manageproducts component/ProductForm";
 
+// 1) import useLocationData เพื่อดึง doorConfig มาจาก doorConfig.json
+import useLocationData from "../Hooks/useLocationData";
+
 const ManageProducts = () => {
+  // 2) ใช้งาน useLocationData เพื่อดึง doorConfig
+  const { doorConfig } = useLocationData();
+
+  // 3) สร้าง map ระหว่างค่าที่ Dropdown ส่งมา (manual_rolling_shutter ฯลฯ) ไปเป็นคีย์ใน doorConfig (MANUAL, CHAIN, ELECTRIC)
+  const categoryMap = {
+    manual_rolling_shutter: "MANUAL",
+    chain_electric_shutter: "CHAIN",
+    electric_rolling_shutter: "ELECTRIC",
+  };
+
   const [search, setSearch] = useState("");
   const [products, setProducts] = useState([]);
   const [visible, setVisible] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
 
+  // 4) newProduct คือ State ที่จะถูกส่งไปให้ ProductForm
   const [newProduct, setNewProduct] = useState({
     name: "",
     category: "",
@@ -21,8 +35,11 @@ const ManageProducts = () => {
     description: "",
     warranty: "",
     images: [],
+    // ในฟอร์มมีฟิลด์ Product Type (is_part) ด้วย ให้เตรียมไว้นิดนึง
+    is_part: undefined,
   });
 
+  // โหลดสินค้าทั้งหมดจาก backend ทันทีที่ component mount
   useEffect(() => {
     loadProducts();
   }, []);
@@ -36,11 +53,48 @@ const ManageProducts = () => {
     }
   };
 
+  // แปลง BOM array ให้เป็นข้อความ
+  const formatBOM = (bomArray) => {
+    if (!bomArray) return "";
+    let lines = bomArray.map((item) => {
+      // เช็คว่ามี quantityPerMeter หรือ quantity
+      if (item.quantityPerMeter !== undefined) {
+        return `- ${item.part} ${item.quantityPerMeter} ${item.unit}`;
+      } else if (item.quantity !== undefined) {
+        return `- ${item.part} ${item.quantity} ${item.unit}`;
+      }
+      return `- ${item.part}`;
+    });
+    return `\nรายการ:\n` + lines.join("\n");
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    if (name === "category" && doorConfig && doorConfig.data) {
+      const configKey = categoryMap[value];
+      if (configKey && doorConfig.data[configKey]) {
+        const { description, warranty, bom } = doorConfig.data[configKey];
+
+        // รวม description + BOM เข้าด้วยกัน
+        let bomText = formatBOM(bom);
+        let fullDesc = description + bomText; 
+        // หรือจะต่อ string เพิ่มเช่น "\n\n-- BOM --\n... "
+
+        setNewProduct((prev) => ({
+          ...prev,
+          category: value,
+          description: fullDesc,  // ใส่ BOM ลงไปด้วย
+          warranty: warranty,
+        }));
+        return; // ไม่ต้องทำด้านล่างต่อ
+      }
+    }
+
+    // default: อัปเดตฟิลด์
     setNewProduct((prev) => ({ ...prev, [name]: value }));
   };
 
+  // ฟังก์ชันจัดการ upload ไฟล์รูป
   const onImageUpload = (event) => {
     const uploadedFiles = event.files.map((file) => ({
       file,
@@ -48,14 +102,10 @@ const ManageProducts = () => {
     }));
 
     setNewProduct((prev) => {
-      // ใช้ Set เพื่อเช็คว่าชื่อไฟล์ซ้ำหรือไม่
-      const existingFileNames = new Set(
-        prev.images.map((img) => img.file?.name)
-      );
+      const existingFileNames = new Set(prev.images.map((img) => img.file?.name));
       const uniqueFiles = uploadedFiles.filter(
         (img) => !existingFileNames.has(img.file.name)
       );
-
       return {
         ...prev,
         images: [...prev.images, ...uniqueFiles],
@@ -63,10 +113,9 @@ const ManageProducts = () => {
     });
   };
 
-  // ✅ ลบรูปภาพทั้งจาก UI และ FileUpload
+  // ลบรูปออกจาก state
   const handleRemoveImage = (imageToRemove, event) => {
-    event.stopPropagation(); // ✅ ป้องกันการ trigger event ที่อาจทำให้ Dialog ปิด
-
+    event.stopPropagation();
     setNewProduct((prev) => {
       const updatedImages = prev.images.filter((image) => {
         if (!image.file) {
@@ -74,20 +123,25 @@ const ManageProducts = () => {
         }
         return image.file.name !== imageToRemove.file.name;
       });
-
       return { ...prev, images: updatedImages };
     });
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (
-      !newProduct.name ||
-      !newProduct.category ||
-      !newProduct.price ||
-      !newProduct.stock_quantity
-    ) {
+
+    // ตรวจสอบเฉพาะฟิลด์ที่ทุก Product ต้องมี
+    if (!newProduct.name || !newProduct.category) {
       alert("กรุณากรอกข้อมูลให้ครบก่อนทำการเพิ่มสินค้า");
+      return;
+    }
+
+    // ตรวจสอบ Price / Stock เฉพาะกรณี is_part === true
+    if (
+      newProduct.is_part === true &&
+      (!newProduct.price || !newProduct.stock_quantity)
+    ) {
+      alert("กรุณากรอก Price และ Stock Quantity สำหรับอะไหล่ประตูม้วน");
       return;
     }
 
@@ -100,6 +154,7 @@ const ManageProducts = () => {
     }
   };
 
+  // กดปุ่ม Edit ในตาราง
   const handleEdit = (product) => {
     setEditingProduct(product);
     setNewProduct({
@@ -112,18 +167,19 @@ const ManageProducts = () => {
       warranty: product.warranty || "",
       images: product.images
         ? product.images.map((img) => ({
-            previewUrl: `http://localhost:1234${img}`,
-          }))
+          previewUrl: `http://localhost:1234${img}`,
+        }))
         : [],
+      is_part: product.is_part, // ถ้ามี
     });
     setEditMode(true);
     setVisible(true);
   };
 
+  // บันทึกการแก้ไขสินค้า
   const handleSaveEdit = async (event) => {
     event.preventDefault();
     if (!editingProduct) return;
-
     try {
       await ProductService.updateProduct(editingProduct.id, newProduct);
       setVisible(false);
@@ -134,6 +190,7 @@ const ManageProducts = () => {
     }
   };
 
+  // ลบสินค้า
   const handleDelete = async (productId) => {
     if (!window.confirm("คุณแน่ใจหรือไม่ว่าต้องการลบสินค้านี้?")) return;
     try {
@@ -168,6 +225,7 @@ const ManageProducts = () => {
               onClick={() => {
                 setEditMode(false);
                 setEditingProduct(null);
+                // รีเซ็ต newProduct ใหม่
                 setNewProduct({
                   name: "",
                   category: "",
@@ -177,6 +235,7 @@ const ManageProducts = () => {
                   description: "",
                   warranty: "",
                   images: [],
+                  is_part: undefined,
                 });
                 setVisible(true);
               }}
@@ -185,12 +244,14 @@ const ManageProducts = () => {
         </div>
       </div>
 
+      {/* ตารางข้อมูลสินค้า */}
       <ProductTable
         products={products}
         handleEdit={handleEdit}
         handleDelete={handleDelete}
       />
 
+      {/* Dialog ฟอร์ม เพิ่ม/แก้ไข */}
       <ProductForm
         visible={visible}
         setVisible={setVisible}
@@ -212,15 +273,12 @@ const ManageProducts = () => {
           { label: "แดง (Red)", value: "red" },
           { label: "ขาว (White)", value: "white" },
         ]}
+        // ส่วน Category Options แบ่งเป็นประตูม้วน / อะไหล่
         categoryOptions={{
-          // ✅ ส่ง categoryOptions ไปให้ ProductForm
           shutter: [
-            { label: "ประตูม้วนแบบไฟฟ้า", value: "electric_shutter" },
-            {
-              label: "ประตูม้วนแบบรอกโซ่ไฟฟ้า",
-              value: "chain_electric_shutter",
-            },
-            { label: "ประตูม้วนแบบสปริง", value: "spring_shutter" },
+            { label: "ประตูม้วนมือดึง", value: "manual_rolling_shutter" },
+            { label: "ประตูม้วนแบบรอกโซ่", value: "chain_electric_shutter" },
+            { label: "ประตูม้วนไฟฟ้า", value: "electric_rolling_shutter" },
           ],
           shutter_parts: [
             { label: "แผ่นประตูม้วน", value: "shutter_panel" },

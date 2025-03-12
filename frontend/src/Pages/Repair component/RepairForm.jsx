@@ -2,8 +2,16 @@ import React, { useState } from "react";
 import { InputText } from "primereact/inputtext";
 import { Dropdown } from "primereact/dropdown";
 import { InputTextarea } from "primereact/inputtextarea";
+import { MultiSelect } from "primereact/multiselect";
 import { Message } from "primereact/message";
 import useLocationData from "../../Hooks/useLocationData"; // ✅ นำเข้า Hook โหลดข้อมูลจังหวัด
+
+const problemOptions = [
+  { label: "ซ่อมเสีย", value: "ซ่อมเสีย" },
+  { label: "แผ่นเสีย", value: "แผ่นเสีย" },
+  { label: "รางเสีย", value: "รางเสีย" },
+  { label: "มอเตอร์เสีย", value: "มอเตอร์เสีย" },
+];
 
 const RepairForm = ({
   form,
@@ -16,6 +24,13 @@ const RepairForm = ({
   const [selectedProvince, setSelectedProvince] = useState(null);
   const [selectedAmphure, setSelectedAmphure] = useState(null);
   const [selectedTambon, setSelectedTambon] = useState(null);
+
+  const handleSelectProblem = (e) => {
+    setForm((prev) => ({
+      ...prev,
+      problemDescription: e.value,  // ✅ อัปเดตเป็นค่าที่เลือก
+    }));
+  };
 
   const filteredAmphures =
     amphures.data?.filter(
@@ -83,17 +98,27 @@ const RepairForm = ({
       <div className="p-field p-col-12 pt-3">
         <label htmlFor="problemDescription">รายละเอียดปัญหา</label>
         <div className="pt-2">
-          <InputTextarea
-            id="problemDescription"
-            value={form.problemDescription}
-            onChange={(e) => handleInputChange(e, "problemDescription")}
-            rows={3}
-            placeholder="*กรอกรายละเอียดปัญหา"
+          <Dropdown
+            value={form.problemDescription || null}  // ✅ ให้ค่าเริ่มต้นเป็น null ถ้ายังไม่มี
+            options={problemOptions}
+            onChange={handleSelectProblem}
+            placeholder="ปัญหาที่พบบ่อย"
+            className="p-mb-2"
           />
-          {errors.problemDescription && (
-            <Message severity="error" text={errors.problemDescription} />
-          )}
         </div>
+
+        {/* ✅ เพิ่ม InputTextarea ให้พิมพ์เพิ่มเติมได้ */}
+        <InputTextarea
+          id="problemDescription"
+          value={form.problemDescription}
+          onChange={(e) => handleInputChange(e, "problemDescription")}
+          rows={3}
+          placeholder="หรือพิมพ์รายละเอียดเพิ่มเติม"
+        />
+
+        {errors.problemDescription && (
+          <Message severity="error" text={errors.problemDescription} />
+        )}
       </div>
 
       {/* ที่อยู่หลัก (addressLine) */}

@@ -176,6 +176,7 @@ const Repair = () => {
       >
         <RepairForm
           form={form}
+          setForm={setForm} 
           handleInputChange={handleInputChange}
           serviceTypes={serviceTypes}
           errors={errors}

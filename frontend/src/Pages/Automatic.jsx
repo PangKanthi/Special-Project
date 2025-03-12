@@ -16,7 +16,12 @@ const Automatic = () => {
 
   // Pagination
   const [first, setFirst] = useState(0);
-  const [rows, setRows] = useState(12);
+  const [rows, setRows] = useState(6);
+
+  const onPageChange = (event) => {
+    setFirst(event.first);
+    setRows(event.rows);
+};
 
   // ดึงสินค้าจาก backend
   useEffect(() => {
@@ -142,7 +147,7 @@ const Automatic = () => {
         first={first}
         rows={rows}
         totalRecords={filteredProducts.length}
-        onPageChange={(e) => setFirst(e.first)}
+        onPage={onPageChange}
         className="mt-4"
       />
     </div>

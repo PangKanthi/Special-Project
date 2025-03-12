@@ -14,43 +14,95 @@ const ProductList = ({ products }) => {
 
   return (
     <div className="lg:flex-1 flex gap-4 justify-content-center flex-wrap lg:pt-4">
-      {products.map((product) => (
-        <div key={product.id} style={{ width: "325px" }}>
-          <Link to={`/productAuto/${product.id}`} style={{ textDecoration: "none" }}>
-            <Card
-              title={product.name}
-              subTitle={product.description}
-              style={{ marginBottom: "1rem", height: "100%" }}
-              header={
-                <img
-                  alt={product.name}
-                  src={
-                    product.images && product.images.length > 0
-                      ? `http://localhost:1234${product.images[0]}`
-                      : "https://via.placeholder.com/300"
-                  }
-                  style={{
-                    width: "250px",
-                    height: "250px",
-                    objectFit: "cover",
-                    borderRadius: "10px",
-                    display: "block",
-                    margin: "0 auto",
-                  }}
-                />
-              }
-              footer={
-                <span style={{ color: "red", fontWeight: "bold" }}>
-                  {product.price
-                    ? `${Number(product.price).toLocaleString()} บาท`
-                    : "ไม่มีข้อมูลราคา"}
-                </span>
-              }
-              className="m-2 p-shadow-5"
-            />
-          </Link>
-        </div>
-      ))}
+      {products.map((product) => {
+        // ตรวจจับประเภทของสินค้า
+        const categoryInfo = {
+          manual_rolling_shutter: {
+            title: "🚀 ประตูม้วนมือดึง",
+            details: [
+              "เหมาะกับโรงงาน โกดัง และศูนย์การค้า",
+              "เปิด-ปิดอัตโนมัติด้วยระบบไฟฟ้า",
+              "รองรับการควบคุมผ่านรีโมท",
+            ],
+          },
+          chain_electric_shutter: {
+            title: "🔗 ประตูม้วนแบบรอกโซ่",
+            details: [
+              "เหมาะกับโรงงานขนาดกลาง-ใหญ่",
+              "ใช้งานด้วยมือ หมดปัญหาไฟดับ",
+              "มีระบบล็อกเสริมความปลอดภัย",
+            ],
+          },
+          electric_rolling_shutter: {
+            title: "🔄 ประตูม้วนไฟฟ้า",
+            details: [
+              "เหมาะสำหรับร้านค้าและอาคารพาณิชย์",
+              "ใช้งานง่าย ดึงขึ้น-ลงได้สะดวก",
+              "ไม่ต้องใช้พลังงานไฟฟ้า",
+            ],
+          },
+        };
+
+        const info = categoryInfo[product.category];
+
+        return (
+          <div key={product.id} style={{ width: "325px" }}>
+            <Link to={`/productAuto/${product.id}`} style={{ textDecoration: "none" }}>
+              <Card
+                title={product.name}
+                style={{ marginBottom: "1rem", height: "100%" }}
+                header={
+                  <img
+                    alt={product.name}
+                    src={
+                      product.images && product.images.length > 0
+                        ? `http://localhost:1234${product.images[0]}`
+                        : "https://via.placeholder.com/300"
+                    }
+                    style={{
+                      width: "250px",
+                      height: "250px",
+                      objectFit: "cover",
+                      borderRadius: "10px",
+                      display: "block",
+                      margin: "0 auto",
+                    }}
+                  />
+                }
+                footer={
+                  <div>
+                    {info && (
+                      <div style={{
+                        marginTop: "12px",
+                        padding: "12px",
+                        backgroundColor: "#f9f9f9",
+                        borderRadius: "10px",
+                        border: "1px solid #ddd",
+                        textAlign: "left"
+                      }}>
+                        <h4 style={{ color: "#0056b3", fontWeight: "bold", fontSize: "1.1rem" }}>
+                          {info.title}
+                        </h4>
+                        <ul style={{ paddingLeft: "20px", fontSize: "1rem" }}>
+                          {info.details.map((detail, index) => (
+                            <li key={index} style={{ marginBottom: "6px" }}>{detail}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    <div className="pt-2">
+                      <span style={{ color: "red", fontWeight: "bold", fontSize: "1.2rem" }}>
+                        {product.price ? `${Number(product.price).toLocaleString()} บาท` : "ราคาขึ้นอยู่กับขนาด"}
+                      </span>
+                    </div>
+                  </div>
+                }
+                className="m-2 p-shadow-5"
+              />
+            </Link>
+          </div>
+        );
+      })}
     </div>
   );
 };

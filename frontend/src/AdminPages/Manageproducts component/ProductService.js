@@ -19,15 +19,20 @@ const ProductService = {
     }
   },
 
+
+
   async addProduct(product) {
+    const priceValue = product.price.trim() === "" ? null : product.price.trim();
+    const stockQuantityValue = product.stock_quantity.trim() === "" ? null : product.stock_quantity.trim();
+
     const formData = new FormData();
     formData.append("name", product.name);
     formData.append("description", product.description || "");
-    formData.append("price", product.price);
+    formData.append("price", priceValue || " ");
     formData.append("is_part", product.is_part ? true : false);
     formData.append("category", product.category);
     formData.append("warranty", product.warranty || "");
-    formData.append("stock_quantity", product.stock_quantity);
+    formData.append("stock_quantity", stockQuantityValue);
     formData.append("colors", JSON.stringify(product.colors));
 
     product.images.forEach((img) => {
@@ -49,14 +54,18 @@ const ProductService = {
   },
 
   async updateProduct(productId, updatedProduct) {
+    const priceValue = updatedProduct.price.trim() === "" ? null : updatedProduct.price.trim();
+    const stockQuantityValue =
+      updatedProduct.stock_quantity.trim() === "" ? null : updatedProduct.stock_quantity.trim();
+
     const formData = new FormData();
     formData.append("name", updatedProduct.name);
     formData.append("description", updatedProduct.description || "");
-    formData.append("price", parseFloat(updatedProduct.price).toFixed(2));
+    formData.append("price", priceValue);
     formData.append("is_part", JSON.stringify(updatedProduct.is_part === true));
     formData.append("category", updatedProduct.category);
     formData.append("warranty", updatedProduct.warranty || "");
-    formData.append("stock_quantity", parseInt(updatedProduct.stock_quantity, 10));
+    formData.append("stock_quantity", stockQuantityValue);
     formData.append("colors", JSON.stringify(updatedProduct.colors));
 
     if (updatedProduct.images.length > 0) {

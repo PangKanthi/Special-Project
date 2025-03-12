@@ -1,5 +1,5 @@
 {
-    "MANUAL": {
+    "manual_rolling_shutter": {
       "displayName": "ประตูม้วนมือดึง",
       "description": "เหมาะสำหรับร้านค้าหรือที่พักอาศัยขนาดเล็กถึงกลาง",
       "warranty": "1 ปี",
@@ -45,7 +45,7 @@
       ]
     },
   
-    "CHAIN": {
+    "chain_electric_shutter": {
       "displayName": "ประตูม้วนแบบรอกโซ่",
       "description": "เหมาะสำหรับขนาดใหญ่ขึ้น ต้องการใช้ระบบรอกโซ่เพื่อช่วยผ่อนแรง",
       "warranty": "1 ปี",
@@ -123,7 +123,7 @@
       ]
     },
   
-    "ELECTRIC": {
+    "electric_rolling_shutter": {
       "displayName": "ประตูม้วนไฟฟ้า",
       "description": "ใช้มอเตอร์ช่วยในการยก เหมาะกับพื้นที่ขนาดกลางถึงใหญ่มาก",
       "warranty": "1 ปี",

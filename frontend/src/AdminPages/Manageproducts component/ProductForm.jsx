@@ -12,10 +12,10 @@ const ProductForm = ({
     editMode,
     newProduct,
     setNewProduct,
-    handleInputChange,
     onImageUpload,
     handleSubmit,
     handleSaveEdit,
+    handleInputChange,
     categoryOptions,
     colorOptions,
 }) => {
@@ -140,42 +140,51 @@ const ProductForm = ({
                         />
                     </div>
 
+                    {/* Category Type */}
                     <div className="pt-3">
                         <label className="block">Category Type</label>
                         <Dropdown
                             name="category"
                             value={newProduct.category}
-                            options={newProduct.is_part === false ? categoryOptions.shutter
-                                : newProduct.is_part === true ? categoryOptions.shutter_parts
-                                    : []}
+                            options={
+                                newProduct.is_part === false
+                                    ? categoryOptions.shutter
+                                    : newProduct.is_part === true
+                                        ? categoryOptions.shutter_parts
+                                        : []
+                            }
                             onChange={handleInputChange}
                             className="w-full"
                             placeholder="Select Category Type"
-                            disabled={newProduct.is_part === undefined || newProduct.is_part === ""}
+                            disabled={
+                                newProduct.is_part === undefined || newProduct.is_part === ""
+                            }
                         />
                     </div>
 
-                    <div className="pt-3">
-                        <label className="block">Price</label>
-                        <InputText
-                            name="price"
-                            value={newProduct.price}
-                            onChange={handleInputChange}
-                            className="w-full"
-                            required
-                        />
-                    </div>
+                    {newProduct.is_part && (
+                        <div className="pt-3">
+                            <label className="block">Price</label>
+                            <InputText
+                                name="price"
+                                value={newProduct.price}
+                                onChange={handleInputChange}
+                                className="w-full"
+                            />
+                        </div>
+                    )}
 
-                    <div className="pt-3">
-                        <label className="block">Stock Quantity</label>
-                        <InputText
-                            name="stock_quantity"
-                            value={newProduct.stock_quantity}
-                            onChange={handleInputChange}
-                            className="w-full"
-                            required
-                        />
-                    </div>
+                    {newProduct.is_part && (
+                        <div className="pt-3">
+                            <label className="block">Stock Quantity</label>
+                            <InputText
+                                name="stock_quantity"
+                                value={newProduct.stock_quantity}
+                                onChange={handleInputChange}
+                                className="w-full"
+                            />
+                        </div>
+                    )}
 
                     <div className="pt-3">
                         <label className="block">Available Colors</label>
