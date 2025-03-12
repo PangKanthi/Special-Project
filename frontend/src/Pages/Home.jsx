@@ -8,10 +8,12 @@ import { useNavigate } from "react-router-dom";
 const Home = () => {
   const navigate = useNavigate();
 
+  // 1) เรียก API ให้ส่งสินค้าสุ่ม 8 รายการ
   const { data: randomProducts, isLoading: productsLoading } = useFetchData(
     "http://localhost:1234/api/products/random?count=4"
   );
 
+  // 2) ตัวอย่าง mock data อื่น ๆ จากไฟล์ local
   const { data: slideshowImages, isLoading: slideshowLoading } = useFetchData(
     "/mockData/slideshow_images.json"
   );
@@ -19,6 +21,7 @@ const Home = () => {
     "/mockData/featured_products.json"
   );
 
+  // template สำหรับ Galleria (สไลด์โชว์)
   const itemTemplate = (item) => {
     return (
       <img
@@ -36,6 +39,7 @@ const Home = () => {
     );
   };
 
+  // ถ้าข้อมูล (slideshow, products, featured) ยังไม่โหลด
   if (slideshowLoading || productsLoading || featuredLoading) {
     return <div>Loading...</div>;
   }
@@ -43,6 +47,7 @@ const Home = () => {
   return (
     <div style={{ paddingTop: "60px" }}>
       <div style={{ width: "90%", maxWidth: "1400px", margin: "auto" }}>
+        {/* สไลด์โชว์ */}
         <Galleria
           value={slideshowImages}
           numVisible={4}
@@ -54,48 +59,35 @@ const Home = () => {
           item={itemTemplate}
         />
 
-        <h2>บริการของเรา</h2>
+        {/* สินค้าแนะนำ (mock data) */}
+        <h2>สินค้าแนะนำ</h2>
         <div className="flex gap-5 justify-content-center flex-wrap">
           {featuredProducts.map((image, index) => (
             <img
               key={index}
               src={image.image}
               alt={image.title}
-              onClick={() => navigate(index === 0 ? "/automatic" : "/repair")}
               style={{
                 width: "100%",
                 maxHeight: "360px",
                 maxWidth: "680px",
                 objectFit: "cover",
                 borderRadius: "10px",
-                cursor: "pointer",
-                transition: "transform 0.2s",
               }}
-              onMouseOver={(e) =>
-                (e.currentTarget.style.transform = "scale(1.05)")
-              }
-              onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
             />
           ))}
         </div>
 
+        {/* สินค้ายอดนิยม (ดึง 8 ชิ้นจาก Backend) */}
         <h2 className="mt-4">สินค้าภายในร้าน</h2>
         <div className="grid mt-3">
           {randomProducts.map((product) => (
-            <div
-              key={product.id}
-              className="col-12 md:col-6 lg:col-3"
-              onClick={() => navigate(`/productAuto/${product.id}`)}
-            >
+            <div key={product.id} className="col-12 md:col-6 lg:col-3" onClick={() => navigate(`/productAuto/${product.id}`)}>
               <Card
                 title={product.name}
+                
                 subTitle={product.description}
-                style={{
-                  marginBottom: "1rem",
-                  height: "100%",
-                  cursor: "pointer",
-                  transition: "transform 0.2s",
-                }}
+                style={{ marginBottom: "1rem", height: "100%" }}
                 header={
                   <img
                     alt={product.name}
@@ -105,9 +97,9 @@ const Home = () => {
                         : "https://via.placeholder.com/300"
                     }
                     style={{
-                      width: "300px",
-                      height: "300px",
-                      objectFit: "cover",
+                      width: "300px", // กำหนดความกว้างตายตัว
+                      height: "300px", // กำหนดความสูงตายตัว
+                      objectFit: "cover", // ตัดรูปให้เต็มกรอบแบบไม่เสียอัตราส่วน
                       borderRadius: "10px",
                       display: "block",
                       margin: "0 auto",
@@ -120,12 +112,6 @@ const Home = () => {
                       ? `${Number(product.price).toLocaleString()} บาท`
                       : "ไม่มีข้อมูลราคา"}
                   </span>
-                }
-                onMouseOver={(e) =>
-                  (e.currentTarget.style.transform = "scale(1.05)")
-                }
-                onMouseOut={(e) =>
-                  (e.currentTarget.style.transform = "scale(1)")
                 }
               />
             </div>

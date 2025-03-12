@@ -1,14 +1,14 @@
 [
     {
       "id": 1,
-      "image": "/assets/images/button_show.png",
+      "image": "/assets/images/slideshow4.jpg",
       "title": "The Best Shutter Door",
       "description": "Quality you can trust.",
       "cta": "Shop Now"
     },
     {
       "id": 2,
-      "image": "/assets/images/button_show2.png",
+      "image": "/assets/images/slideshow2.jpg",
       "title": "The Best Shutter Door",
       "description": "Quality you can trust.",
       "cta": "Shop Now"
