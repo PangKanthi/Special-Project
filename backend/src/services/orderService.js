@@ -5,41 +5,37 @@ import CartService from './cartService.js';
 class OrderService {
     static async createOrder(userId, addressId, orderItems) {
         return await prisma.$transaction(async (tx) => {
-            const totalAmount =
-                orderItems.length > 0
-                    ? orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
-                    : 0;
+            const totalAmount = orderItems.length > 0
+                ? orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
+                : 0;
 
             const order = await tx.order.create({
                 data: {
                     userId,
                     addressId,
                     total_amount: totalAmount,
-                    status: "pending",
+                    status: 'pending',
                     order_date: new Date(),
-                    payment_status: "pending"
+                    payment_status: 'pending',
                 }
             });
 
             if (orderItems.length > 0) {
-                // ใน Prisma Schema ใหม่ หากมี field "productId" เป็น Int? (nullable)
-                // กรณี productId = null => ประตูเสมือน
-                const orderItemsData = orderItems.map((item) => ({
+                const orderItemsData = orderItems.map(item => ({
                     orderId: order.id,
-                    productId: item.productId || null,
+                    productId: item.productId,
+                    installationKitId: item.installationKitId || null,
                     quantity: item.quantity,
-                    price: item.price,
-                    // ถ้ามีฟิลด์ doorType, width, length ฯลฯ ใน order_item ต้อง set ที่นี่ด้วย
-                    // doorType: item.doorType,
-                    // ...
+                    price: item.price
                 }));
 
-                await tx.order_item.createMany({ data: orderItemsData });
+                await tx.orderItem.createMany({ data: orderItemsData });
             }
 
             return order;
         });
     }
+
 
     static async getUserOrders(userId) {
         return await prisma.order.findMany({
@@ -59,9 +55,9 @@ class OrderService {
         const order = await prisma.order.findUnique({
             where: { id: Number(orderId) }
         });
+
         if (!order) throw new Error("Order not found");
 
-        // สมมติใน schema มี field เดียว "payment_slip"
         if (order.payment_slip) {
             const oldFilePath = `.${order.payment_slip}`;
             if (fs.existsSync(oldFilePath)) {
@@ -73,7 +69,7 @@ class OrderService {
             where: { id: Number(orderId) },
             data: {
                 payment_slip: slipPath,
-                payment_status: "pending"
+                payment_status: 'pending'
             }
         });
     }
@@ -83,19 +79,26 @@ class OrderService {
             where: { id: Number(orderId) },
             select: { payment_slip: true }
         });
+
         if (!order) throw new Error("Order not found");
+
         return order.payment_slip;
     }
 
     static async createOrderFromCart(userId, addressId) {
         try {
+            console.log("📌 Checking addressId:", addressId);
+
             if (!addressId) {
                 throw new Error("Address ID is missing");
             }
 
             const addressExists = await prisma.address.findUnique({
-                where: { id: addressId }
+                where: { id: addressId },
             });
+
+            console.log("📌 Address found:", addressExists);
+
             if (!addressExists) {
                 throw new Error(`Address ID ${addressId} not found`);
             }
@@ -105,18 +108,14 @@ class OrderService {
                 throw new Error("Cart is empty");
             }
 
-            const orderItems = cart.items.map((item) => ({
+            const orderItems = cart.items.map(item => ({
                 productId: item.productId,
                 quantity: item.quantity,
                 price: item.price,
-                // ถ้าคุณมี doorType / width / length ฯลฯ ใน cart_item
-                // แล้วอยากใส่ลง order_item ต้อง add ตรงนี้
+                installOption: item.installOption || "",
             }));
 
-            // สร้าง Order + Order Items
             const order = await this.createOrder(userId, addressId, orderItems);
-
-            // ล้าง cart
             await CartService.clearCart(userId);
             return order;
         } catch (error) {
@@ -124,6 +123,8 @@ class OrderService {
             throw new Error("Failed to create order from cart");
         }
     }
+
+
 
     static async getLatestOrder(userId) {
         return await prisma.order.findFirst({

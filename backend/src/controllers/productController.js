@@ -2,45 +2,45 @@ import ProductService from "../services/productService.js";
 
 export const createProduct = async (req, res, next) => {
   try {
-    const imageUrls = req.files
-      ? req.files.map((file) => `/uploads/products/${file.filename}`)
-      : [];
-    const colors = req.body.colors ? JSON.parse(req.body.colors) : [];
+      const imageUrls = req.files ? req.files.map(file => `/uploads/products/${file.filename}`) : [];
+      const colors = req.body.colors ? JSON.parse(req.body.colors) : []; // แปลง JSON string เป็น Array
 
-    const newProduct = await ProductService.createProduct(
-      {
-        name: req.body.name,
-        description: req.body.description || "",
-        price: parseFloat(req.body.price),
-        category: req.body.category,
-        warranty: req.body.warranty || "",
-        stock_quantity: parseInt(req.body.stock_quantity, 10) || 0,
-        colors,
-      },
-      imageUrls
-    );
+      const newProduct = await ProductService.createProduct(
+          {
+              name: req.body.name,
+              description: req.body.description || "",
+              price: parseFloat(req.body.price),
+              is_part: req.body.is_part === "true", // String => Boolean
+              category: req.body.category,
+              warranty: req.body.warranty || "",
+              stock_quantity: parseInt(req.body.stock_quantity, 10),
+              colors
+          },
+          imageUrls
+      );
 
-    res.status(201).json(newProduct);
+      res.status(201).json(newProduct);
   } catch (error) {
-    next(error);
+      next(error);
   }
 };
 
 export const updateProduct = async (req, res, next) => {
   try {
-    const stockQuantity = req.body.stock_quantity
-      ? parseInt(req.body.stock_quantity, 10)
-      : null;
+    // console.log("📥 Data received:", req.body);
+    // console.log(req.body);
+
+    const isPart = req.body.is_part === "true" || req.body.is_part === true;
+    const stockQuantity = req.body.stock_quantity ? parseInt(req.body.stock_quantity, 10) : null;
     const price = req.body.price ? parseFloat(req.body.price) : null;
     const colors = req.body.colors ? JSON.parse(req.body.colors) : [];
-    const newImages = req.files
-      ? req.files.map((file) => `/uploads/products/${file.filename}`)
-      : [];
+    const newImages = req.files ? req.files.map(file => `/uploads/products/${file.filename}`) : [];
 
     const updatedProduct = await ProductService.updateProduct(
       req.params.id,
-      {
-        ...req.body,
+      { 
+        ...req.body, 
+        is_part: isPart,
         stock_quantity: stockQuantity,
         price: price,
         colors,
@@ -51,11 +51,11 @@ export const updateProduct = async (req, res, next) => {
     res.json(updatedProduct);
   } catch (error) {
     console.error("❌ Error updating product:", error);
-    res
-      .status(500)
-      .json({ message: "เกิดข้อผิดพลาดในเซิร์ฟเวอร์", error: error.message });
+    res.status(500).json({ message: "เกิดข้อผิดพลาดในเซิร์ฟเวอร์", error: error.message });
   }
 };
+
+
 
 export const deleteProduct = async (req, res, next) => {
   try {
@@ -88,7 +88,9 @@ export const getProductById = async (req, res, next) => {
 export const getRandomProducts = async (req, res, next) => {
   try {
     const count = req.query.count ? parseInt(req.query.count, 10) : 4;
+
     const products = await ProductService.getRandomProducts(count);
+
     return res.json(products);
   } catch (error) {
     next(error);
