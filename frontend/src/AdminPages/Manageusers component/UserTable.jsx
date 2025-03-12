@@ -36,7 +36,6 @@ const UserTable = ({ users, onEdit, onDelete }) => {
     try {
       const token = localStorage.getItem("token");
 
-      // ดึงข้อมูล users
       const usersResponse = await axios.get(API_USERS_URL, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -50,7 +49,6 @@ const UserTable = ({ users, onEdit, onDelete }) => {
     try {
       const token = localStorage.getItem("token");
 
-      // ✅ ดึงข้อมูลเฉพาะของผู้ใช้ที่เลือก
       const response = await axios.get(
         `${API_ADDRESSES_URL}?userId=${userId}`,
         {
@@ -58,7 +56,6 @@ const UserTable = ({ users, onEdit, onDelete }) => {
         }
       );
 
-      // ✅ กรองข้อมูลเฉพาะที่อยู่ของ userId ที่เลือก
       const userAddresses =
         response.data.data?.filter((address) => address.userId === userId) ||
         [];
@@ -143,21 +140,20 @@ const UserTable = ({ users, onEdit, onDelete }) => {
 
       const token = localStorage.getItem("token");
 
-      // ✅ ตรวจสอบโครงสร้าง JSON ก่อนส่ง
       const addressPayload = {
         address: {
-          userId: Number(selectedUser.id), // ✅ แปลงเป็น Number ให้แน่ใจ
+          userId: Number(selectedUser.id),
           addressLine: newAddress.addressLine?.trim() || "",
           province: newAddress.province || "",
           district: newAddress.district || "",
           subdistrict: newAddress.subdistrict || "",
-          postalCode: Number(newAddress.postalCode) || 0, // ✅ แปลงเป็นตัวเลข
+          postalCode: Number(newAddress.postalCode) || 0,
           isPrimary: false,
           isShipping: false,
         },
       };
 
-      console.log("📤 Sending address payload:", addressPayload); // ✅ ตรวจสอบค่าใน Console
+      console.log("📤 Sending address payload:", addressPayload);
 
       let response;
       if (newAddress.id) {
@@ -181,7 +177,7 @@ const UserTable = ({ users, onEdit, onDelete }) => {
       }
 
       setEditDialogVisible(false);
-      fetchUserAddresses(selectedUser.id); // ✅ โหลดข้อมูลใหม่
+      fetchUserAddresses(selectedUser.id);
     } catch (error) {
       console.error("❌ Error saving address:", error.response?.data || error);
     }
