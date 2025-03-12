@@ -15,35 +15,70 @@ export const getAddresses = async (req, res, next) => {
 };
 
 export const addAddress = async (req, res, next) => {
-  try {
-    console.log("📌 Data received from Frontend:", req.body);
-
-    const { address } = req.body; // ดูใน address
-    if (!address) {
-      return res.status(400).json({ message: "Address data is required" });
+  if (req.user.role === "A") {
+    try {
+      console.log("📌 Data received from Frontend:", req.body);
+  
+      const { address } = req.body;
+      if (!address) {
+        return res.status(400).json({ message: "Address data is required" });
+      }
+  
+      const { userId, addressLine, province, district, subdistrict, postalCode, apartment } = address;
+  
+      if (!userId) {
+        return res.status(400).json({ message: "userId is required" });
+      }
+  
+      if (!addressLine) {
+        return res.status(400).json({ message: "AddressLine is required" });
+      }
+  
+      const newAddress = await AddressService.createAddress(Number(userId), {
+        addressLine,
+        province,
+        district,
+        subdistrict,
+        postalCode,
+        apartment,
+      });
+  
+      res.status(201).json({ message: "Address added successfully", data: newAddress });
+    } catch (error) {
+      console.error("❌ Error creating address:", error);
+      next(error);
+    }  
+  }
+  else{
+    try {
+      console.log("📌 Data received from Frontend:", req.body);
+  
+      const { address } = req.body;
+      if (!address) {
+        return res.status(400).json({ message: "Address data is required" });
+      }
+  
+      const { addressLine, province, district, subdistrict, postalCode, apartment } = address;
+      if (!addressLine) {
+        return res.status(400).json({ message: "AddressLine is required" });
+      }
+  
+      const newAddress = await AddressService.createAddress(req.user.id, {
+        addressLine,
+        province,
+        district,
+        subdistrict,
+        postalCode,
+        apartment,
+      });
+  
+      res.status(201).json({ message: "Address added successfully", data: newAddress });
+    } catch (error) {
+      console.error("❌ Error creating address:", error);
+      next(error);
     }
-
-    const { addressLine, province, district, subdistrict, postalCode, apartment } = address;
-    if (!addressLine) {
-      return res.status(400).json({ message: "AddressLine is required" });
-    }
-
-    const newAddress = await AddressService.createAddress(req.user.id, {
-      addressLine,
-      province,
-      district,
-      subdistrict,
-      postalCode,
-      apartment,
-    });
-
-    res.status(201).json({ message: "Address added successfully", data: newAddress });
-  } catch (error) {
-    console.error("❌ Error creating address:", error);
-    next(error);
   }
 };
-
 
 export const modifyAddress = async (req, res, next) => {
   try {
