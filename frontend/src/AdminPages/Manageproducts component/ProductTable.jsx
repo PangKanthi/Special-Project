@@ -59,7 +59,7 @@ const ProductTable = ({
       />
       <DataTable value={filteredProducts} paginator rows={10}>
         <Column
-          header="Image"
+          header="รูปภาพ"
           body={(rowData) =>
             rowData.images && rowData.images.length > 0 ? (
               <img
@@ -72,10 +72,10 @@ const ProductTable = ({
             )
           }
         />
-        <Column field="name" header="Product Name" />
+        <Column field="name" header="ชื่อสินค้า" />
         <Column
           field="category"
-          header="Type"
+          header="หมวดหมู่"
           body={(rowData) => {
             const categoryMap = {
               // 🔹 หมวดหมู่ประตูม้วน
@@ -103,17 +103,17 @@ const ProductTable = ({
         />
         <Column
           field="price"
-          header="Price"
+          header="ราคา"
           body={(rowData) => rowData.price ?? "ราคาตามขนาด"}
         />
         <Column
           field="stock_quantity"
-          header="Piece"
+          header="จำนวน"
           body={(rowData) => rowData.stock_quantity ?? "ไม่จำกัดจำนวน"}
         />
 
         <Column
-          header="Available Color"
+          header="สี"
           body={(rowData) => (
             <div className="flex space-x-2">
               {rowData.colors.map((color, i) => (
@@ -131,7 +131,7 @@ const ProductTable = ({
           )}
         />
         <Column
-          header="Action"
+          header="การจัดการ"
           body={(rowData) => (
             <div className="flex space-x-3">
               <Button

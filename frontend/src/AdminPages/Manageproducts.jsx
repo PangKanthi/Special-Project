@@ -235,7 +235,7 @@ const ManageProducts = () => {
   return (
     <div className="p-6 min-h-screen">
       <div className="flex justify-content-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Products</h1>
+        <h1 className="text-2xl font-bold">การจัดการสินค้า</h1>
         <div className="flex space-x-4 items-center ml-auto">
           <div className="ml-auto w-72 pt-3">
             <span className="p-input-icon-left w-full flex items-center pr-3">
@@ -243,14 +243,14 @@ const ManageProducts = () => {
               <InputText
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search Product"
+                placeholder="ค้นหา สินค้า"
                 className="w-full pl-8"
               />
             </span>
           </div>
           <div className="pt-3">
             <Button
-              label="Add New Product"
+              label="เพิ่มสินค้าใหม่"
               icon="pi pi-plus"
               className="p-button-primary"
               onClick={() => {
@@ -281,9 +281,9 @@ const ManageProducts = () => {
         handleDelete={handleDelete}
         categoryOptions={{
           shutter: [
-            { label: "ประตูม้วนมือดึง", value: "manual_rolling_shutter" },
+            { label: "ประตูม้วนแบบมือดึง", value: "manual_rolling_shutter" },
             { label: "ประตูม้วนแบบรอกโซ่", value: "chain_electric_shutter" },
-            { label: "ประตูม้วนไฟฟ้า", value: "electric_rolling_shutter" },
+            { label: "ประตูม้วนแบบไฟฟ้า", value: "electric_rolling_shutter" },
           ],
           shutter_parts: [
             { label: "แผ่นประตูม้วน", value: "แผ่นประตูม้วน" },
@@ -327,9 +327,9 @@ const ManageProducts = () => {
         // ส่วน Category Options แบ่งเป็นประตูม้วน / อะไหล่
         categoryOptions={{
           shutter: [
-            { label: "ประตูม้วนมือดึง", value: "manual_rolling_shutter" },
+            { label: "ประตูม้วนแบบมือดึง", value: "manual_rolling_shutter" },
             { label: "ประตูม้วนแบบรอกโซ่", value: "chain_electric_shutter" },
-            { label: "ประตูม้วนไฟฟ้า", value: "electric_rolling_shutter" },
+            { label: "ประตูม้วนแบบไฟฟ้า", value: "electric_rolling_shutter" },
           ],
           shutter_parts: [
             { label: "แผ่นประตูม้วน", value: "แผ่นประตูม้วน" },

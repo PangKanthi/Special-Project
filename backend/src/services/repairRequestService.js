@@ -47,9 +47,9 @@ class RepairRequestService {
             const existingRequest = await prisma.repair_request.findUnique({
                 where: { id: Number(id) }
             });
-    
+
             if (!existingRequest) return null;
-    
+
             return await prisma.repair_request.update({
                 where: { id: Number(id) },
                 data: {
@@ -92,6 +92,57 @@ class RepairRequestService {
             throw new Error("ไม่สามารถลบคำขอซ่อมได้");
         }
     }
+
+    static async addPartsToRepair(repairRequestId, parts) {
+        try {
+          return await prisma.$transaction(async (prisma) => {
+            for (const part of parts) {
+              const { productId, quantity_used } = part;
+      
+              const existingPart = await prisma.repair_part.findUnique({
+                where: {
+                  repairRequestId_productId: {
+                    repairRequestId,
+                    productId,
+                  },
+                },
+              });
+      
+              if (existingPart) {
+                await prisma.repair_part.update({
+                  where: {
+                    repairRequestId_productId: {
+                      repairRequestId,
+                      productId,
+                    },
+                  },
+                  data: {
+                    quantity_used: {
+                      increment: quantity_used, 
+                    },
+                  },
+                });
+              } else {
+                await prisma.repair_part.create({
+                  data: {
+                    repairRequestId,
+                    productId,
+                    quantity_used,
+                  },
+                });
+              }
+              await prisma.product.update({
+                where: { id: productId },
+                data: { stock_quantity: { decrement: quantity_used } },
+              });
+            }
+            return { message: "บันทึกการใช้อะไหล่สำเร็จ" };
+          });
+        } catch (error) {
+          console.error("❌ Error adding parts to repair:", error);
+          throw new Error("เกิดข้อผิดพลาดในการบันทึกอะไหล่");
+        }
+      }
 }
 
 export default RepairRequestService;

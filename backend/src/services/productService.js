@@ -96,6 +96,19 @@ class ProductService {
       LIMIT ${parseInt(count, 10)};
     `);
   }
+
+  static async getProductById(id) {
+    return await prisma.product.findUnique({
+      where: { id: Number(id) }
+    });
+  }
+
+  static async getAllParts() {
+    return await prisma.product.findMany({
+      where: { is_part: true },
+    });
+  }
+
 }
 
 export default ProductService;

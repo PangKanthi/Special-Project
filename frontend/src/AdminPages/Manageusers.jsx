@@ -61,14 +61,14 @@ const ManageUsers = () => {
   return (
     <div className="p-6 min-h-screen bg-gray-100">
       <div className="flex items-center mb-4">
-        <h1 className="text-2xl font-bold">User Management</h1>
+        <h1 className="text-2xl font-bold">การจัดการผู้ใช้</h1>
         <div className="ml-auto w-72 pt-3">
           <span className="p-input-icon-left w-full flex items-center">
             <i className="pi pi-search pl-3 text-gray-500" />
             <InputText
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search User"
+              placeholder="ค้นหาผู้ใช้"
               className="w-full pl-8"
             />
           </span>

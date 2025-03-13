@@ -211,15 +211,15 @@ const UserTable = ({ users, onEdit, onDelete }) => {
         rows={5}
         emptyMessage="No users found"
       >
-        <Column field="id" header="ID" />
-        <Column field="username" header="Username" />
-        <Column field="firstname" header="First Name" />
-        <Column field="lastname" header="Last Name" />
-        <Column field="email" header="Email" />
-        <Column field="phone" header="Phone" />
+        <Column field="id" header="ไอดีผู้ใช้" />
+        <Column field="username" header="ชื่อผู้ใช้" />
+        <Column field="firstname" header="ชื่อจริง" />
+        <Column field="lastname" header="นามสกุล" />
+        <Column field="email" header="อีเมล" />
+        <Column field="phone" header="เบอร์โทรศัพท์" />
 
         <Column
-          header="Addresses"
+          header="ที่อยู่"
           body={(rowData) => (
             <Button
               label="ดูที่อยู่"
@@ -230,7 +230,7 @@ const UserTable = ({ users, onEdit, onDelete }) => {
         />
         <Column
           field="role"
-          header="Role"
+          header="บทบาท"
           body={(rowData) => (
             <Tag
               value={rowData.role === "A" ? "Admin" : "User"}
@@ -239,7 +239,7 @@ const UserTable = ({ users, onEdit, onDelete }) => {
           )}
         />
         <Column
-          header="Action"
+          header="การจัดการ"
           body={(rowData) => (
             <div className="flex justify-content-center gap-2">
               <Button

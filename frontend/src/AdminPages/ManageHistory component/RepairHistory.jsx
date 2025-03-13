@@ -130,7 +130,7 @@ const RepairHistory = () => {
     return (
         <div>
             <DataTable value={filteredHistory} paginator rows={10}>
-                <Column body={(rowData) => rowData.user?.username || "ไม่ระบุ"} header="Username" />
+                <Column body={(rowData) => rowData.user?.username || "ไม่ระบุ"} header="ชื่อผู้ใช้" />
                 <Column body={imageTemplate} header="รูปภาพ" />
                 <Column field="service_type" header="ประเภทการซ่อม" />
                 <Column field="problem_description" header="รายละเอียด" />

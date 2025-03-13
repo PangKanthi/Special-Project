@@ -32,8 +32,9 @@ model product {
   cart_item      cart_item[]
 
   // ความสัมพันธ์กับ BOM
-  bom_items      bom_item[] @relation("ProductToParts")
-  used_in        bom_item[] @relation("PartsToProduct")
+  bom_items   bom_item[]    @relation("ProductToParts")
+  used_in     bom_item[]    @relation("PartsToProduct")
+  repair_part repair_part[]
 }
 
 model user {
@@ -147,8 +148,21 @@ model repair_request {
   status              RepairStatus @default(pending)
   images              String[]
 
-  user    user    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  address Address @relation(fields: [addressId], references: [id], onDelete: Cascade)
+  user        user          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  address     Address       @relation(fields: [addressId], references: [id], onDelete: Cascade)
+  repair_part repair_part[]
+}
+
+model repair_part {
+  id              Int @id @default(autoincrement())
+  repairRequestId Int
+  productId       Int
+  quantity_used   Int
+
+  repair_request repair_request @relation(fields: [repairRequestId], references: [id], onDelete: Cascade)
+  product        product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([repairRequestId, productId])
 }
 
 model cart {
