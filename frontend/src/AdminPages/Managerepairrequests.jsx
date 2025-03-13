@@ -9,7 +9,7 @@ import moment from "moment";
 
 const API_URL = "http://localhost:1234/api/repair-requests/all";
 
-const Managerepairrequests = () => {
+const Managerepairrequests = ({ setNotifications }) => {
   const [repairRequests, setRepairRequests] = useState([]);
   const [filteredRepairs, setFilteredRepairs] = useState([]);
   const [activeTab, setActiveTab] = useState("ทั้งหมด");

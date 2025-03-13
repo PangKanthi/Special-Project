@@ -4,11 +4,14 @@ import { Menu } from 'primereact/menu';
 import { useRef, useState } from 'react';
 import { PrimeIcons } from 'primereact/api';
 import { Button } from 'primereact/button';
-import { Badge } from 'primereact/badge';
 import { Sidebar } from 'primereact/sidebar';
 import { useNavigate } from 'react-router-dom';
 
+// Import Component ใหม่
+import NotificationPanel from './NotificationPanel';
+
 export default function Navbar() {
+  const [notifications, setNotifications] = useState([]);
   const menu = useRef(null);
   const [visible, setVisible] = useState(false);
   const navigate = useNavigate();
@@ -16,8 +19,6 @@ export default function Navbar() {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-
-    // ใช้ setTimeout เพื่อให้แน่ใจว่า localStorage เคลียร์ก่อนเปลี่ยนหน้า
     setTimeout(() => {
       navigate("/home");
     }, 100);
@@ -43,9 +44,8 @@ export default function Navbar() {
 
   const end = (
     <div className="flex align-items-center gap-4">
-      <div className="relative">
-        <Button icon="pi pi-bell" className="p-button-text p-button-rounded text-white text-xl" />
-        <Badge value="6" severity="danger" className="absolute top-0 right-0" />
+      <div className="flex align-items-center gap-4">
+        <NotificationPanel notifications={notifications} setNotifications={setNotifications} />
       </div>
       <div className="flex align-items-center gap-2 cursor-pointer" onClick={(e) => menu.current.toggle(e)}>
         <Avatar image="https://placehold.co/150x150" shape="circle" />
@@ -59,7 +59,7 @@ export default function Navbar() {
   );
 
   return (
-    <>
+    <div>
       <Menubar
         start={start}
         end={end}
@@ -80,6 +80,6 @@ export default function Navbar() {
           </div>
         </div>
       </Sidebar>
-    </>
+    </div>
   );
 }
