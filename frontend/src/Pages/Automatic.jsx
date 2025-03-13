@@ -50,9 +50,9 @@ const Automatic = () => {
   // เมนูกรองตามค่า category ใน DB
   const menuOptions = [
     { label: 'ทั้งหมด', value: null },
-    { label: 'ประตูม้วนแบบไฟฟ้า', value: 'electric_shutter' },
+    { label: 'ประตูม้วนแบบไฟฟ้า', value: 'electric_rolling_shutter' },
     { label: 'ประตูม้วนแบบรอกโซ่', value: 'chain_electric_shutter' },
-    { label: 'ประตูม้วนแบบสปริง', value: 'spring_shutter' },
+    { label: 'ประตูม้วนแบบมือดึง', value: 'manual_rolling_shutter' },
   ];
 
   // กรองฝั่ง Frontend

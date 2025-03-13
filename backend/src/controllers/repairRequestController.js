@@ -141,3 +141,16 @@ export const deleteRepairRequest = async (req, res, next) => {
         next(error);
     }
 };
+
+export const addPartsToRepairRequest = async (req, res, next) => {
+    try {
+        const { repairRequestId, parts } = req.body;
+        const response = await RepairRequestService.addPartsToRepair(repairRequestId, parts);
+
+        res.status(200).json({ message: response.message });
+    } catch (error) {
+        console.error("❌ Error adding parts to repair:", error);
+        res.status(500).json({ error: "เกิดข้อผิดพลาดในการเพิ่มอะไหล่" });
+    }
+};
+

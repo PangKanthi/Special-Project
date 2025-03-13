@@ -14,27 +14,54 @@ const ManageUsers = () => {
   const [editingUser, setEditingUser] = useState(null);
   const [editDialogVisible, setEditDialogVisible] = useState(false);
 
+  // ➊ ดึงข้อมูลผู้ใช้ครั้งเดียวตอน mount
   useEffect(() => {
-    if (!search.trim()) {
-      setFilteredUsers([...users].sort((a, b) => a.id - b.id));
+    fetchUsers(); // ฟังก์ชัน async ด้านล่าง
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(API_USERS_URL, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      // สมมติ response.data = อาร์เรย์ของ user
+      setUsers(response.data);
+      setFilteredUsers(response.data); // ตั้งค่าเริ่มต้นเหมือนกัน
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  };
+
+  // ➋ เมื่อ search หรือ users เปลี่ยน ให้กรองผู้ใช้แบบเรียลไทม์ใน Frontend
+  useEffect(() => {
+    const searchText = search.trim().toLowerCase();
+
+    if (!searchText) {
+      // ถ้าไม่มีข้อความค้นหา แสดงผู้ใช้ทั้งหมด
+      setFilteredUsers([...users]);
     } else {
-      const filtered = users.filter(
-        (user) =>
-          user.username?.toLowerCase().includes(search.toLowerCase()) ||
-          user.firstname?.toLowerCase().includes(search.toLowerCase()) ||
-          user.lastname?.toLowerCase().includes(search.toLowerCase()) ||
-          user.email?.toLowerCase().includes(search.toLowerCase()) ||
-          user.address?.toLowerCase().includes(search.toLowerCase())
-      );
-      setFilteredUsers(filtered.sort((a, b) => a.id - b.id));
+      const results = users.filter((user) => {
+        return (
+          (user.username || "").toLowerCase().includes(searchText) ||
+          (user.firstname || "").toLowerCase().includes(searchText) ||
+          (user.lastname || "").toLowerCase().includes(searchText) ||
+          (user.email || "").toLowerCase().includes(searchText) ||
+          (user.phone || "").toLowerCase().includes(searchText)
+        );
+      });
+      setFilteredUsers(results);
     }
   }, [search, users]);
 
+  // ➌ ฟังก์ชันแก้ไขผู้ใช้
   const handleEditUser = (user) => {
     setEditingUser(user);
     setEditDialogVisible(true);
   };
 
+  // ➍ บันทึกผู้ใช้ (แค่ตัวอย่าง—ไม่เปลี่ยนเรื่องการกรอง)
   const handleSaveUser = async (updatedUser) => {
     try {
       const { id, ...userData } = updatedUser;
@@ -42,33 +69,39 @@ const ManageUsers = () => {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
 
-      setUsers(users.map((user) => (user.id === id ? updatedUser : user)));
+      // อัปเดต users ใน state
+      setUsers((prev) =>
+        prev.map((usr) => (usr.id === id ? updatedUser : usr))
+      );
       setEditDialogVisible(false);
-    } catch (error) {}
+    } catch (error) {
+      console.error(error);
+    }
   };
 
+  // ➎ ลบผู้ใช้
   const handleDeleteUser = async (id) => {
     try {
       await axios.delete(`${API_USERS_URL}/${id}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
-
-      setUsers(users.filter((user) => user.id !== id));
-      setFilteredUsers(filteredUsers.filter((user) => user.id !== id));
-    } catch (error) {}
+      setUsers((prev) => prev.filter((user) => user.id !== id));
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
     <div className="p-6 min-h-screen bg-gray-100">
       <div className="flex items-center mb-4">
-        <h1 className="text-2xl font-bold">User Management</h1>
+        <h1 className="text-2xl font-bold">การจัดการผู้ใช้</h1>
         <div className="ml-auto w-72 pt-3">
           <span className="p-input-icon-left w-full flex items-center">
             <i className="pi pi-search pl-3 text-gray-500" />
             <InputText
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search User"
+              placeholder="ค้นหาข้อมูลผู้ใช้"
               className="w-full pl-8"
             />
           </span>
@@ -77,6 +110,7 @@ const ManageUsers = () => {
 
       <ConfirmDialog />
 
+      {/* ➏ ส่งเฉพาะผลลัพธ์ที่กรองแล้วไปแสดงในตาราง */}
       <UserTable
         users={filteredUsers}
         onEdit={handleEditUser}

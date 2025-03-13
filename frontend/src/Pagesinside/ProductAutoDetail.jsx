@@ -19,9 +19,9 @@ import "primeflex/primeflex.css";
 
 const normalCategoryOptions = [
   { label: "ทั้งหมด", value: null },
-  { label: "ประตูม้วนไฟฟ้า", value: "electric_rolling_shutter" },
+  { label: "ประตูม้วนแบบไฟฟ้า", value: "electric_rolling_shutter" },
   { label: "ประตูม้วนแบบรอกโซ่", value: "chain_electric_shutter" },
-  { label: "ประตูม้วนมือดึง", value: "manual_rolling_shutter" },
+  { label: "ประตูม้วนแบบมือดึง", value: "manual_rolling_shutter" },
 ];
 
 

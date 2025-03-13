@@ -27,9 +27,6 @@ export const createProduct = async (req, res, next) => {
 
 export const updateProduct = async (req, res, next) => {
   try {
-    // console.log("📥 Data received:", req.body);
-    // console.log(req.body);
-
     const isPart = req.body.is_part === "true" || req.body.is_part === true;
     const stockQuantity = req.body.stock_quantity ? parseInt(req.body.stock_quantity, 10) : null;
     const price = req.body.price ? parseFloat(req.body.price) : null;
@@ -92,6 +89,15 @@ export const getRandomProducts = async (req, res, next) => {
     const products = await ProductService.getRandomProducts(count);
 
     return res.json(products);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getAllParts = async (req, res, next) => {
+  try {
+    const parts = await ProductService.getAllParts();
+    return res.json(parts);
   } catch (error) {
     next(error);
   }
