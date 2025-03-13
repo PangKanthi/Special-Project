@@ -54,6 +54,7 @@ model user {
   reviews        review[]
   repair_request repair_request[]
   cart           cart?
+  notification   notification[]
 }
 
 model Address {
@@ -202,4 +203,15 @@ model bom_item {
 
   @@unique([productId, partId])
   @@map("bom_items")
+}
+
+model notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  message   String
+  type      String
+  createdAt DateTime @default(now())
+  isRead    Boolean  @default(false)
+
+  user user? @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

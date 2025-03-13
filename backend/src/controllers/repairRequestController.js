@@ -144,7 +144,7 @@ export const deleteRepairRequest = async (req, res, next) => {
 
 export const addPartsToRepairRequest = async (req, res, next) => {
     try {
-        const { repairRequestId, parts } = req.body; // parts = [{ productId, quantity_used }]
+        const { repairRequestId, parts } = req.body;
         const response = await RepairRequestService.addPartsToRepair(repairRequestId, parts);
 
         res.status(200).json({ message: response.message });

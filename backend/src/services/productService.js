@@ -1,5 +1,6 @@
 import { PrismaClient, Prisma } from "@prisma/client";
 import fs from "fs";
+import NotificationService from './notificationService.js';
 
 const prisma = new PrismaClient();
 
@@ -15,7 +16,7 @@ class ProductService {
   }
 
   static async createProduct(data, imageUrls) {
-    return await prisma.product.create({
+    const createdProduct = await prisma.product.create({
       data: {
         name: data.name,
         description: data.description,
@@ -28,13 +29,18 @@ class ProductService {
         images: imageUrls
       }
     });
+
+    // ถ้าเป็นอะไหล่ให้ตรวจสอบสต็อกและแจ้งเตือน
+    if (createdProduct.is_part) {
+      await checkStockAndNotify(createdProduct);
+    }
+
+    return createdProduct;
   }
 
   static async updateProduct(id, data, newImages) {
-    const product = await prisma.product.findUnique({
-      where: { id: Number(id) }
-    });
-
+    // หา product เดิม
+    const product = await prisma.product.findUnique({ where: { id: Number(id) } });
     if (!product) throw new Error("Product not found");
 
     let updatedColors = product.colors;
@@ -56,7 +62,7 @@ class ProductService {
       }
     }
 
-    return await prisma.product.update({
+    const updatedProduct = await prisma.product.update({
       where: { id: Number(id) },
       data: {
         name: data.name,
@@ -70,6 +76,13 @@ class ProductService {
         images: updatedImages
       }
     });
+
+    // ถ้าเป็นอะไหล่ให้ตรวจสอบสต็อกและแจ้งเตือน
+    if (updatedProduct.is_part) {
+      await checkStockAndNotify(updatedProduct);
+    }
+
+    return updatedProduct;
   }
 
   static async deleteProduct(id) {
@@ -91,16 +104,10 @@ class ProductService {
 
   static async getRandomProducts(count) {
     return await prisma.$queryRawUnsafe(`
-      SELECT * FROM "product" 
+      SELECT * FROM "product"
       ORDER BY RANDOM()
       LIMIT ${parseInt(count, 10)};
     `);
-  }
-
-  static async getProductById(id) {
-    return await prisma.product.findUnique({
-      where: { id: Number(id) }
-    });
   }
 
   static async getAllParts() {
@@ -108,7 +115,27 @@ class ProductService {
       where: { is_part: true },
     });
   }
+}
 
+async function checkStockAndNotify(product) {
+  const { stock_quantity, id, name } = product;
+
+  if (stock_quantity < 0) {
+    await NotificationService.createNotification({
+      message: `อะไหล่ ${name} (ID: ${id}) สต็อกติดลบ: ${stock_quantity}`,
+      type: 'STOCK'
+    });
+  } else if (stock_quantity === 0) {
+    await NotificationService.createNotification({
+      message: `อะไหล่ ${name} (ID: ${id}) หมดสต็อกแล้ว`,
+      type: 'STOCK'
+    });
+  } else if (stock_quantity > 0 && stock_quantity < 10) {
+    await NotificationService.createNotification({
+      message: `อะไหล่ ${name} (ID: ${id}) ใกล้หมด เหลือ ${stock_quantity} ชิ้น`,
+      type: 'STOCK'
+    });
+  }
 }
 
 export default ProductService;
