@@ -5,6 +5,7 @@ import { uploadPaymentSlip, getPaymentSlip } from '../controllers/orderControlle
 import { slipUpload } from '../middlewares/uploadMiddleware.js';
 import { getAllOrders } from '../controllers/orderController.js';
 import { updateOrderStatus } from '../controllers/orderController.js';
+import { deleteOrder } from '../controllers/orderController.js';
 
 const router = express.Router();
 
@@ -18,5 +19,6 @@ router.get('/latest', authMiddleware.verifyToken, getLatestOrder);
 
 router.post('/:id/upload-slip', authMiddleware.verifyToken, slipUpload, uploadPaymentSlip);
 router.get('/:id/payment-slip', authMiddleware.verifyToken, getPaymentSlip);
+router.delete('/:id', authMiddleware.verifyToken, deleteOrder);
 
 export default router;
