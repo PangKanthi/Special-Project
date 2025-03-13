@@ -17,32 +17,82 @@ class OrderService {
                 }
             });
 
-            // 👇 แจ้งเตือนว่ามี Order ใหม่
-            await NotificationService.createNotification({
-                message: `มีออเดอร์ใหม่จาก User ID #${userId}, Order ID #${order.id}`,
-                type: 'ORDER'
-            });
+            if (orderItems.length > 0) {
+                await tx.order_item.createMany({
+                    data: orderItems.map(item => ({
+                        orderId: order.id,
+                        productId: item.productId,
+                        quantity: item.quantity,
+                        price: item.price
+                    }))
+                });
+            }
 
-            if (updatedPart.stock_quantity <= 10 && updatedPart.stock_quantity > 0) {
-                await NotificationService.createNotification({
-                    message: `อะไหล่ ${updatedPart.name} (ID: ${updatedPart.id}) ใกล้หมด เหลือ ${updatedPart.stock_quantity} ชิ้น`,
-                    type: 'STOCK'
+            for (const item of orderItems) {
+                const product = await tx.product.findUnique({
+                    where: { id: item.productId }
                 });
-            } else if (updatedPart.stock_quantity === 0) {
-                await NotificationService.createNotification({
-                    message: `อะไหล่ ${updatedPart.name} (ID: ${updatedPart.id}) หมดสต็อก!`,
-                    type: 'STOCK'
-                });
-            } else if (updatedPart.stock_quantity < 0) {
-                await NotificationService.createNotification({
-                    message: `อะไหล่ ${updatedPart.name} (ID: ${updatedPart.id}) สต็อกติดลบ: ${updatedPart.stock_quantity}`,
-                    type: 'STOCK'
-                });
+
+                if (["manual_rolling_shutter", "chain_electric_shutter", "electric_rolling_shutter"]
+                    .includes(product.category)) {
+
+                    const bomData = doorConfig[product.category]?.bom;
+                    if (!bomData) {
+                        console.log(`❌ ไม่เจอ bom ใน doorConfig ของ category = ${product.category}`);
+                        continue;
+                    }
+
+                    for (const bomItem of bomData) {
+
+                        const qtyBom = parseInt(bomItem.quantity, 10);
+                        const qtyOrder = parseInt(item.quantity, 10);
+
+                        if (isNaN(qtyBom) || isNaN(qtyOrder)) {
+                            console.log(`❌ quantity (${bomItem.quantity}) หรือ item.quantity (${item.quantity}) ไม่เป็นตัวเลข`);
+                            continue;
+                        }
+
+                        const totalUsed = qtyBom * qtyOrder;
+
+                        const partProduct = await tx.product.findFirst({
+                            where: {
+                                category: bomItem.part,
+                                is_part: true
+                            }
+                        });
+
+                        if (!partProduct) {
+                            console.log(`❌ ไม่พบอะไหล่ชื่อ ${bomItem.part} ใน DB`);
+                            continue;
+                        }
+
+                        await tx.product.update({
+                            where: { id: partProduct.id },
+                            data: {
+                                stock_quantity: {
+                                    decrement: totalUsed
+                                }
+                            }
+                        });
+
+                        console.log(`✅ ลดสต็อก ${bomItem.part} จำนวน ${totalUsed} หน่วย`);
+                    }
+
+                } else if (product.is_part) {
+                    await tx.product.update({
+                        where: { id: product.id },
+                        data: {
+                            stock_quantity: {
+                                decrement: item.quantity
+                            }
+                        }
+                    });
+                }
             }
             return order;
         });
     }
-
+    
     static async getAllOrders() {
         const orders = await prisma.order.findMany({
             include: {

@@ -378,20 +378,22 @@ const ProductAutoDetail = () => {
               )}
               {!product.is_part && (
                 <div>
+                  <h4>กรุณากรอกขนาด กว้าง ยาว หน่วยเป็น เมตร และ เลือกความหนา</h4>
                   <div className="flex gap-2">
                     <input
                       type="text"
                       value={width}
                       onChange={(e) => setWidth(e.target.value)}
-                      placeholder="กว้าง = ตร.ม."
+                      placeholder="กว้าง = ม."
                       className="p-inputtext p-component"
                       style={{ width: "100px", height: "55px" }}
                     />
+                    
                     <input
                       type="text"
                       value={length}
                       onChange={(e) => setLength(e.target.value)}
-                      placeholder="ยาว = ตร.ม."
+                      placeholder="ยาว = ม."
                       className="p-inputtext p-component"
                       style={{ width: "100px", height: "55px" }}
                     />
@@ -407,14 +409,14 @@ const ProductAutoDetail = () => {
                   </div>
                   <div className="flex flex-column mt-3">
                     <Button
-                      label="คำนวณราคาต่อบาน"
+                      label="คำนวณราคาประตูม้วนต่อบาน"
                       onClick={handleCalculate}
                       className="p-button-primary"
                     />
 
                     {totalPrice !== null && (
                       <p className="text-2xl font-bold mt-3">
-                        ราคาประตู: {totalPrice.toLocaleString()} บาท
+                        ราคาประตูต่อบาน: {totalPrice.toLocaleString()} บาท
                       </p>
                     )}
 
