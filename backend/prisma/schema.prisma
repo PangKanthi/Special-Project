@@ -30,6 +30,10 @@ model product {
   order_items    order_item[]
   reviews        review[]
   cart_item      cart_item[]
+
+  // ความสัมพันธ์กับ BOM
+  bom_items      bom_item[] @relation("ProductToParts")
+  used_in        bom_item[] @relation("PartsToProduct")
 }
 
 model user {
@@ -170,4 +174,18 @@ model cart_item {
   product product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([cartId, productId, color, width, length, thickness, installOption])
+}
+
+model bom_item {
+  id        Int    @id @default(autoincrement())
+  productId Int
+  partId    Int
+  quantity  Int
+  unit      String @db.VarChar(50)
+
+  product product @relation("ProductToParts", fields: [productId], references: [id], onDelete: Cascade)
+  part    product @relation("PartsToProduct", fields: [partId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, partId])
+  @@map("bom_items")
 }

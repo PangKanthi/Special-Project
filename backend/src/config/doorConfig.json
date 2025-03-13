@@ -14,7 +14,7 @@
     "bom": [
       {
         "part": "แผ่นประตูม้วน",
-        "quantityPerMeter": 16,
+        "quantity": 16,
         "unit": "แผ่น / ความสูง 1 เมตร"
       },
       {
@@ -72,7 +72,7 @@
     "bom": [
       {
         "part": "แผ่นประตูม้วน",
-        "quantityPerMeter": 13,
+        "quantity": 13,
         "unit": "แผ่น / ความสูง 1 เมตร"
       },
       {
@@ -156,7 +156,7 @@
     "bom": [
       {
         "part": "แผ่นประตูม้วน",
-        "quantityPerMeter": 13,
+        "quantity": 13,
         "unit": "แผ่น / ความสูง 1 เมตร"
       },
       {

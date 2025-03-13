@@ -2,11 +2,12 @@ import React from "react";
 import { Card } from "primereact/card";
 import { Button } from "primereact/button";
 
-function SummaryCard({ totalProductPrice, grandTotal }) {
+function SummaryCard({ totalProductPrice, grandTotal, onConfirmOrder}) {
   const VAT_RATE = 0.07;
   const vatAmount = totalProductPrice * VAT_RATE;
   const grandtotal = totalProductPrice + vatAmount;
 
+  
   return (
     <Card
       style={{
@@ -40,7 +41,7 @@ function SummaryCard({ totalProductPrice, grandTotal }) {
       <div className="pt-3 mt-8">
         <Button
           label="ยืนยันการสั่งซื้อ"
-          // onClick={}
+          onClick={onConfirmOrder}
           className="w-full bg-blue-600 text-white py-2 text-lg font-bold rounded"
         />
       </div>

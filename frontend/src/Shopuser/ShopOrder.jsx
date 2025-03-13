@@ -62,30 +62,19 @@ function ShopOrder() {
       alert("กรุณาเลือกที่อยู่ก่อนทำการสั่งซื้อ");
       return;
     }
-    if (!form.images.length) {
-      alert("กรุณาอัปโหลดสลิปโอนเงินก่อน");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("slip", form.images[0].file);
-    formData.append("amount", grandTotal);
 
     try {
-      const uploadResponse = await fetch(
-        "http://localhost:1234/api/upload-slip",
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
-      const uploadResult = await uploadResponse.json();
-      if (!uploadResponse.ok) throw new Error(uploadResult.error);
+      // ✅ เตรียมข้อมูล "orderItems" แทน "cart"
+      const orderItems = cart.map((item) => ({
+        productId: item.product?.id, // หรือ item.productId (ถ้า cart เก็บเป็น productId โดยตรง)
+        quantity: item.quantity,
+        price: item.price,
+      }));
 
+      // ✅ ส่งข้อมูลตามที่ Backend คาดหวัง
       const orderData = {
-        cart,
-        slipUrl: uploadResult.imageUrl,
         addressId: selectedAddress.id,
+        orderItems, // <--- Backend จะใช้ตรงนี้
       };
 
       const orderResponse = await fetch("http://localhost:1234/api/orders", {
@@ -138,6 +127,7 @@ function ShopOrder() {
           <SummaryCard
             totalProductPrice={totalProductPrice}
             grandTotal={grandTotal}
+            onConfirmOrder={handleOrderConfirmation}
           />
         </Card>
       </div>
