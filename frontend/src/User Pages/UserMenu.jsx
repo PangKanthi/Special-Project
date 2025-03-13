@@ -5,27 +5,8 @@ const UserMenu = () => {
     const navigate = useNavigate();
     const [user, setUser] = useState(null);
     const [dropdownVisible, setDropdownVisible] = useState(false);
-    const [cartCount, setCartCount] = useState(0); // ✅ จำนวนสินค้าในตะกร้า
     const [isVisible, setIsVisible] = useState(false); // ✅ ควบคุม Animation
     const dropdownRef = useRef(null);
-
-    // ✅ อัปเดตจำนวนสินค้าในตะกร้าแบบเรียลไทม์
-    useEffect(() => {
-        const updateCartCount = () => {
-            const cart = JSON.parse(localStorage.getItem("cart")) || [];
-            const totalItems = cart.reduce((acc, item) => acc + item.quantity, 0);
-            setCartCount(totalItems);
-        };
-
-        updateCartCount(); // โหลดค่าตอนเปิดหน้า
-
-        // ✅ ฟัง event เมื่อมีการอัปเดตตะกร้า
-        window.addEventListener("cartUpdated", updateCartCount);
-        
-        return () => {
-            window.removeEventListener("cartUpdated", updateCartCount);
-        };
-    }, []);
 
     // ✅ โหลดข้อมูลผู้ใช้จาก localStorage และเปิดแอนิเมชัน
     useEffect(() => {
@@ -64,11 +45,6 @@ const UserMenu = () => {
         <div className={`flex items-center space-x-4 relative transition-all duration-500 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-[-10px]"}`}>
             <div className="relative cursor-pointer mr-5" onClick={() => navigate("/shop-cart")}>
                 <i className="pi pi-shopping-bag text-2xl text-gray-700"></i>
-                {cartCount > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-2 animate-pulse">
-                        {cartCount}
-                    </span>
-                )}
             </div>
 
             {/* ✅ ชื่อผู้ใช้ + Dropdown */}

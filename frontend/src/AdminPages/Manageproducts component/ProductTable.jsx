@@ -6,7 +6,12 @@ import { Tag } from "primereact/tag";
 import { Avatar } from "primereact/avatar";
 import { TabMenu } from "primereact/tabmenu";
 
-const ProductTable = ({ products, handleEdit, handleDelete, categoryOptions }) => {
+const ProductTable = ({
+  products,
+  handleEdit,
+  handleDelete,
+  categoryOptions,
+}) => {
   const [activeTab, setActiveTab] = useState("ทั้งหมด");
   const [activeIndex, setActiveIndex] = useState(0);
   const [filteredProducts, setFilteredProducts] = useState(products);
@@ -27,7 +32,9 @@ const ProductTable = ({ products, handleEdit, handleDelete, categoryOptions }) =
     } else if (category === "shutter_parts") {
       setFilteredProducts(
         products.filter((product) =>
-          categoryOptions.shutter_parts.some((c) => c.value === product.category)
+          categoryOptions.shutter_parts.some(
+            (c) => c.value === product.category
+          )
         )
       );
     }
@@ -46,7 +53,7 @@ const ProductTable = ({ products, handleEdit, handleDelete, categoryOptions }) =
         activeIndex={activeIndex}
         onTabChange={(e) => {
           setActiveTab(e.value.value);
-          setActiveIndex(items.findIndex(tab => tab.value === e.value.value));
+          setActiveIndex(items.findIndex((tab) => tab.value === e.value.value));
           filterProducts(e.value.value);
         }}
       />
@@ -72,23 +79,23 @@ const ProductTable = ({ products, handleEdit, handleDelete, categoryOptions }) =
           body={(rowData) => {
             const categoryMap = {
               // 🔹 หมวดหมู่ประตูม้วน
-              "electric_rolling_shutter": "ประตูม้วนแบบไฟฟ้า",
-              "chain_electric_shutter": "ประตูม้วนแบบรอกโซ่",
-              "manual_rolling_shutter": "ประตูม้วนมือดึง",
+              electric_rolling_shutter: "ประตูม้วนแบบไฟฟ้า",
+              chain_electric_shutter: "ประตูม้วนแบบรอกโซ่",
+              manual_rolling_shutter: "ประตูม้วนมือดึง",
 
               // 🔹 หมวดหมู่อะไหล่ประตูม้วน
-              "shutter_panel": "แผ่นประตูม้วน",
-              "door_track": "รางประตู",
-              "shaft": "เพลา",
-              "spring": "สปริง",
-              "shaft_cover": "ฝาครอบเพลา",
-              "door_lock": "ตัวล็อกประตู",
-              "motor": "มอเตอร์",
-              "control_box": "กล่องควบคุม",
-              "remote_control": "รีโมทคอนโทรล / ปุ่มควบคุม",
-              "sensor_system": "ระบบเซนเซอร์",
-              "backup_battery": "แบตเตอรี่สำรอง",
-              "emergency_crank": "มือหมุนฉุกเฉิน"
+              แผ่นประตูม้วน: "แผ่นประตูม้วน",
+              เสารางประตูม้วน: "เสารางประตูม้วน",
+              แกนเพลาประตูม้วน: "แกนเพลาประตูม้วน",
+              กล่องเก็บม้วนประตู: "กล่องเก็บม้วนประตู",
+              ตัวล็อกประตูม้วน: "ตัวล็อกประตูม้วน",
+              กุญแจประตูม้วน: "กุญแจประตูม้วน",
+              รอกโซ่ประตูม้วน: "รอกโซ่ประตูม้วน",
+              ชุดเฟืองโซ่ประตูม้วน: "ชุดเฟืองโซ่ประตูม้วน",
+              โซ่ประตูม้วน: "โซ่ประตูม้วน",
+              ตัวล็อคโซ่สาว: "ตัวล็อคโซ่สาว",
+              ชุดมอเตอร์ประตูม้วน: "ชุดมอเตอร์ประตูม้วน",
+              สวิตช์กดควบคุม: "สวิตช์กดควบคุม",
             };
 
             return categoryMap[rowData.category] || "ไม่ระบุ";
@@ -97,9 +104,14 @@ const ProductTable = ({ products, handleEdit, handleDelete, categoryOptions }) =
         <Column
           field="price"
           header="Price"
-          body={(rowData) => `$${rowData.price}`}
+          body={(rowData) => rowData.price ?? "ราคาตามขนาด"}
         />
-        <Column field="stock_quantity" header="Piece" />
+        <Column
+          field="stock_quantity"
+          header="Piece"
+          body={(rowData) => rowData.stock_quantity ?? "ไม่จำกัดจำนวน"}
+        />
+
         <Column
           header="Available Color"
           body={(rowData) => (
