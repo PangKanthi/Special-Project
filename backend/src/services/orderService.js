@@ -92,6 +92,37 @@ class OrderService {
         });
     }
 
+    static async getAllOrders() {
+        const orders = await prisma.order.findMany({
+            include: {
+                order_items: {
+                    include: {
+                        product: { select: { id: true, name: true, images: true, category: true } } // ✅ เพิ่ม category
+                    }
+                },
+                user: { select: { id: true, firstname: true, lastname: true, phone: true } },
+                address: true
+            }
+        });
+
+        console.log("📌 Orders from DB (with category):", JSON.stringify(orders, null, 2)); // ✅ Debug JSON
+        return orders;
+    }
+
+    static async deleteOrder(orderId) {
+        return await prisma.order.delete({
+            where: { id: orderId },
+        });
+    }
+
+    // ใน orderService.js
+    static async updateOrderStatus(orderId, status) {
+        return await prisma.order.update({
+            where: { id: orderId },
+            data: { status }
+        });
+    }
+
     static async createOrderFromCart(userId, addressId) {
         try {
             console.log("📌 Checking addressId:", addressId);
@@ -134,9 +165,27 @@ class OrderService {
     static async getUserOrders(userId) {
         return await prisma.order.findMany({
             where: { userId },
-            include: { order_items: true }
+            include: {
+                user: {  // ✅ เพิ่มข้อมูล user
+                    select: {
+                        id: true,
+                        firstname: true,
+                        lastname: true,
+                        phone: true
+                    }
+                },
+                address: true,
+                order_items: {
+                    include: {
+                        product: {
+                            select: { id: true, name: true, images: true, category: true }
+                        }
+                    }
+                }
+            }
         });
     }
+
 
     static async getOrderById(orderId) {
         return await prisma.order.findUnique({
