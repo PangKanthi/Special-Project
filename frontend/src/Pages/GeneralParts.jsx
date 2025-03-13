@@ -42,18 +42,18 @@ const GeneralParts = () => {
 
   const menuOptions = [
     { label: "ทั้งหมด", value: null },
-    { label: "แผ่นประตูม้วน", value: "shutter_panel" },
-    { label: "รางประตู", value: "door_track" },
-    { label: "เพลา", value: "shaft" },
-    { label: "สปริง", value: "spring" },
-    { label: "ฝาครอบเพลา", value: "shaft_cover" },
-    { label: "ตัวล็อกประตู", value: "door_lock" },
-    { label: "มอเตอร์", value: "motor" },
-    { label: "กล่องควบคุม", value: "control_box" },
-    { label: "รีโมทคอนโทรล / ปุ่มควบคุม", value: "remote_control" },
-    { label: "ระบบเซนเซอร์", value: "sensor_system" },
-    { label: "แบตเตอรี่สำรอง", value: "backup_battery" },
-    { label: "มือหมุนฉุกเฉิน", value: "emergency_crank" }
+    { label: "แผ่นประตูม้วน", value: "แผ่นประตูม้วน" },
+    { label: "เสารางประตูม้วน", value: "เสารางประตูม้วน" },
+    { label: "แกนเพลาประตูม้วน", value: "แกนเพลาประตูม้วน" },
+    { label: "กล่องเก็บม้วนประตู", value: "กล่องเก็บม้วนประตู" },
+    { label: "ตัวล็อกประตูม้วน", value: "ตัวล็อกประตูม้วน" },
+    { label: "กุญแจประตูม้วน", value: "กุญแจประตูม้วน" },
+    { label: "รอกโซ่ประตูม้วน", value: "รอกโซ่ประตูม้วน" },
+    { label: "ชุดเฟืองโซ่ประตูม้วน", value: "ชุดเฟืองโซ่ประตูม้วน" },
+    { label: "โซ่ประตูม้วน", value: "โซ่ประตูม้วน" },
+    { label: "ตัวล็อคโซ่สาว", value: "ตัวล็อคโซ่สาว" },
+    { label: "ชุดมอเตอร์ประตูม้วน", value: "ชุดมอเตอร์ประตูม้วน" },
+    { label: "สวิตช์กดควบคุม", value: "สวิตช์กดควบคุม" },
   ];  
 
   let filteredProducts = products.filter((product) => {
