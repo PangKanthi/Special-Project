@@ -8,7 +8,7 @@ import { Card } from "primereact/card";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 import { InputNumber } from "primereact/inputnumber";
-import { InputText } from "primereact/inputtext"; // (A) <-- เพิ่ม
+import { InputText } from "primereact/inputtext";
 import moment from "moment";
 
 const API_URL = "http://localhost:1234/api";
@@ -55,6 +55,21 @@ const Managerepairrequests = ({ setNotifications }) => {
 
   const handleQuantityChange = (productId, value) => {
     setSelectedParts((prev) => ({ ...prev, [productId]: value }));
+  };
+
+  const unitMap = {
+    แผ่นประตูม้วน: "แผ่น",
+    เสารางประตูม้วน: "เส้น",
+    แกนเพลาประตูม้วน: "แท่ง",
+    กล่องเก็บม้วนประตู: "กล่อง",
+    ตัวล็อกประตูม้วน: "ตัว",
+    กุญแจประตูม้วน: "ชุด",
+    รอกโซ่ประตูม้วน: "ชุด",
+    ชุดเฟืองโซ่ประตูม้วน: "ชุด",
+    โซ่ประตูม้วน: "เมตร",
+    ตัวล็อคโซ่สาว: "ตัว",
+    ชุดมอเตอร์ประตูม้วน: "ชุด",
+    สวิตช์กดควบคุม: "ชุด",
   };
 
   const confirmSelectedParts = async () => {
@@ -119,7 +134,7 @@ const Managerepairrequests = ({ setNotifications }) => {
       const data = await response.json();
       if (data.data) {
         setRepairRequests(data.data);
-        setFilteredRepairs(data.data); 
+        setFilteredRepairs(data.data);
       }
     } catch (error) {
       console.error("❌ Error fetching repair requests:", error);
@@ -163,7 +178,9 @@ const Managerepairrequests = ({ setNotifications }) => {
         const phone = (r.user?.phone || "").toLowerCase();
         const serviceType = (r.service_type || "").toLowerCase();
         const problemDesc = (r.problem_description || "").toLowerCase();
-        const dateStr = moment(r.request_date).format("DD/MM/YYYY HH:mm").toLowerCase();
+        const dateStr = moment(r.request_date)
+          .format("DD/MM/YYYY HH:mm")
+          .toLowerCase();
 
         return (
           fname.includes(searchText) ||
@@ -365,7 +382,7 @@ const Managerepairrequests = ({ setNotifications }) => {
       <Dialog
         header="เลือกอะไหล่ที่ใช้ในการซ่อม"
         visible={partsDialogVisible}
-        style={{ width: "50vw" }}
+        className="w-auto"
         onHide={closePartsDialog}
       >
         <DataTable
@@ -396,15 +413,30 @@ const Managerepairrequests = ({ setNotifications }) => {
             }
           />
           <Column field="name" header="ชื่ออะไหล่" />
-          <Column field="stock_quantity" header="สต็อกที่มี" />
+          <Column
+            header="สต็อกที่มี"
+            body={(rowData) =>
+              `${rowData.stock_quantity.toLocaleString()} ${
+                unitMap[rowData.category] || "ชุด"
+              }`
+            }
+          />
           <Column
             header="จำนวนที่ใช้"
             body={(rowData) => (
-              <InputNumber
-                value={selectedParts[rowData.id] || 0}
-                onValueChange={(e) => handleQuantityChange(rowData.id, e.value)}
-                min={0}
-              />
+              <div className="flex">
+                <InputNumber
+                  value={selectedParts[rowData.id] || 0}
+                  onValueChange={(e) =>
+                    handleQuantityChange(rowData.id, e.value)
+                  }
+                  min={0}
+                  max={rowData.stock_quantity}
+                />
+                <span className="p-inputgroup-addon">
+                  {unitMap[rowData.category] || "ชุด"}
+                </span>
+              </div>
             )}
           />
         </DataTable>

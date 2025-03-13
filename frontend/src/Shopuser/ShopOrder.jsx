@@ -64,18 +64,17 @@ function ShopOrder() {
     }
 
     try {
-      // ✅ เตรียมข้อมูล "orderItems" แทน "cart"
       const orderItems = cart.map((item) => ({
-        productId: item.product?.id, // หรือ item.productId (ถ้า cart เก็บเป็น productId โดยตรง)
+        productId: item.product?.id,
         quantity: item.quantity,
         price: item.price,
       }));
 
-      // ✅ ส่งข้อมูลตามที่ Backend คาดหวัง
       const orderData = {
         addressId: selectedAddress.id,
-        orderItems, // <--- Backend จะใช้ตรงนี้
-      };
+        orderItems,
+        totalAmount: grandTotal,
+    };
 
       const orderResponse = await fetch("http://localhost:1234/api/orders", {
         method: "POST",

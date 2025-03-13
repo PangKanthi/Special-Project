@@ -5,13 +5,13 @@ import doorConfig from "../config/doorConfig.json" assert { type: "json" };
 import NotificationService from './notificationService.js';
 
 class OrderService {
-    static async createOrder(userId, addressId, orderItems) {
+    static async createOrder(userId, addressId, orderItems, totalAmount) {
         return await prisma.$transaction(async (tx) => {
             const order = await tx.order.create({
                 data: {
                     userId,
                     addressId,
-                    total_amount: 0,
+                    total_amount: totalAmount,
                     status: 'pending',
                     payment_status: 'pending'
                 }

@@ -16,6 +16,24 @@ const ProductTable = ({
   const [activeIndex, setActiveIndex] = useState(0);
   const [filteredProducts, setFilteredProducts] = useState(products);
 
+  const unitMap = {
+    แผ่นประตูม้วน: "แผ่น",
+    เสารางประตูม้วน: "เส้น",
+    แกนเพลาประตูม้วน: "แท่ง",
+    กล่องเก็บม้วนประตู: "กล่อง",
+    ตัวล็อกประตูม้วน: "ตัว",
+    กุญแจประตูม้วน: "ชุด",
+    รอกโซ่ประตูม้วน: "ชุด",
+    ชุดเฟืองโซ่ประตูม้วน: "ชุด",
+    โซ่ประตูม้วน: "เมตร",
+    ตัวล็อคโซ่สาว: "ตัว",
+    ชุดมอเตอร์ประตูม้วน: "ชุด",
+    สวิตช์กดควบคุม: "ชุด",
+    manual_rolling_shutter: "ชุด",
+    chain_electric_shutter: "ชุด",
+    electric_rolling_shutter: "ชุด",
+  };
+
   useEffect(() => {
     filterProducts(activeTab);
   }, [products, activeTab]);
@@ -104,12 +122,25 @@ const ProductTable = ({
         <Column
           field="price"
           header="ราคา"
-          body={(rowData) => rowData.price ?? "ราคาตามขนาด"}
+          body={(rowData) =>
+            rowData.price
+              ? `${rowData.price.toLocaleString()} บาท/${
+                  unitMap[rowData.category] || "ชุด"
+                }`
+              : "ราคาตามขนาด"
+          }
         />
         <Column
           field="stock_quantity"
-          header="จำนวน"
-          body={(rowData) => rowData.stock_quantity ?? "ไม่จำกัดจำนวน"}
+          header="จำนวนคงเหลือ"
+          body={(rowData) =>
+            rowData.stock_quantity !== undefined &&
+            rowData.stock_quantity !== null
+              ? `${rowData.stock_quantity.toLocaleString()} ${
+                  unitMap[rowData.category] || "ชุด"
+                }`
+              : "ไม่จำกัดจำนวน"
+          }
         />
 
         <Column
