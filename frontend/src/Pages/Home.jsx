@@ -7,7 +7,13 @@ import { useNavigate } from "react-router-dom";
 
 const Home = () => {
   const navigate = useNavigate();
-
+  const handleServiceClick = (index) => {
+    if (index === 0) {
+      navigate("/automatic");
+    } else if (index === 1) {
+      navigate("/repair");
+    }
+  };
   // 1) เรียก API ให้ส่งสินค้าสุ่ม 8 รายการ
   const { data: randomProducts, isLoading: productsLoading } = useFetchData(
     "http://localhost:1234/api/products/random?count=4"
@@ -60,7 +66,7 @@ const Home = () => {
         />
 
         {/* สินค้าแนะนำ (mock data) */}
-        <h2>สินค้าแนะนำ</h2>
+        <h2>บริการของเรา</h2>
         <div className="flex gap-5 justify-content-center flex-wrap">
           {featuredProducts.map((image, index) => (
             <img
@@ -73,7 +79,14 @@ const Home = () => {
                 maxWidth: "680px",
                 objectFit: "cover",
                 borderRadius: "10px",
+                cursor: "pointer",
+                transition: "transform 0.2s",
               }}
+              onClick={() => handleServiceClick(index)}
+              onMouseOver={(e) =>
+                (e.currentTarget.style.transform = "scale(1.05)")
+              }
+              onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
             />
           ))}
         </div>
@@ -82,12 +95,20 @@ const Home = () => {
         <h2 className="mt-4">สินค้าภายในร้าน</h2>
         <div className="grid mt-3">
           {randomProducts.map((product) => (
-            <div key={product.id} className="col-12 md:col-6 lg:col-3" onClick={() => navigate(`/productAuto/${product.id}`)}>
+            <div
+              key={product.id}
+              className="col-12 md:col-6 lg:col-3"
+              onClick={() => navigate(`/productAuto/${product.id}`)}
+            >
               <Card
                 title={product.name}
-                
                 subTitle={product.description}
-                style={{ marginBottom: "1rem", height: "100%" }}
+                style={{
+                  marginBottom: "1rem",
+                  height: "100%",
+                  cursor: "pointer",
+                  transition: "transform 0.2s"
+                }}
                 header={
                   <img
                     alt={product.name}
@@ -112,6 +133,12 @@ const Home = () => {
                       ? `${Number(product.price).toLocaleString()} บาท`
                       : "ไม่มีข้อมูลราคา"}
                   </span>
+                }
+                onMouseOver={(e) =>
+                  (e.currentTarget.style.transform = "scale(1.05)")
+                }
+                onMouseOut={(e) =>
+                  (e.currentTarget.style.transform = "scale(1)")
                 }
               />
             </div>
