@@ -12,6 +12,8 @@ const RepairHistory = () => {
     const [filteredHistory, setFilteredHistory] = useState([]);
     const [searchText, setSearchText] = useState("");
     const [selectedStatus, setSelectedStatus] = useState(null);
+    const [repairRequests, setRepairRequests] = useState([]);
+    const [filteredRepairs, setFilteredRepairs] = useState([]);
 
     useEffect(() => {
         fetchHistoryData();
@@ -49,6 +51,47 @@ const RepairHistory = () => {
             }
         } catch (error) {
             console.error("❌ Error fetching history data:", error);
+        }
+    };
+
+    // Template ปุ่มลบ
+    const deleteButton = (rowData) => {
+        return (
+            <button onClick={() => deleteRepairRequest(rowData.id)}>
+                ลบ
+            </button>
+        );
+    };
+
+    const deleteRepairRequest = async (repairId) => {
+        if (!window.confirm("ต้องการลบคำขอซ่อมนี้หรือไม่?")) return;
+
+        try {
+            const response = await fetch(
+                `http://localhost:1234/api/repair-requests/${repairId}`,
+                {
+                    method: 'DELETE',
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`
+                    }
+                }
+            );
+            const data = await response.json();
+
+            if (response.ok) {
+                // ลบใน state ทุกจุดที่ใช้แสดงผล
+                const newList = historyData.filter(req => req.id !== repairId);
+                setHistoryData(newList);
+                setFilteredHistory(newList);  // ✅ อัปเดตข้อมูลที่ใช้แสดงผล
+
+                // หากใช้ repairRequests ที่อื่นก็อัปเดตด้วย
+                setRepairRequests(newList);
+                setFilteredRepairs(newList);
+            } else {
+                console.error("❌ Failed to delete request:", data.error);
+            }
+        } catch (error) {
+            console.error("❌ Error deleting request:", error);
         }
     };
 
@@ -98,6 +141,7 @@ const RepairHistory = () => {
                 <Column body={(rowData) => rowData.address?.subdistrict || "ไม่ระบุ"} header="ตำบล" />
                 <Column body={(rowData) => rowData.address?.postalCode || "ไม่ระบุ"} header="รหัสไปรษณีย์" />
                 <Column body={statusTemplate} field="status" header="สถานะ" />
+                <Column body={deleteButton} header="ลบ" />
             </DataTable>
         </div>
     );

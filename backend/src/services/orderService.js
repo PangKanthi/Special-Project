@@ -92,6 +92,32 @@ class OrderService {
         });
     }
 
+    static async getAllOrders() {
+        return await prisma.order.findMany({
+            include: {
+                // ดึงรายการ order_items พร้อม product
+                order_items: {
+                    include: {
+                        product: true
+                    }
+                },
+                user: {
+                    select: { username: true }
+                },
+                address: true
+            },
+        });
+    }
+    
+
+    // ใน orderService.js
+    static async updateOrderStatus(orderId, status) {
+        return await prisma.order.update({
+            where: { id: orderId },
+            data: { status }
+        });
+    }
+
     static async createOrderFromCart(userId, addressId) {
         try {
             console.log("📌 Checking addressId:", addressId);

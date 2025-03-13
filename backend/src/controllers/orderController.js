@@ -33,6 +33,28 @@ export const getOrderById = async (req, res, next) => {
     }
 };
 
+export const getAllOrders = async (req, res, next) => {
+    try {
+        const orders = await OrderService.getAllOrders(); // เรียกใช้ service ที่เราจะสร้าง
+        res.status(200).json({ message: "Get all orders successfully", data: orders });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const updateOrderStatus = async (req, res, next) => {
+    try {
+        const { status } = req.body;
+        const { id } = req.params;
+
+        const updatedOrder = await OrderService.updateOrderStatus(parseInt(id), status);
+
+        res.status(200).json({ message: "Order status updated", data: updatedOrder });
+    } catch (error) {
+        next(error);
+    }
+};
+
 export const uploadPaymentSlip = async (req, res, next) => {
     try {
         if (!req.file) {

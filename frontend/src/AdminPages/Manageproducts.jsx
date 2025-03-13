@@ -10,13 +10,30 @@ import useLocationData from "../Hooks/useLocationData";
 
 const ManageProducts = () => {
   // 2) ใช้งาน useLocationData เพื่อดึง doorConfig
-  const { doorConfig } = useLocationData();
+  const { doorConfig, shutter_partsConfig } = useLocationData();
+  useEffect(() => {
+    console.log("🔍 doorConfig:", doorConfig);
+    console.log("🔍 shutter_partsConfig:", shutter_partsConfig);
+  }, [doorConfig, shutter_partsConfig]);
+
 
   // 3) สร้าง map ระหว่างค่าที่ Dropdown ส่งมา (manual_rolling_shutter ฯลฯ) ไปเป็นคีย์ใน doorConfig (MANUAL, CHAIN, ELECTRIC)
   const categoryMap = {
     manual_rolling_shutter: "manual_rolling_shutter",
     chain_electric_shutter: "chain_electric_shutter",
     electric_rolling_shutter: "electric_rolling_shutter",
+    แผ่นประตูม้วน: "แผ่นประตูม้วน",
+    เสารางประตูม้วน: "เสารางประตูม้วน",
+    แกนเพลาประตูม้วน: "แกนเพลาประตูม้วน",
+    กล่องเก็บม้วนประตู: "กล่องเก็บม้วนประตู",
+    ตัวล็อกประตูม้วน: "ตัวล็อกประตูม้วน",
+    กุญแจประตูม้วน: "กุญแจประตูม้วน",
+    รอกโซ่ประตูม้วน: "รอกโซ่ประตูม้วน",
+    ชุดเฟืองโซ่ประตูม้วน: "ชุดเฟืองโซ่ประตูม้วน",
+    โซ่ประตูม้วน: "โซ่ประตูม้วน",
+    ตัวล็อคโซ่สาว: "ตัวล็อคโซ่สาว",
+    ชุดมอเตอร์ประตูม้วน: "ชุดมอเตอร์ประตูม้วน",
+    สวิตช์กดควบคุม: "สวิตช์กดควบคุม",
   };
 
   const [search, setSearch] = useState("");
@@ -70,29 +87,43 @@ const ManageProducts = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    if (name === "category" && doorConfig && doorConfig.data) {
+  
+    if (name === "category") {
       const configKey = categoryMap[value];
-      if (configKey && doorConfig.data[configKey]) {
-        const { description, warranty, bom } = doorConfig.data[configKey];
-
-        // รวม description + BOM เข้าด้วยกัน
-        let bomText = formatBOM(bom);
-        let fullDesc = description + bomText;
-        // หรือจะต่อ string เพิ่มเช่น "\n\n-- BOM --\n... "
-
+  
+      // ตรวจสอบก่อนว่าเป็นอะไหล่ประตูม้วน
+      if (configKey && shutter_partsConfig?.data?.[configKey]) {
+        const { description, warranty } = shutter_partsConfig.data[configKey];
+  
         setNewProduct((prev) => ({
           ...prev,
           category: value,
-          description: fullDesc,  // ใส่ BOM ลงไปด้วย
+          description: description,  // ✅ กรอก description อัตโนมัติ
+          warranty: warranty,        // ✅ กรอก warranty อัตโนมัติ
+        }));
+        return;
+      }
+  
+      // ถ้าไม่ใช่อะไหล่ ก็ใช้ doorConfig ตามเดิม
+      if (configKey && doorConfig?.data?.[configKey]) {
+        const { description, warranty, bom } = doorConfig.data[configKey];
+        let bomText = formatBOM(bom);
+        let fullDesc = description + bomText;
+  
+        setNewProduct((prev) => ({
+          ...prev,
+          category: value,
+          description: fullDesc,
           warranty: warranty,
         }));
-        return; // ไม่ต้องทำด้านล่างต่อ
+        return;
       }
     }
-
-    // default: อัปเดตฟิลด์
+  
+    // อัปเดตค่าอื่นๆ ตามปกติ
     setNewProduct((prev) => ({ ...prev, [name]: value }));
   };
+  
 
   // ฟังก์ชันจัดการ upload ไฟล์รูป
   const onImageUpload = (event) => {
