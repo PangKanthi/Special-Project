@@ -1,6 +1,6 @@
 {
   "manual_rolling_shutter": {
-    "displayName": "ประตูม้วนมือดึง",
+    "displayName": "ประตูม้วนแบบมือดึง",
     "description": "เหมาะสำหรับร้านค้าหรือที่พักอาศัยขนาดเล็กถึงกลาง",
     "warranty": "1 ปี",
     "priceTiers": [
@@ -124,7 +124,7 @@
   },
 
   "electric_rolling_shutter": {
-    "displayName": "ประตูม้วนไฟฟ้า",
+    "displayName": "ประตูม้วนแบบไฟฟ้า",
     "description": "ใช้มอเตอร์ช่วยในการยก เหมาะกับพื้นที่ขนาดกลางถึงใหญ่มาก",
     "warranty": "1 ปี",
     "priceTiers": [

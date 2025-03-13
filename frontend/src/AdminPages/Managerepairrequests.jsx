@@ -8,6 +8,7 @@ import { Card } from "primereact/card";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 import { InputNumber } from "primereact/inputnumber";
+import { InputText } from "primereact/inputtext"; // (A) <-- เพิ่ม
 import moment from "moment";
 
 const API_URL = "http://localhost:1234/api";
@@ -28,6 +29,9 @@ const Managerepairrequests = ({ setNotifications }) => {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [partsDialogVisible, setPartsDialogVisible] = useState(false);
   const [addressDialogVisible, setAddressDialogVisible] = useState(false);
+
+  // (A) <-- เพิ่ม state สำหรับ Search
+  const [search, setSearch] = useState("");
 
   const openAddressDialog = (rowData) => {
     setSelectedRequest(rowData);
@@ -102,9 +106,10 @@ const Managerepairrequests = ({ setNotifications }) => {
     fetchParts();
   }, []);
 
+  // เรียก filterRepairs() ทุกครั้งที่ repairRequests, activeTab หรือ search มีการเปลี่ยนแปลง
   useEffect(() => {
-    filterRepairs(activeTab);
-  }, [repairRequests, activeTab]);
+    filterRepairs();
+  }, [repairRequests, activeTab, search]);
 
   const fetchRepairRequests = async () => {
     try {
@@ -114,7 +119,7 @@ const Managerepairrequests = ({ setNotifications }) => {
       const data = await response.json();
       if (data.data) {
         setRepairRequests(data.data);
-        setFilteredRepairs(data.data);
+        setFilteredRepairs(data.data); 
       }
     } catch (error) {
       console.error("❌ Error fetching repair requests:", error);
@@ -139,14 +144,39 @@ const Managerepairrequests = ({ setNotifications }) => {
     { label: "ได้รับการยืนยัน", value: "confirm", icon: "pi pi-check-circle" },
   ];
 
-  const filterRepairs = (status) => {
-    if (status === "ทั้งหมด") {
-      setFilteredRepairs(repairRequests);
+  const filterRepairs = () => {
+    const searchText = search.trim().toLowerCase();
+
+    // 1) กรองตามสถานะ (tab)
+    let filtered = [];
+    if (activeTab === "ทั้งหมด") {
+      filtered = [...repairRequests];
     } else {
-      setFilteredRepairs(
-        repairRequests.filter((repair) => repair.status === status)
-      );
+      filtered = repairRequests.filter((r) => r.status === activeTab);
     }
+
+    // 2) กรองตามข้อความ search
+    if (searchText) {
+      filtered = filtered.filter((r) => {
+        const fname = (r.user?.firstname || "").toLowerCase();
+        const lname = (r.user?.lastname || "").toLowerCase();
+        const phone = (r.user?.phone || "").toLowerCase();
+        const serviceType = (r.service_type || "").toLowerCase();
+        const problemDesc = (r.problem_description || "").toLowerCase();
+        const dateStr = moment(r.request_date).format("DD/MM/YYYY HH:mm").toLowerCase();
+
+        return (
+          fname.includes(searchText) ||
+          lname.includes(searchText) ||
+          phone.includes(searchText) ||
+          serviceType.includes(searchText) ||
+          problemDesc.includes(searchText) ||
+          dateStr.includes(searchText)
+        );
+      });
+    }
+
+    setFilteredRepairs(filtered);
   };
 
   const onPageChange = (event) => {
@@ -156,17 +186,14 @@ const Managerepairrequests = ({ setNotifications }) => {
 
   const updateRepairStatus = async (repairId, newStatus) => {
     try {
-      const response = await fetch(
-        `http://localhost:1234/api/repair-requests/${repairId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: JSON.stringify({ status: newStatus }),
-        }
-      );
+      const response = await fetch(`${API_URL}/repair-requests/${repairId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
       const data = await response.json();
       if (response.ok) {
         const updatedItem = data.data;
@@ -174,7 +201,6 @@ const Managerepairrequests = ({ setNotifications }) => {
           req.id === updatedItem.id ? updatedItem : req
         );
         setRepairRequests(newList);
-        setFilteredRepairs(newList);
       } else {
         console.error("Update failed:", data.error);
       }
@@ -235,7 +261,23 @@ const Managerepairrequests = ({ setNotifications }) => {
 
   return (
     <div className="p-6 min-h-screen">
-      <h1 className="text-2xl font-bold">การจัดการคำขอแจ้งซ่อม</h1>
+      <div className="flex items-center mb-4">
+        <h1 className="text-2xl font-bold">การจัดการคำขอแจ้งซ่อม</h1>
+
+        {/* (A) Search Box ตำแหน่งชิดขวา */}
+        <div className="ml-auto w-72 pt-3">
+          <span className="p-input-icon-left w-full flex items-center">
+            <i className="pi pi-search pl-3 text-gray-500" />
+            <InputText
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="ค้นหาข้อมูลผู้ใช้"
+              className="w-full pl-8"
+            />
+          </span>
+        </div>
+      </div>
+
       <Card>
         <TabMenu
           model={items}
@@ -245,12 +287,11 @@ const Managerepairrequests = ({ setNotifications }) => {
             setActiveIndex(
               items.findIndex((tab) => tab.value === e.value.value)
             );
-            filterRepairs(e.value.value);
           }}
         />
 
         <DataTable
-          value={repairRequests.filter(
+          value={filteredRepairs.filter(
             (req) => req.status !== "complete" && req.status !== "cancle"
           )}
           emptyMessage="ไม่มีรายการแจ้งซ่อม"
@@ -285,7 +326,6 @@ const Managerepairrequests = ({ setNotifications }) => {
               />
             )}
           />
-
           <Column body={imageTemplate} header="รูปภาพ" />
           <Column
             header="เลือกอะไหล่"
@@ -302,6 +342,7 @@ const Managerepairrequests = ({ setNotifications }) => {
         </DataTable>
       </Card>
 
+      {/* Dialog: ที่อยู่ */}
       <Dialog
         header={`ที่อยู่ของ ${selectedRequest?.user?.username || "ผู้ใช้"}`}
         visible={addressDialogVisible}
@@ -320,6 +361,7 @@ const Managerepairrequests = ({ setNotifications }) => {
         </DataTable>
       </Dialog>
 
+      {/* Dialog: เลือกอะไหล่ */}
       <Dialog
         header="เลือกอะไหล่ที่ใช้ในการซ่อม"
         visible={partsDialogVisible}
