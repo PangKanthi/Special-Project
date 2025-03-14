@@ -62,12 +62,13 @@ const Automatic = () => {
     // 2) ค้นหาจาก search ใน name
     // 3) ถ้า selectedMenu != null ต้อง product.category === selectedMenu
     const matchPart = product.is_part === false;
+    const matchStatus = product.status === false;
     const matchSearch = product.name
       .toLowerCase()
       .includes(search.toLowerCase());
     const matchMenu = selectedMenu ? product.category === selectedMenu : true;
 
-    return matchPart && matchSearch && matchMenu;
+    return matchPart && matchSearch && matchMenu && matchStatus;
   });
 
   // Pagination

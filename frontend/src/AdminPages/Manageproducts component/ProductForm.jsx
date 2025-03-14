@@ -174,8 +174,8 @@ const ProductForm = ({
                 newProduct.is_part === false
                   ? categoryOptions.shutter
                   : newProduct.is_part === true
-                  ? categoryOptions.shutter_parts
-                  : []
+                    ? categoryOptions.shutter_parts
+                    : []
               }
               onChange={handleInputChange}
               className="w-full"
@@ -205,7 +205,7 @@ const ProductForm = ({
 
           {newProduct.is_part && (
             <div className="pt-3">
-              <label className="block">จำนวนคงเหลือ</label>
+              <label className="block">จำนวน</label>
               <div className="p-inputgroup w-full">
                 <InputText
                   name="stock_quantity"
@@ -220,7 +220,22 @@ const ProductForm = ({
             </div>
           )}
 
-          <div className="pt-3">
+          {!newProduct.is_part && (
+            <div className="pt-3">
+              <label className="block">สี</label>
+              <MultiSelect
+                name="colors"
+                value={newProduct.colors}
+                options={colorOptions}
+                onChange={handleInputChange}
+                optionLabel="label"
+                className="w-full"
+                placeholder="เลือก สี"
+                display="chip"
+              />
+            </div>
+          )}
+          {/* <div className="pt-3">
             <label className="block">สี</label>
             <MultiSelect
               name="colors"
@@ -232,7 +247,7 @@ const ProductForm = ({
               placeholder="เลือก สี"
               display="chip"
             />
-          </div>
+          </div> */}
 
           <div className="pt-3">
             <label className="block">คำอธิบาย</label>

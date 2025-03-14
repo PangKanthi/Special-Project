@@ -29,25 +29,25 @@ const Homeadmin = () => {
         <div className="p-6 space-y-6 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white">
             <div className="flex justify-between align-items-center gap-4 flex-wrap">
                 {/* Box 1 */}
-                <Card className="p-4 flex-1 text-center shadow-lg" style={{ background: "#f1b81e", color: "#fff" }}>
+                <Card className="p-4 flex-1 text-center shadow-lg border-round-3xl" style={{ background: "#f1b81e", color: "#fff" }}>
                     <div className="text-3xl font-bold">{completedOrders}</div>
                     <div className="text-xl mt-2">คำสั่งซื้อที่สำเร็จ</div>
                     <i className="pi pi-shopping-cart text-3xl mt-2"></i>
                 </Card>
 
-                <Card className="p-4 flex-1 text-center shadow-lg" style={{ background: "#673AB7", color: "#fff" }}>
+                <Card className="p-4 flex-1 text-center shadow-lg border-round-3xl" style={{ background: "#673AB7", color: "#fff" }}>
                     <div className="text-3xl font-bold">{totalStock}</div>
                     <div className="text-xl mt-2">สินค้าคงคลัง</div>
                     <i className="pi pi-box text-3xl mt-2"></i>
                 </Card>
 
-                <Card className="p-4 flex-1 text-center shadow-lg" style={{ background: "#03A9F4", color: "#fff" }}>
+                <Card className="p-4 flex-1 text-center shadow-lg border-round-3xl" style={{ background: "#03A9F4", color: "#fff" }}>
                     <div className="text-3xl font-bold">{userCount}</div>
                     <div className="text-xl mt-2">ผู้ใช้งาน</div>
                     <i className="pi pi-users text-3xl mt-2"></i>
                 </Card>
 
-                <Card className="p-4 flex-1 text-center shadow-lg" style={{ background: "#E91E63", color: "#fff" }}>
+                <Card className="p-4 flex-1 text-center shadow-lg border-round-3xl" style={{ background: "#E91E63", color: "#fff" }}>
                     <div className="text-3xl font-bold">{completedRepairs}</div>
                     <div className="text-xl mt-2">คำขอซ่อมที่สำเร็จ</div>
                     <i className="pi pi-wrench text-3xl mt-2"></i>

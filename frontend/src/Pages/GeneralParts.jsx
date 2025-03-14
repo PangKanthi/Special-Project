@@ -58,12 +58,13 @@ const GeneralParts = () => {
 
   let filteredProducts = products.filter((product) => {
     const matchPart = product.is_part === true;
+    const matchStatus = product.status === false;
     const matchSearch = product.name
       .toLowerCase()
       .includes(search.toLowerCase());
     const matchMenu = selectedMenu ? product.category === selectedMenu : true;
 
-    return matchPart && matchSearch && matchMenu;
+    return matchPart && matchSearch && matchMenu && matchStatus;
   });
 
   const paginatedProducts = filteredProducts.slice(first, first + rows);
