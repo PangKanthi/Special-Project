@@ -9,7 +9,6 @@ import { TabMenu } from "primereact/tabmenu";
 const ProductTable = ({
   products,
   handleEdit,
-  handleDelete,
   categoryOptions,
 }) => {
   const [activeTab, setActiveTab] = useState("ทั้งหมด");
@@ -170,12 +169,18 @@ const ProductTable = ({
                 className="p-button-text p-button-secondary"
                 onClick={() => handleEdit(rowData)}
               />
-              <Button
-                icon="pi pi-trash"
-                className="p-button-text p-button-danger"
-                onClick={() => handleDelete(rowData.id)}
-              />
             </div>
+          )}
+        />
+        <Column
+          header="การจัดการ"
+          body={(rowData) => (
+            <Button
+              label={rowData.status ? "ยกเลิกชั่วคราว" : "กำลังวางขาย"}
+              className={
+                rowData.status ? "p-button-danger" : "p-button-success"
+              }
+            />
           )}
         />
       </DataTable>

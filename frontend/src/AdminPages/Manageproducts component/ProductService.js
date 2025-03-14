@@ -66,6 +66,7 @@ const ProductService = {
     formData.append("warranty", updatedProduct.warranty || "");
     formData.append("stock_quantity", stockQuantityValue);
     formData.append("colors", JSON.stringify(updatedProduct.colors));
+    formData.append("status", updatedProduct.status);
 
     if (updatedProduct.images.length > 0) {
       updatedProduct.images.forEach((img) => {

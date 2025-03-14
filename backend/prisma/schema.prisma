@@ -30,12 +30,13 @@ model product {
   order_items    order_item[]
   reviews        review[]
   cart_item      cart_item[]
+  status         Boolean      @default(false)
 
-  // ความสัมพันธ์กับ BOM
   bom_items   bom_item[]    @relation("ProductToParts")
   used_in     bom_item[]    @relation("PartsToProduct")
   repair_part repair_part[]
 }
+
 
 model user {
   id                   Int       @id @default(autoincrement())

@@ -5,6 +5,7 @@ import { FileUpload } from "primereact/fileupload";
 import { MultiSelect } from "primereact/multiselect";
 import { Dropdown } from "primereact/dropdown";
 import { Dialog } from "primereact/dialog";
+import { InputSwitch } from "primereact/inputswitch";
 
 const ProductForm = ({
   visible,
@@ -251,6 +252,17 @@ const ProductForm = ({
               onChange={handleInputChange}
               className="w-full"
             />
+          </div>
+
+          <div className="pt-3 flex items-center gap-2">
+            <label>Status (สถานะสินค้า)</label>
+            <InputSwitch
+              checked={newProduct.status}
+              onChange={(e) =>
+                setNewProduct((prev) => ({ ...prev, status: e.value }))
+              }
+            />
+            <span>{newProduct.status ? "ยกเลิกชั่วคราว" : "กำลังวางขาย"}</span>
           </div>
 
           <div className="flex justify-content-between mt-4">

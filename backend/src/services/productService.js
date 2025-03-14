@@ -26,7 +26,8 @@ class ProductService {
         warranty: data.warranty,
         stock_quantity: data.stock_quantity,
         colors: data.colors,
-        images: imageUrls
+        images: imageUrls,
+        status: data.status ?? false,
       }
     });
 
@@ -73,7 +74,8 @@ class ProductService {
         warranty: data.warranty || null,
         stock_quantity: data.stock_quantity ? parseInt(data.stock_quantity, 10) : 0,
         colors: updatedColors,
-        images: updatedImages
+        images: updatedImages,
+        status: data.status === "true" || data.status === true,
       }
     });
 
