@@ -190,7 +190,7 @@ const PortfolioDialog = ({
 
   return (
     <Dialog
-      header={localPortfolio ? "Edit Work Sample" : "Upload Work Sample"}
+      header={localPortfolio ? "แก้ไขผลงาน" : "เพิ่มผลงานใหม่"}
       visible={visible}
       onHide={handleCloseDialog}
       style={{ width: "30vw" }}
@@ -202,22 +202,22 @@ const PortfolioDialog = ({
         <div className="p-6">
           {/* ✅ Input สำหรับชื่อผลงาน */}
           <div className="w-full mb-4">
-            <label className="block text-gray-700">Work Title</label>
+            <label className="block text-gray-700">ชื่อผลงาน</label>
             <InputText
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter work title"
+              placeholder="ระบุชื่อผลงาน"
               className="w-full mt-2 p-2 border rounded-lg"
             />
           </div>
 
           {/* ✅ Input สำหรับคำอธิบาย */}
           <div className="w-full mb-4">
-            <label className="block text-gray-700">Description</label>
+            <label className="block text-gray-700">คำอธิบายผลงาน</label>
             <InputText
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Enter description"
+              placeholder="ระบุคำอธิบายผลงาน"
               className="w-full mt-2 p-2 border rounded-lg"
             />
           </div>
@@ -250,20 +250,20 @@ const PortfolioDialog = ({
             customUpload
             uploadHandler={onImageSelect}
             onRemove={onRemoveFile}
-            chooseLabel="Choose Photos"
+            chooseLabel="เลือกรูปภาพ"
             className="mb-4"
           />
 
           <div className="flex justify-content-between w-full mt-6">
             <Button
               type="button"
-              label="Cancel"
+              label="ยกเลิก"
               className="p-button-danger w-1/3"
               onClick={handleCloseDialog}
             />
             <Button
               type="submit"
-              label={localPortfolio ? "Save" : "Add Now"}
+              label={localPortfolio ? "บันทึก" : "เพิ่มทันที"}
               className="p-button-primary w-1/3"
             />
           </div>

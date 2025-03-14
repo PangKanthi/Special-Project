@@ -2,26 +2,27 @@ import ProductService from "../services/productService.js";
 
 export const createProduct = async (req, res, next) => {
   try {
-      const imageUrls = req.files ? req.files.map(file => `/uploads/products/${file.filename}`) : [];
-      const colors = req.body.colors ? JSON.parse(req.body.colors) : []; // แปลง JSON string เป็น Array
+    const imageUrls = req.files ? req.files.map(file => `/uploads/products/${file.filename}`) : [];
+    const colors = req.body.colors ? JSON.parse(req.body.colors) : [];
 
-      const newProduct = await ProductService.createProduct(
-          {
-              name: req.body.name,
-              description: req.body.description || "",
-              price: parseFloat(req.body.price),
-              is_part: req.body.is_part === "true", // String => Boolean
-              category: req.body.category,
-              warranty: req.body.warranty || "",
-              stock_quantity: parseInt(req.body.stock_quantity, 10),
-              colors
-          },
-          imageUrls
-      );
+    const newProduct = await ProductService.createProduct(
+      {
+        name: req.body.name,
+        description: req.body.description || "",
+        price: parseFloat(req.body.price),
+        is_part: req.body.is_part === "true",
+        category: req.body.category,
+        warranty: req.body.warranty || "",
+        stock_quantity: parseInt(req.body.stock_quantity, 10),
+        colors,
+        status: req.body.status === "true",
+      },
+      imageUrls
+    );
 
-      res.status(201).json(newProduct);
+    res.status(201).json(newProduct);
   } catch (error) {
-      next(error);
+    next(error);
   }
 };
 
@@ -32,6 +33,7 @@ export const updateProduct = async (req, res, next) => {
     const price = req.body.price ? parseFloat(req.body.price) : null;
     const colors = req.body.colors ? JSON.parse(req.body.colors) : [];
     const newImages = req.files ? req.files.map(file => `/uploads/products/${file.filename}`) : [];
+    const status = req.body.status === "true" || req.body.status === true;
 
     const updatedProduct = await ProductService.updateProduct(
       req.params.id,
@@ -41,6 +43,7 @@ export const updateProduct = async (req, res, next) => {
         stock_quantity: stockQuantity,
         price: price,
         colors,
+        status
       },
       newImages
     );
@@ -51,8 +54,6 @@ export const updateProduct = async (req, res, next) => {
     res.status(500).json({ message: "เกิดข้อผิดพลาดในเซิร์ฟเวอร์", error: error.message });
   }
 };
-
-
 
 export const deleteProduct = async (req, res, next) => {
   try {
