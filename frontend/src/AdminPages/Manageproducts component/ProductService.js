@@ -54,8 +54,8 @@ const ProductService = {
   },
 
   async updateProduct(productId, updatedProduct) {
-    const priceValue = updatedProduct.price.trim() === "" ? null : updatedProduct.price.trim();
-    const stockQuantityValue = updatedProduct.stock_quantity ? String(updatedProduct.stock_quantity).trim() : null;
+    const priceValue = updatedProduct.price === "" ? null : updatedProduct.price;
+    const stockQuantityValue = updatedProduct.stock_quantity ? String(updatedProduct.stock_quantity): null;
 
     const formData = new FormData();
     formData.append("name", updatedProduct.name);

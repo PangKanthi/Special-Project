@@ -193,8 +193,6 @@ const ProductAutoDetail = () => {
     window.location.href = "/shop-cart";
   };
 
-  const isOutOfStock = product.stock_quantity === 0;
-
   const handleAddToCart = async () => {
     if (!isLoggedIn) {
       window.location.href = "/login";
@@ -315,11 +313,6 @@ const ProductAutoDetail = () => {
 
             <div className="col-12 md:col-6 mt-4 md:mt-0">
               <h2 className="mt-0">{product.name}</h2>
-              {isOutOfStock && (
-                <div className="p-message p-message-error text-red-600 text-lg font-bold">
-                  ❌ สินค้าหมด ไม่สามารถสั่งซื้อได้
-                </div>
-              )}
               {!product.is_part &&
                 product.colors &&
                 product.colors.length > 0 && (

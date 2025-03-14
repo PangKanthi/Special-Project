@@ -12,8 +12,14 @@ const UserMenu = () => {
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (token) {
-            const storedUser = JSON.parse(localStorage.getItem('user')) || { name: "User" };
-            setUser(storedUser);
+            const storedUser = JSON.parse(localStorage.getItem('Profile')) || {};
+            console.log("Loaded user:", storedUser);
+
+            // ใช้ username ถ้าไม่มีใช้ name แทน
+            setUser({
+                username: storedUser.username || storedUser.name || "Profile"
+            });
+
             setTimeout(() => setIsVisible(true), 300);
         } else {
             setUser(null);
@@ -53,7 +59,7 @@ const UserMenu = () => {
                     className="p-link flex items-center text-lg text-gray-700 font-medium hover:text-gray-900 mr-5"
                     onClick={() => setDropdownVisible(!dropdownVisible)}
                 >
-                    {user ? user.name : "User"}
+                    {user ? user.username : "User"}
                     <i className="pi pi-angle-down ml-2 text-sm"></i>
                 </button>
 

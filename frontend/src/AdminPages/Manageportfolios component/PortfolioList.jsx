@@ -58,7 +58,7 @@ const PortfolioList = ({ portfolios, onDelete, onEdit }) => {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <span className="text-gray-500">No Image</span>
+                <span className="text-gray-500">ไม่มีรูปภาพ</span>
               )}
             </div>
 
