@@ -5,6 +5,7 @@ import { FileUpload } from "primereact/fileupload";
 import { MultiSelect } from "primereact/multiselect";
 import { Dropdown } from "primereact/dropdown";
 import { Dialog } from "primereact/dialog";
+import { InputSwitch } from "primereact/inputswitch";
 
 const ProductForm = ({
   visible,
@@ -79,7 +80,7 @@ const ProductForm = ({
 
   return (
     <Dialog
-      header={editMode ? "Edit Product" : "Add New Product"}
+      header={editMode ? "แก้ไขข้อมูลสินค้า" : "เพิ่มสินค้า"}
       visible={visible}
       style={{ width: "50vw" }}
       draggable={false}
@@ -131,14 +132,14 @@ const ProductForm = ({
                 customUpload
                 uploadHandler={onImageUpload}
                 onRemove={onRemoveFile} // ✅ ลบไฟล์ออกจาก FileUpload และ UI
-                chooseLabel="Upload Images"
+                chooseLabel="เลือกรูปภาพ"
               />
             </div>
           </div>
 
           {/* ✅ ฟอร์มข้อมูลสินค้า */}
           <div className="pt-3">
-            <label className="block">Product Name</label>
+            <label className="block">ชื่อสินค้า</label>
             <InputText
               name="name"
               value={newProduct.name}
@@ -149,7 +150,7 @@ const ProductForm = ({
           </div>
 
           <div className="pt-3">
-            <label className="block">Product Type</label>
+            <label className="block">ประเภทสินค้า</label>
             <Dropdown
               name="is_part"
               value={newProduct.is_part}
@@ -159,13 +160,13 @@ const ProductForm = ({
               ]}
               onChange={handleProductTypeChange}
               className="w-full"
-              placeholder="Select Product Type"
+              placeholder="เลือก ประเภทสินค้า"
             />
           </div>
 
           {/* Category Type */}
           <div className="pt-3">
-            <label className="block">Category Type</label>
+            <label className="block">หมวดหมู่สินค้า</label>
             <Dropdown
               name="category"
               value={newProduct.category}
@@ -178,7 +179,7 @@ const ProductForm = ({
               }
               onChange={handleInputChange}
               className="w-full"
-              placeholder="Select Category Type"
+              placeholder="เลือก หมวดหมู่สินค้า"
               disabled={
                 newProduct.is_part === undefined || newProduct.is_part === ""
               }
@@ -220,7 +221,7 @@ const ProductForm = ({
           )}
 
           <div className="pt-3">
-            <label className="block">Available Colors</label>
+            <label className="block">สี</label>
             <MultiSelect
               name="colors"
               value={newProduct.colors}
@@ -228,13 +229,13 @@ const ProductForm = ({
               onChange={handleInputChange}
               optionLabel="label"
               className="w-full"
-              placeholder="Select Colors"
+              placeholder="เลือก สี"
               display="chip"
             />
           </div>
 
           <div className="pt-3">
-            <label className="block">Description</label>
+            <label className="block">คำอธิบาย</label>
             <InputText
               name="description"
               value={newProduct.description}
@@ -244,7 +245,7 @@ const ProductForm = ({
           </div>
 
           <div className="pt-3">
-            <label className="block">Warranty</label>
+            <label className="block">การรับประกัน</label>
             <InputText
               name="warranty"
               value={newProduct.warranty}
@@ -253,15 +254,26 @@ const ProductForm = ({
             />
           </div>
 
+          <div className="pt-3 flex items-center gap-2">
+            <label>สถานะสินค้า</label>
+            <InputSwitch
+              checked={newProduct.status}
+              onChange={(e) =>
+                setNewProduct((prev) => ({ ...prev, status: e.value }))
+              }
+            />
+            <span>{newProduct.status ? "ยกเลิกชั่วคราว" : "กำลังวางขาย"}</span>
+          </div>
+
           <div className="flex justify-content-between mt-4">
             <Button
-              label="Cancel"
+              label="ยกเลิก"
               className="p-button-danger"
               onClick={() => setVisible(false)}
               type="button"
             />
             <Button
-              label={editMode ? "Save Changes" : "Add Now"}
+              label={editMode ? "บันทึก" : "เพิ่มทันที"}
               className="p-button-primary"
               type="submit"
             />

@@ -54,8 +54,8 @@ const ProductService = {
   },
 
   async updateProduct(productId, updatedProduct) {
-    const priceValue = updatedProduct.price.trim() === "" ? null : updatedProduct.price.trim();
-    const stockQuantityValue = updatedProduct.stock_quantity ? String(updatedProduct.stock_quantity).trim() : null;
+    const priceValue = updatedProduct.price === "" ? null : updatedProduct.price;
+    const stockQuantityValue = updatedProduct.stock_quantity ? String(updatedProduct.stock_quantity): null;
 
     const formData = new FormData();
     formData.append("name", updatedProduct.name);
@@ -66,6 +66,7 @@ const ProductService = {
     formData.append("warranty", updatedProduct.warranty || "");
     formData.append("stock_quantity", stockQuantityValue);
     formData.append("colors", JSON.stringify(updatedProduct.colors));
+    formData.append("status", updatedProduct.status);
 
     if (updatedProduct.images.length > 0) {
       updatedProduct.images.forEach((img) => {

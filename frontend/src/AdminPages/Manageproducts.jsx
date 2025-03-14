@@ -46,6 +46,7 @@ const ManageProducts = () => {
     warranty: "",
     images: [],
     is_part: undefined,
+    status: false,
   });
 
   useEffect(() => {
@@ -65,9 +66,10 @@ const ManageProducts = () => {
     if (search.trim() === "") {
       setFilteredProducts(products);
     } else {
-      const filtered = products.filter((product) =>
-        product.name.toLowerCase().includes(search.toLowerCase()) ||
-      product.category.toLowerCase().includes(search.toLowerCase())
+      const filtered = products.filter(
+        (product) =>
+          product.name.toLowerCase().includes(search.toLowerCase()) ||
+          product.category.toLowerCase().includes(search.toLowerCase())
       );
       setFilteredProducts(filtered);
     }
@@ -85,7 +87,6 @@ const ManageProducts = () => {
     });
     return `\nรายการ:\n` + lines.join("\n");
   };
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
@@ -196,6 +197,7 @@ const ManageProducts = () => {
           }))
         : [],
       is_part: product.is_part,
+      status: product.status,
     });
     setEditMode(true);
     setVisible(true);
@@ -204,21 +206,14 @@ const ManageProducts = () => {
   const handleSaveEdit = async (event) => {
     event.preventDefault();
     if (!editingProduct) return;
+
     try {
-      await ProductService.updateProduct(editingProduct.id, newProduct);
+      await ProductService.updateProduct(editingProduct.id, {
+        ...newProduct,
+      });
       setVisible(false);
       setEditMode(false);
       loadProducts();
-    } catch (error) {
-      alert(error.message);
-    }
-  };
-
-  const handleDelete = async (productId) => {
-    if (!window.confirm("คุณแน่ใจหรือไม่ว่าต้องการลบสินค้านี้?")) return;
-    try {
-      await ProductService.deleteProduct(productId);
-      setProducts(products.filter((product) => product.id !== productId));
     } catch (error) {
       alert(error.message);
     }
@@ -269,7 +264,6 @@ const ManageProducts = () => {
       <ProductTable
         products={filteredProducts}
         handleEdit={handleEdit}
-        handleDelete={handleDelete}
         categoryOptions={{
           shutter: [
             { label: "ประตูม้วนแบบมือดึง", value: "manual_rolling_shutter" },

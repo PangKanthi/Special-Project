@@ -112,7 +112,7 @@ const ManagePortfolios = () => {
 
     return (
         <div className="p-5">
-            <h2 className="text-2xl font-bold mb-4">Portfolio</h2>
+            <h2 className="text-2xl font-bold mb-4">การจัดการผลงาน</h2>
 
             <PortfolioFilters onAdd={() => { setSelectedPortfolio(null); setVisible(true); }} />
 
