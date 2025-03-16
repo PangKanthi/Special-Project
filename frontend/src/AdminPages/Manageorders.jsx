@@ -32,7 +32,7 @@ const ManageOrders = () => {
   const fetchOrders = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("http://localhost:1234/api/orders", {
+      const response = await axios.get("https://api.d-dayengineering.com/api/orders", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -55,7 +55,7 @@ const ManageOrders = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        `http://localhost:1234/api/orders/${orderId}`,
+        `https://api.d-dayengineering.com/api/orders/${orderId}`,
         { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -89,7 +89,7 @@ const ManageOrders = () => {
       try {
         const token = localStorage.getItem("token");
         await axios.put(
-          "http://localhost:1234/api/orders/order-items",
+          "https://api.d-dayengineering.com/api/orders/order-items",
           { orderItemId, productId, quantity, price },
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -110,7 +110,7 @@ const ManageOrders = () => {
       <div style={{ display: "flex", gap: "5px" }}>
         {images.length > 0 ? (
           images.map((image, index) => {
-            const imageUrl = `http://localhost:1234${image}`;
+            const imageUrl = `https://api.d-dayengineering.com${image}`;
             return (
               <img
                 key={index}

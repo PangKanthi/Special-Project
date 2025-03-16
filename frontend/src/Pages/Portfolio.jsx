@@ -24,7 +24,7 @@ const Portfolio = () => {
         setIsLoading(true);
         setError(null);
 
-        const res = await fetch('http://localhost:1234/api/work-samples');
+        const res = await fetch('https://api.d-dayengineering.com/api/work-samples');
         if (!res.ok) {
           throw new Error('Failed to fetch work samples');
         }
@@ -119,7 +119,7 @@ const Portfolio = () => {
         {paginatedData.map((item) => {
           const firstImage =
             item.images && item.images.length > 0
-              ? `http://localhost:1234${item.images[0]}`
+              ? `https://api.d-dayengineering.com${item.images[0]}`
               : 'https://via.placeholder.com/300';
 
           return (
@@ -174,7 +174,7 @@ const Portfolio = () => {
               {selectedWork.images.slice(0, 5).map((imgPath, index) => (
                 <img
                   key={index}
-                  src={`http://localhost:1234${imgPath}`}
+                  src={`https://api.d-dayengineering.com${imgPath}`}
                   alt={`img-${index}`}
                   style={{
                     width: '230px',

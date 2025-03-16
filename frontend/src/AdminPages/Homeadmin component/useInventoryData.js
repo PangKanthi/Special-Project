@@ -11,7 +11,7 @@ const useInventoryData = () => {
 
     const fetchInventoryData = async () => {
         try {
-            const response = await axios.get("http://localhost:1234/api/products");
+            const response = await axios.get("https://api.d-dayengineering.com/api/products");
 
             // ✅ ประเภทสินค้าที่ต้องซ่อน (ประตูม้วน)
             const excludedShutterCategories = [
