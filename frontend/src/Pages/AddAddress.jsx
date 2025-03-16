@@ -59,7 +59,7 @@ const AddAddress = () => {
 
             console.log("📌 กำลังส่งข้อมูลที่อยู่:", addressData);
 
-            await axios.post(`${process.env.react_app_api}/addresses`, addressData, {
+            await axios.post(`${process.env.REACT_APP_API}/api/addresses`, addressData, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 

@@ -74,7 +74,7 @@ const Register = () => {
     if (!Object.values(newErrors).some((error) => error)) {
       console.log("Form submitted successfully:", { ...formData, password });
 
-      let url = `${process.env.react_app_api}/auth/register`;
+      let url = `${process.env.REACT_APP_API}/api/auth/register`;
 
       try {
         const response = await axios.post(url, { ...formData, password });
@@ -84,7 +84,7 @@ const Register = () => {
           setErrorMessage("");
           setIsRegistered(true);
           const loginResponse = await axios.post(
-            `${process.env.react_app_api}/auth/login`,
+            `${process.env.REACT_APP_API}/api/auth/login`,
             {
               username: formData.username,
               password,

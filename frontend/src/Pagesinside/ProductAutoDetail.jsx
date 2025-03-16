@@ -67,7 +67,7 @@ const ProductAutoDetail = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await fetch(`${process.env.react_app_api}/products/${id}`);
+        const res = await fetch(`${process.env.REACT_APP_API}/api/products/${id}`);
         const data = await res.json();
         setProduct(data);
       } catch (error) {
@@ -137,7 +137,7 @@ const ProductAutoDetail = () => {
   const categoryLabel = matchedCategory ? matchedCategory.label : "ไม่ระบุ";
 
   const productImages =
-    product.images?.map((img) => `http://localhost:1234${img}`) || [];
+    product.images?.map((img) => `${process.env.REACT_APP_API}${img}`) || [];
 
   const imageItemTemplate = (imageUrl) => {
     return (
@@ -235,7 +235,7 @@ const ProductAutoDetail = () => {
     }
 
     try {
-      const response = await fetch(`${process.env.react_app_api}/cart/add`, {
+      const response = await fetch(`${process.env.REACT_APP_API}/api/cart/add`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

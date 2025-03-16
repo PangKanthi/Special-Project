@@ -18,7 +18,7 @@ function ShopOrder() {
   useEffect(() => {
     const fetchCart = async () => {
       try {
-        const response = await fetch(`${process.env.react_app_api}/cart`, {
+        const response = await fetch(`${process.env.REACT_APP_API}/api/cart`, {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
 
@@ -32,7 +32,7 @@ function ShopOrder() {
     };
     const fetchAddresses = async () => {
       try {
-        const res = await fetch(`${process.env.react_app_api}/addresses`, {
+        const res = await fetch(`${process.env.REACT_APP_API}/api/addresses`, {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
         const data = await res.json();
@@ -43,7 +43,7 @@ function ShopOrder() {
     };
     const fetchUser = async () => {
       try {
-        const res = await fetch(`${process.env.react_app_api}/users/me`, {
+        const res = await fetch(`${process.env.REACT_APP_API}/api/users/me`, {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
         const data = await res.json();
@@ -76,7 +76,7 @@ function ShopOrder() {
         totalAmount: grandTotal,
       };
 
-      const orderResponse = await fetch(`${process.env.react_app_api}/orders`, {
+      const orderResponse = await fetch(`${process.env.REACT_APP_API}/api/orders`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -87,7 +87,7 @@ function ShopOrder() {
 
       if (!orderResponse.ok) throw new Error("ไม่สามารถสร้างคำสั่งซื้อได้");
 
-      await fetch(`${process.env.react_app_api}/cart/clear`, {
+      await fetch(`${process.env.REACT_APP_API}/api/cart/clear`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,

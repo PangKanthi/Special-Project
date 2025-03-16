@@ -11,7 +11,7 @@ const useCompletedRepairs = () => {
     const fetchCompletedRepairs = async () => {
         try {
             const token = localStorage.getItem("token");
-            const response = await axios.get(`${process.env.react_app_api}/repair-requests/all`, {
+            const response = await axios.get(`${process.env.REACT_APP_API}/api/repair-requests/all`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 

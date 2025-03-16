@@ -29,7 +29,7 @@ const RepairPage = () => {
 
     const fetchRepairRequests = async () => {
         try {
-            const response = await fetch(`${process.env.react_app_api}/repair-requests`, {
+            const response = await fetch(`${process.env.REACT_APP_API}/api/repair-requests`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("token")}`,
                 },
@@ -71,7 +71,7 @@ const RepairPage = () => {
                     rowData.images.map((image, index) => (
                         <img
                             key={index}
-                            src={`http://localhost:1234${image}`} // ✅ แก้ path
+                            src={`${process.env.REACT_APP_API}${image}`} // ✅ แก้ path
                             alt="repair-img"
                             width="50"
                             height="50"

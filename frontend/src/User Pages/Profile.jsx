@@ -33,7 +33,7 @@ const Profile = () => {
   const getUserProfile = async () => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_API}/users/me`,
+        `${process.env.REACT_APP_API}/api/users/me`,
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
@@ -58,7 +58,7 @@ const Profile = () => {
   const saveProfile = async () => {
     try {
       await axios.put(
-        `${process.env.REACT_APP_API}/users/me/profile`,
+        `${process.env.REACT_APP_API}/api/users/me/profile`,
         { profile }, // หากไม่มีข้อมูลที่ต้องส่ง ให้ใส่ {}
         {
           headers: {
@@ -90,7 +90,7 @@ const Profile = () => {
     }
     try {
       await axios.put(
-        `${process.env.REACT_APP_API}/users/me/password`,
+        `${process.env.REACT_APP_API}/api/users/me/password`,
         {
           oldPassword,
           newPassword,

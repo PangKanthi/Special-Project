@@ -31,7 +31,7 @@ const OrderPage = () => {
     const fetchOrders = async () => {
         try {
             const token = localStorage.getItem("token");
-            const response = await axios.get(`${process.env.react_app_api}/orders/user`, {
+            const response = await axios.get(`${process.env.REACT_APP_API}/api/orders/user`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
     
@@ -66,7 +66,7 @@ const OrderPage = () => {
             <div style={{ display: 'flex', gap: '5px' }}>
                 {images.length > 0 ? (
                     images.map((image, index) => {
-                        const imageUrl = `http://localhost:1234${image}`;
+                        const imageUrl = `${process.env.REACT_APP_API}${image}`;
                         return (
                             <img
                                 key={index}

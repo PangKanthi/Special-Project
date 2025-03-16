@@ -80,7 +80,7 @@ const ProductTable = ({
           body={(rowData) =>
             rowData.images && rowData.images.length > 0 ? (
               <img
-                src={`http://localhost:1234${rowData.images[0]}`}
+                src={`${process.env.REACT_APP_API}${rowData.images[0]}`}
                 alt="Product"
                 style={{ width: "50px", height: "50px", objectFit: "cover" }}
               />

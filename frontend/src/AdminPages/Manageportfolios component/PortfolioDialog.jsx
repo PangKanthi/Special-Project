@@ -4,7 +4,7 @@ import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
 import { FileUpload } from "primereact/fileupload";
 
-const API_URL = `${process.env.react_app_api}/work-samples`; // 🔹 URL ของ Backend
+const API_URL = `${process.env.REACT_APP_API}/api/work-samples`; // 🔹 URL ของ Backend
 
 const PortfolioDialog = ({
   visible,
@@ -31,7 +31,7 @@ const PortfolioDialog = ({
         selectedPortfolio.images.map((img) =>
           img.startsWith("http")
             ? img
-            : `http://localhost:1234/${img.startsWith("/") ? img.substring(1) : img
+            : `${process.env.REACT_APP_API}/${img.startsWith("/") ? img.substring(1) : img
             }`
         )
       );

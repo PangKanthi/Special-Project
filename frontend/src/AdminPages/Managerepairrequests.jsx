@@ -11,7 +11,7 @@ import { InputNumber } from "primereact/inputnumber";
 import { InputText } from "primereact/inputtext";
 import moment from "moment";
 
-const API_URL = `${process.env.react_app_api}`;
+const API_URL = `${process.env.REACT_APP_API}/api`;
 
 const Managerepairrequests = ({ setNotifications }) => {
   const [repairRequests, setRepairRequests] = useState([]);
@@ -233,7 +233,7 @@ const Managerepairrequests = ({ setNotifications }) => {
           rowData.images.map((image, index) => (
             <img
               key={index}
-              src={`http://localhost:1234${image}`}
+              src={`${process.env.REACT_APP_API}${image}`}
               alt="repair-img"
               width="50"
               height="50"
@@ -401,7 +401,7 @@ const Managerepairrequests = ({ setNotifications }) => {
             body={(rowData) =>
               rowData.images && rowData.images.length > 0 ? (
                 <img
-                  src={`http://localhost:1234${rowData.images[0]}`}
+                  src={`${process.env.REACT_APP_API}${rowData.images[0]}`}
                   alt="product-img"
                   width="50"
                   height="50"

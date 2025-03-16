@@ -114,7 +114,7 @@ const Repair = () => {
 
     try {
       const response = await fetch(
-        `${process.env.react_app_api}/repair-requests/`,
+        `${process.env.REACT_APP_API}/api/repair-requests/`,
         {
           method: "POST",
           headers: {

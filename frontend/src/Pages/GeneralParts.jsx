@@ -23,7 +23,7 @@ const GeneralParts = () => {
         setIsLoading(true);
         setError(null);
 
-        const res = await fetch(`${process.env.react_app_api}/products`);
+        const res = await fetch(`${process.env.REACT_APP_API}/api/products`);
         if (!res.ok) {
           throw new Error('Failed to fetch products');
         }
