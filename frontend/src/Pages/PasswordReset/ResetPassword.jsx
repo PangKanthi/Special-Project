@@ -39,7 +39,7 @@ const ResetPassword = () => {
         }
 
         try {
-            const response = await axios.post(`http://localhost:1234/api/users/reset-password`, { email, token, newPassword });
+            const response = await axios.post(`${process.env.react_app_api}/users/reset-password`, { email, token, newPassword });
             setMessage(response.data.message);
             setTimeout(() => navigate("/login"), 2000); // Redirect to login page after 2 seconds
         } catch (error) {

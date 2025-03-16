@@ -16,7 +16,7 @@ const Home = () => {
   };
   // 1) เรียก API ให้ส่งสินค้าสุ่ม 8 รายการ
   const { data: randomProducts, isLoading: productsLoading } = useFetchData(
-    `http://localhost:1234/api/products/random?count=4`
+    `${process.env.react_app_api}/products/random?count=4`
   );
 
   // 2) ตัวอย่าง mock data อื่น ๆ จากไฟล์ local

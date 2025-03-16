@@ -24,7 +24,7 @@ const Portfolio = () => {
         setIsLoading(true);
         setError(null);
 
-        const res = await fetch(`http://localhost:1234/api/work-samples`);
+        const res = await fetch(`${process.env.react_app_api}/work-samples`);
         if (!res.ok) {
           throw new Error('Failed to fetch work samples');
         }

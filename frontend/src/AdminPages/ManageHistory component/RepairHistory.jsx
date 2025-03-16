@@ -40,7 +40,7 @@ const RepairHistory = () => {
 
     const fetchHistoryData = async () => {
         try {
-            const response = await fetch(`http://localhost:1234/api/repair-requests/all`, {
+            const response = await fetch(`${process.env.react_app_api}/repair-requests/all`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
             });
             const data = await response.json();
@@ -68,7 +68,7 @@ const RepairHistory = () => {
 
         try {
             const response = await fetch(
-                `http://localhost:1234/api/repair-requests/${repairId}`,
+                `${process.env.react_app_api}/repair-requests/${repairId}`,
                 {
                     method: 'DELETE',
                     headers: {

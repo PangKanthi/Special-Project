@@ -11,7 +11,7 @@ function ShopCart() {
   useEffect(() => {
     const fetchCart = async () => {
       try {
-        const response = await fetch(`http://localhost:1234/api/cart`, {
+        const response = await fetch(`${process.env.react_app_api}/cart`, {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
 
@@ -37,7 +37,7 @@ function ShopCart() {
     console.log("🗑 Removing productId:", productId);
 
     try {
-      const response = await fetch(`http://localhost:1234/api/cart/remove`, {
+      const response = await fetch(`${process.env.react_app_api}/cart/remove`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

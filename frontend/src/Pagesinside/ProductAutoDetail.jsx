@@ -67,7 +67,7 @@ const ProductAutoDetail = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await fetch(`http://localhost:1234/api/products/${id}`);
+        const res = await fetch(`${process.env.react_app_api}/products/${id}`);
         const data = await res.json();
         setProduct(data);
       } catch (error) {
@@ -235,7 +235,7 @@ const ProductAutoDetail = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:1234/api/cart/add`, {
+      const response = await fetch(`${process.env.react_app_api}/cart/add`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

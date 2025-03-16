@@ -4,7 +4,7 @@ import PortfolioFilters from './Manageportfolios component/PortfolioFilters';
 import PortfolioList from './Manageportfolios component/PortfolioList';
 import PortfolioDialog from './Manageportfolios component/PortfolioDialog';
 
-const API_URL = `http://localhost:1234/api/work-samples`;
+const API_URL = `${process.env.react_app_api}/work-samples`;
 
 const ManagePortfolios = () => {
     const [visible, setVisible] = useState(false);

@@ -29,7 +29,7 @@ const RepairPage = () => {
 
     const fetchRepairRequests = async () => {
         try {
-            const response = await fetch(`http://localhost:1234/api/repair-requests`, {
+            const response = await fetch(`${process.env.react_app_api}/repair-requests`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("token")}`,
                 },

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import useLocationData from "../../../Hooks/useLocationData";
 
-const API_URL = `http://localhost:1234/api/addresses`;
+const API_URL = `${process.env.react_app_api}/addresses`;
 
 const useAddressForm = () => {
   const { provinces, amphures, tambons } = useLocationData();
@@ -30,7 +30,7 @@ const useAddressForm = () => {
   // ✅ ดึงข้อมูลที่อยู่จาก API
   const fetchAddresses = async () => {
     try {
-      const response = await fetch(`http://localhost:1234/api/addresses`, {
+      const response = await fetch(`${process.env.react_app_api}/addresses`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       const data = await response.json();

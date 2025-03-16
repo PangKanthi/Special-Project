@@ -4,7 +4,7 @@ import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
 import { FileUpload } from "primereact/fileupload";
 
-const API_URL = `http://localhost:1234/api/work-samples`; // 🔹 URL ของ Backend
+const API_URL = `${process.env.react_app_api}/work-samples`; // 🔹 URL ของ Backend
 
 const PortfolioDialog = ({
   visible,

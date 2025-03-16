@@ -11,7 +11,7 @@ import { InputNumber } from "primereact/inputnumber";
 import { InputText } from "primereact/inputtext";
 import moment from "moment";
 
-const API_URL = `http://localhost:1234/api`;
+const API_URL = `${process.env.react_app_api}`;
 
 const Managerepairrequests = ({ setNotifications }) => {
   const [repairRequests, setRepairRequests] = useState([]);

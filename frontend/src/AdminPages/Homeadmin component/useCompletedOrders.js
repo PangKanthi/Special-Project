@@ -11,7 +11,7 @@ const useCompletedOrders = (selectedMonth) => {
     const fetchCompletedOrders = async () => {
         try {
             const token = localStorage.getItem("token");
-            const response = await axios.get(`http://localhost:1234/api/orders?month=${selectedMonth}`, {
+            const response = await axios.get(`${process.env.react_app_api}/orders?month=${selectedMonth}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 

@@ -21,7 +21,7 @@ const ProductHistory = () => {
   const fetchOrders = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(`http://localhost:1234/api/orders`, {
+      const response = await axios.get(`${process.env.react_app_api}/orders`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -36,7 +36,7 @@ const ProductHistory = () => {
     if (!window.confirm("ต้องการลบรายการนี้หรือไม่?")) return;
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:1234/api/orders/${orderId}`, {
+      await axios.delete(`${process.env.react_app_api}/orders/${orderId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setOrders(prevOrders => prevOrders.filter(order => order.id !== orderId));

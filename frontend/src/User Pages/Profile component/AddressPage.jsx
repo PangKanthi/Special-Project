@@ -38,7 +38,7 @@ const AddressPage = () => {
       if (isEditing && newAddress.id) {
         // PUT: อัปเดตที่อยู่
         const response = await fetch(
-          `http://localhost:1234/api/addresses/${newAddress.id}`,
+          `${process.env.react_app_api}/addresses/${newAddress.id}`,
           {
             method: "PUT",
             headers: {
@@ -58,7 +58,7 @@ const AddressPage = () => {
         );
         if (!response.ok) throw new Error("Failed to update address");
       } else {
-        const response = await fetch(`http://localhost:1234/api/addresses`, {
+        const response = await fetch(`${process.env.react_app_api}/addresses`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -99,7 +99,7 @@ const AddressPage = () => {
 
   const handleDelete = async (id) => {
     try {
-      await fetch(`http://localhost:1234/api/addresses/${id}`, {
+      await fetch(`${process.env.react_app_api}/addresses/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
