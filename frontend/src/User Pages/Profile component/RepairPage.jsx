@@ -29,7 +29,7 @@ const RepairPage = () => {
 
     const fetchRepairRequests = async () => {
         try {
-            const response = await fetch("https://api.d-dayengineering.com/api/repair-requests", {
+            const response = await fetch(`http://localhost:1234/api/repair-requests`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("token")}`,
                 },
@@ -71,7 +71,7 @@ const RepairPage = () => {
                     rowData.images.map((image, index) => (
                         <img
                             key={index}
-                            src={`https://api.d-dayengineering.com${image}`} // ✅ แก้ path
+                            src={`http://localhost:1234${image}`} // ✅ แก้ path
                             alt="repair-img"
                             width="50"
                             height="50"

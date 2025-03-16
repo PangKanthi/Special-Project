@@ -30,7 +30,7 @@ function CartItem({ item }) {
         item.product.images.length > 0 ? (
           <Carousel
             value={item.product.images.map(
-              (img) => `https://api.d-dayengineering.com${img}`
+              (img) => `http://localhost:1234${img}`
             )}
             numVisible={1}
             numScroll={1}

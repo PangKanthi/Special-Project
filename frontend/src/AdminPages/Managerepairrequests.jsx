@@ -11,7 +11,7 @@ import { InputNumber } from "primereact/inputnumber";
 import { InputText } from "primereact/inputtext";
 import moment from "moment";
 
-const API_URL = "https://api.d-dayengineering.com/api";
+const API_URL = `http://localhost:1234/api`;
 
 const Managerepairrequests = ({ setNotifications }) => {
   const [repairRequests, setRepairRequests] = useState([]);
@@ -233,7 +233,7 @@ const Managerepairrequests = ({ setNotifications }) => {
           rowData.images.map((image, index) => (
             <img
               key={index}
-              src={`https://api.d-dayengineering.com${image}`}
+              src={`http://localhost:1234${image}`}
               alt="repair-img"
               width="50"
               height="50"
@@ -401,7 +401,7 @@ const Managerepairrequests = ({ setNotifications }) => {
             body={(rowData) =>
               rowData.images && rowData.images.length > 0 ? (
                 <img
-                  src={`https://api.d-dayengineering.com${rowData.images[0]}`}
+                  src={`http://localhost:1234${rowData.images[0]}`}
                   alt="product-img"
                   width="50"
                   height="50"

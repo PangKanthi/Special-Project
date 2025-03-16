@@ -64,7 +64,7 @@ const ProductList = ({ products }) => {
                     alt={product.name}
                     src={
                       product.images && product.images.length > 0
-                        ? `https://api.d-dayengineering.com${product.images[0]}`
+                        ? `http://localhost:1234${product.images[0]}`
                         : "https://via.placeholder.com/300"
                     }
                     style={{

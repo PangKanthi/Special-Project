@@ -5,7 +5,7 @@ import { ConfirmDialog } from "primereact/confirmdialog";
 import UserTable from "./Manageusers component/UserTable";
 import UserDialog from "./Manageusers component/UserDialog";
 
-const API_USERS_URL = "https://api.d-dayengineering.com/api/users";
+const API_USERS_URL = `http://localhost:1234/api/users`;
 
 const ManageUsers = () => {
   const [users, setUsers] = useState([]);

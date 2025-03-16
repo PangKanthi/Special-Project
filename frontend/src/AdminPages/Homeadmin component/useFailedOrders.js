@@ -11,7 +11,7 @@ const useFailedOrders = (selectedMonth) => {
     const fetchCompletedOrders = async () => {
         try {
             const token = localStorage.getItem("token");
-            const response = await axios.get(`https://api.d-dayengineering.com/api/orders?month=${selectedMonth}`, {
+            const response = await axios.get(`http://localhost:1234/api/orders?month=${selectedMonth}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 

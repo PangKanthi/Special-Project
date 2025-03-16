@@ -16,7 +16,7 @@ const RequestReset = () => {
         setErrorMessage('');
 
         try {
-            const response = await axios.post("https://api.d-dayengineering.com/api/users/request-password-reset", { email });
+            const response = await axios.post(`http://localhost:1234/api/users/request-password-reset`, { email });
             setMessage(response.data.message);
         } catch (error) {
             setErrorMessage("เกิดข้อผิดพลาด โปรดลองอีกครั้ง");

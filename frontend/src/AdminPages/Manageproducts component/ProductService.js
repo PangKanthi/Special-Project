@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "https://api.d-dayengineering.com/api/products";
+const API_URL = `http://localhost:1234/api/products`;
 
 const getAuthHeaders = () => ({
   headers: {

@@ -32,7 +32,7 @@ const ManageOrders = () => {
   const fetchOrders = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("https://api.d-dayengineering.com/api/orders", {
+      const response = await axios.get(`${process.env.REACT_APP_API}/orders`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

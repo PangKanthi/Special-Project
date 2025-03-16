@@ -59,7 +59,7 @@ const AddAddress = () => {
 
             console.log("📌 กำลังส่งข้อมูลที่อยู่:", addressData);
 
-            await axios.post("https://api.d-dayengineering.com/api/addresses", addressData, {
+            await axios.post(`http://localhost:1234/api/addresses`, addressData, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 

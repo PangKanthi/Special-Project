@@ -31,7 +31,7 @@ const OrderPage = () => {
     const fetchOrders = async () => {
         try {
             const token = localStorage.getItem("token");
-            const response = await axios.get("https://api.d-dayengineering.com/api/orders/user", {
+            const response = await axios.get(`http://localhost:1234/api/orders/user`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
     
@@ -66,7 +66,7 @@ const OrderPage = () => {
             <div style={{ display: 'flex', gap: '5px' }}>
                 {images.length > 0 ? (
                     images.map((image, index) => {
-                        const imageUrl = `https://api.d-dayengineering.com${image}`;
+                        const imageUrl = `http://localhost:1234${image}`;
                         return (
                             <img
                                 key={index}

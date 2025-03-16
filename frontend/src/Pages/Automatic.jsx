@@ -30,7 +30,7 @@ const Automatic = () => {
         setIsLoading(true);
         setError(null);
 
-        const res = await fetch('https://api.d-dayengineering.com/api/products');
+        const res = await fetch(`http://localhost:1234/api/products`);
         if (!res.ok) {
           throw new Error('Failed to fetch products');
         }

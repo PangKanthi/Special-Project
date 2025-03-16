@@ -193,7 +193,7 @@ const ManageProducts = () => {
       warranty: product.warranty || "",
       images: product.images
         ? product.images.map((img) => ({
-            previewUrl: `https://api.d-dayengineering.com${img}`,
+            previewUrl: `http://localhost:1234${img}`,
           }))
         : [],
       is_part: product.is_part,

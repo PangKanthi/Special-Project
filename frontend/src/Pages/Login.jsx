@@ -36,8 +36,8 @@ const Login = () => {
         setSuccessMessage('');
     
         try {
-            const response = await axios.post("https://api.d-dayengineering.com/api/auth/login", { username, password });
-            console.log("🔑 Login Response:", response.data); // ตรวจสอบข้อมูลที่ได้รับจาก API
+            const response = await axios.post(`${process.env.REACT_APP_API}/auth/login`, { username, password });
+            console.log("🔑 Login Response:", response.data);
     
             if (response.data.success) {
                 localStorage.setItem('token', response.data.data.token);
