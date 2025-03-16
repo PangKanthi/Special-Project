@@ -53,7 +53,7 @@ const PortfolioList = ({ portfolios, onDelete, onEdit }) => {
             >
               {portfolio.images && portfolio.images.length > 0 ? (
                 <img
-                src={`http://localhost:1234${portfolio.images[0]}`}
+                src={`${process.env.REACT_APP_API}${portfolio.images[0]}`}
                   alt="work"
                   className="w-full h-full object-cover"
                 />

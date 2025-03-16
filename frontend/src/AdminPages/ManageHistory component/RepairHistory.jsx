@@ -40,7 +40,7 @@ const RepairHistory = () => {
 
     const fetchHistoryData = async () => {
         try {
-            const response = await fetch("http://localhost:1234/api/repair-requests/all", {
+            const response = await fetch(`${process.env.REACT_APP_API}/api/repair-requests/all`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
             });
             const data = await response.json();
@@ -68,7 +68,7 @@ const RepairHistory = () => {
 
         try {
             const response = await fetch(
-                `http://localhost:1234/api/repair-requests/${repairId}`,
+                `${process.env.REACT_APP_API}/api/repair-requests/${repairId}`,
                 {
                     method: 'DELETE',
                     headers: {
@@ -113,7 +113,7 @@ const RepairHistory = () => {
                     rowData.images.map((image, index) => (
                         <img
                             key={index}
-                            src={`http://localhost:1234${image}`}
+                            src={`${process.env.REACT_APP_API}${image}`}
                             alt="repair-img"
                             width="50"
                             height="50"

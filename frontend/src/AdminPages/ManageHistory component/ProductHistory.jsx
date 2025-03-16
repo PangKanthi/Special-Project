@@ -21,7 +21,7 @@ const ProductHistory = () => {
   const fetchOrders = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("http://localhost:1234/api/orders", {
+      const response = await axios.get(`${process.env.REACT_APP_API}/api/orders`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -36,7 +36,7 @@ const ProductHistory = () => {
     if (!window.confirm("ต้องการลบรายการนี้หรือไม่?")) return;
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:1234/api/orders/${orderId}`, {
+      await axios.delete(`${process.env.REACT_APP_API}/api/orders/${orderId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setOrders(prevOrders => prevOrders.filter(order => order.id !== orderId));
@@ -79,7 +79,7 @@ const ProductHistory = () => {
       <div style={{ display: 'flex', gap: '5px' }}>
         {images.length > 0 ? (
           images.map((image, index) => {
-            const imageUrl = `http://localhost:1234${image}`;
+            const imageUrl = `${process.env.REACT_APP_API}${image}`;
             return (
               <img
                 key={index}

@@ -33,6 +33,7 @@ import Profile from "../src/User Pages/Profile";
 import ProductAutoDetail from "./Pagesinside/ProductAutoDetail"
 import ResetPassword from "./Pages/PasswordReset/ResetPassword"
 import RequestReset from "./Pages/PasswordReset/RequestReset"
+import AddAddress from "./Pages/AddAddress";
 import "primeflex/primeflex.css";
 import "primereact/resources/themes/saga-blue/theme.css";
 import "primereact/resources/primereact.min.css";
@@ -81,6 +82,7 @@ const App = () => {
           <Route path="/contact" element={<Contact />} />
           <Route path="/reset-password" element={<ResetPassword/>} />
           <Route path="/requestreset" element={<RequestReset/>} />
+          <Route path="/add-address" element={<AddAddress />} />
 
           <Route
             path="/profile"

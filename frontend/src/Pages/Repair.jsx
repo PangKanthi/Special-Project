@@ -153,7 +153,7 @@ const Repair = () => {
 
     try {
       const response = await fetch(
-        "http://localhost:1234/api/repair-requests/",
+        `${process.env.REACT_APP_API}/api/repair-requests/`,
         {
           method: "POST",
           headers: {

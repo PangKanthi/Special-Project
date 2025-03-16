@@ -11,7 +11,7 @@ const useUserCount = () => {
     const fetchUserCount = async () => {
         try {
             const token = localStorage.getItem("token");
-            const response = await axios.get("http://localhost:1234/api/users", {
+            const response = await axios.get(`${process.env.REACT_APP_API}/api/users`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 

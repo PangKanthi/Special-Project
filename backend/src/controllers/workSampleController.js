@@ -35,7 +35,7 @@ export const updateWorkSample = async (req, res, next) => {
 
         // console.log(newImages)
 
-        const cleanedOldFiles = oldFiles.length > 0 ? oldFiles.map(file => file.replace('http://localhost:1234', '')) : null;
+        const cleanedOldFiles = oldFiles.length > 0 ? oldFiles.map(file => file.replace('${process.env.REACT_APP_API}', '')) : null;
 
         // console.log("cleanedOldFiles", cleanedOldFiles)
 

@@ -1,9 +1,10 @@
 import fs from 'fs';
 import prisma from '../config/db.js';
 import CartService from './cartService.js';
-import doorConfig from "../config/doorConfig.json" assert { type: "json" };
 import NotificationService from './notificationService.js';
-
+// import doorConfig from "../config/doorConfig.json" assert { type: "json" };
+const rawData = fs.readFileSync("src/config/doorConfig.json", "utf-8");
+const doorConfig = JSON.parse(rawData);
 class OrderService {
     static async createOrder(userId, addressId, orderItems, totalAmount) {
         return await prisma.$transaction(async (tx) => {
@@ -116,7 +117,6 @@ class OrderService {
         });
     }
 
-    // ใน orderService.js
     static async updateOrderStatus(orderId, status) {
         return await prisma.order.update({
             where: { id: orderId },
@@ -236,6 +236,18 @@ class OrderService {
             include: { order_items: true }
         });
     }
+
+    static async updateOrderItem(orderItemId, newProductId, newQuantity, newPrice) {
+        return await prisma.order_item.update({
+            where: { id: orderItemId },
+            data: {
+                productId: newProductId,
+                quantity: newQuantity,
+                price: newPrice
+            }
+        });
+    }
+    
 }
 
 export default OrderService;

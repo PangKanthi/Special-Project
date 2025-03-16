@@ -124,3 +124,20 @@ export const getLatestOrder = async (req, res, next) => {
     }
 };
 
+export const updateOrderItem = async (req, res, next) => {
+    try {
+        const { orderItemId, productId, quantity, price } = req.body;
+
+        if (!orderItemId || !productId || !quantity || !price) {
+            return res.status(400).json({ error: "ข้อมูลไม่ครบถ้วน" });
+        }
+
+        const updatedOrderItem = await OrderService.updateOrderItem(orderItemId, productId, quantity, price);
+
+        res.status(200).json({ message: "อัปเดตรายการสินค้าในออเดอร์สำเร็จ", data: updatedOrderItem });
+    } catch (error) {
+        next(error);
+    }
+};
+
+

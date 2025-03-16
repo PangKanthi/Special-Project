@@ -30,7 +30,7 @@ function SlipPayment({ grandTotal, handleOrderConfirmation }) {
       const formData = new FormData();
       formData.append("slip", selectedFile); // ✅ เปลี่ยนจาก "file" เป็น "slip"
 
-      const response = await fetch("http://localhost:1234/api/check-slip", {
+      const response = await fetch(`${process.env.REACT_APP_API}/api/check-slip`, {
         method: "POST",
         body: formData,
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }, // ❌ ห้ามใส่ "Content-Type"

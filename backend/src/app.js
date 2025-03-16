@@ -27,7 +27,10 @@ const limiter = rateLimit({
     message: { success: false, message: 'Too many requests, please try again later.' }
 });
 
-app.use(cors());
+app.use(cors({
+    origin: true,
+    credentials: true,
+  }));
 app.use(helmet());
 app.use(compression());
 app.use(limiter);

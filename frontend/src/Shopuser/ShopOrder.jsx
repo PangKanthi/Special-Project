@@ -18,7 +18,7 @@ function ShopOrder() {
   useEffect(() => {
     const fetchCart = async () => {
       try {
-        const response = await fetch("http://localhost:1234/api/cart", {
+        const response = await fetch(`${process.env.REACT_APP_API}/api/cart`, {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
 
@@ -32,7 +32,7 @@ function ShopOrder() {
     };
     const fetchAddresses = async () => {
       try {
-        const res = await fetch("http://localhost:1234/api/addresses", {
+        const res = await fetch(`${process.env.REACT_APP_API}/api/addresses`, {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
         const data = await res.json();
@@ -43,7 +43,7 @@ function ShopOrder() {
     };
     const fetchUser = async () => {
       try {
-        const res = await fetch("http://localhost:1234/api/users/me", {
+        const res = await fetch(`${process.env.REACT_APP_API}/api/users/me`, {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
         const data = await res.json();
@@ -74,9 +74,9 @@ function ShopOrder() {
         addressId: selectedAddress.id,
         orderItems,
         totalAmount: grandTotal,
-    };
+      };
 
-      const orderResponse = await fetch("http://localhost:1234/api/orders", {
+      const orderResponse = await fetch(`${process.env.REACT_APP_API}/api/orders`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -87,6 +87,13 @@ function ShopOrder() {
 
       if (!orderResponse.ok) throw new Error("ไม่สามารถสร้างคำสั่งซื้อได้");
 
+      await fetch(`${process.env.REACT_APP_API}/api/cart/clear`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "application/json",
+        },
+      });
       alert("สั่งซื้อสำเร็จ!");
       navigate("/shop-order-info");
     } catch (error) {

@@ -13,7 +13,7 @@ const useSalesData = (selectedMonth, viewMode) => {
     const fetchSalesData = async () => {
         try {
             const token = localStorage.getItem("token");
-            const response = await axios.get("http://localhost:1234/api/orders", {
+            const response = await axios.get(`${process.env.REACT_APP_API}/api/orders`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
