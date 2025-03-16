@@ -16,23 +16,23 @@ const useSalesData = () => {
             });
 
             const completedOrders = response.data.data.filter(order => order.status === "complete");
-            const salesByMonth = {};
+
+            const salesByMonth = {}; // ออบเจ็กต์เก็บยอดขายรายเดือน
+
+            // ✅ เติมค่าเริ่มต้นเป็น 0 ทุกเดือน
+            const monthOrder = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            monthOrder.forEach(month => salesByMonth[month] = 0);
 
             completedOrders.forEach(order => {
                 const month = new Date(order.order_date).toLocaleString("en-US", { month: "short" });
-
-                // ✅ ตรวจสอบและแปลงยอดขายให้แน่ใจว่าเป็นตัวเลข
                 const amount = parseFloat(order.total_amount);
-                if (!isNaN(amount)) {
-                    salesByMonth[month] = (salesByMonth[month] || 0) + amount;
-                }
+                salesByMonth[month] += isNaN(amount) ? 0 : amount;
             });
 
-            // ✅ แปลงเป็น array สำหรับ Chart และเรียงเดือนให้ถูกต้อง
-            const monthOrder = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            // ✅ แปลงข้อมูลเป็น array สำหรับกราฟ
             const chartData = monthOrder.map(month => ({
                 name: month,
-                sales: salesByMonth[month] || 0,
+                sales: salesByMonth[month],
             }));
 
             setSalesData(chartData);
@@ -40,6 +40,7 @@ const useSalesData = () => {
             console.error("❌ Error fetching sales data:", error);
         }
     };
+
 
     return salesData;
 };

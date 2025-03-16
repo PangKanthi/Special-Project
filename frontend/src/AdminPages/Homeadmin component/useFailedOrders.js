@@ -2,28 +2,28 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 
 const useFailedOrders = (selectedMonth) => {
-    const [failedOrders, setFailedOrders] = useState(0);
+    const [completedOrders, setCompletedOrders] = useState([]);
 
     useEffect(() => {
-        fetchFailedOrders();
+        fetchCompletedOrders();
     }, [selectedMonth]); // ✅ ดึงข้อมูลใหม่เมื่อเลือกเดือน
 
-    const fetchFailedOrders = async () => {
+    const fetchCompletedOrders = async () => {
         try {
             const token = localStorage.getItem("token");
             const response = await axios.get(`http://localhost:1234/api/orders?month=${selectedMonth}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
-            // ✅ กรองเฉพาะคำสั่งซื้อที่มีสถานะเป็น "cancle"
-            const failed = response.data.data.filter(order => order.status === "cancle").length;
-            setFailedOrders(failed);
+            // ✅ กรองเฉพาะคำสั่งซื้อที่มีสถานะเป็น "complete"
+            const completed = response.data.data.filter(order => order.status === "cancel");
+            setCompletedOrders(completed);
         } catch (error) {
-            console.error("❌ Error fetching failed orders:", error);
+            console.error("❌ Error fetching completed orders:", error);
         }
     };
 
-    return failedOrders;
+    return completedOrders;
 };
 
 export default useFailedOrders;
