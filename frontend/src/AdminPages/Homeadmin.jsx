@@ -1,71 +1,147 @@
-import React, { useState } from "react";
+// File: src/Homeadmin.jsx
+import React, { useState, useEffect } from "react";
 import { Card } from "primereact/card";
 import { Button } from "primereact/button";
 import { Chart } from "primereact/chart";
 import { Dialog } from "primereact/dialog";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
+import { Dropdown } from "primereact/dropdown";
+
+// ----- Hook สำหรับยอดขาย (ที่เราแยกไฟล์) -----
+import useSalesDataSeparate from "./Homeadmin component/useSalesDataSeparate";
+
+// ----- Hook อื่น ๆ ของคุณ -----
 import useCompletedOrders from "./Homeadmin component/useCompletedOrders";
 import useFailedOrders from "./Homeadmin component/useFailedOrders";
 import useCompletedRepairs from "./Homeadmin component/useCompletedRepairs";
 import useFailedRepairs from "./Homeadmin component/useFailedRepairs";
 import useUserCount from "./Homeadmin component/useUserCount";
 import useInventoryData from "./Homeadmin component/useInventoryData";
-import useSalesData from "./Homeadmin component/useSalesData";
 
-const Homeadmin = () => {
-    const [selectedMonth, setSelectedMonth] = useState("Jan");
-    const completedOrders = useCompletedOrders(selectedMonth);
-    const failedOrders = useFailedOrders(selectedMonth);
-    const completedRepairs = useCompletedRepairs(selectedMonth);
-    const failedRepairs = useFailedRepairs(selectedMonth);
+export default function Homeadmin() {
+    // ============== Hook dashboard ด้านซ้าย ==============
+    const completedOrders = useCompletedOrders();
+    const failedOrders = useFailedOrders();
+    const completedRepairs = useCompletedRepairs();
+    const failedRepairs = useFailedRepairs();
     const { totalStock, productStock } = useInventoryData();
-    const [inventoryDialog, setInventoryDialog] = useState(false);
-    const salesDataFromAPI = useSalesData(selectedMonth);
     const userCount = useUserCount();
+    const [inventoryDialog, setInventoryDialog] = useState(false);
 
-    // ✅ สร้าง State สำหรับเปิด / ปิด Modal
-    const [showCompletedDialog, setShowCompletedDialog] = useState(false);
-    const [showFailedDialog, setShowFailedDialog] = useState(false);
+    // ============== เรียกใช้ Hook แยก ==============
+    const {
+        yearData, totalYearSales,
+        monthData, totalMonthSales,
+        loadYearData, loadMonthData
+    } = useSalesDataSeparate();
 
-    // ✅ แปลงข้อมูลจาก API ให้เข้ากับโครงสร้าง Chart.js
-    const salesChartData = {
-        labels: salesDataFromAPI.map(item => item.name),
-        datasets: [
-            {
-                label: "ยอดขาย (บาท)",
-                data: salesDataFromAPI.map(item => item.sales),
-                backgroundColor: "rgba(54, 162, 235, 0.6)",
-                borderColor: "rgba(54, 162, 235, 1)",
-                borderWidth: 2
-            }
-        ]
-    };
+    // ============== State เกี่ยวกับกราฟ ==============
+    const [chartMode, setChartMode] = useState("year");       // "year" | "month"
+    const [chartData, setChartData] = useState({ labels: [], datasets: [] });
+    const [selectedMonth, setSelectedMonth] = useState(null);
+
+    // ============== Dialog ตัวอย่าง: แสดงรายการรายเดือน ==============
+    const [showMonthDialog, setShowMonthDialog] = useState(false);
+
+    // เมื่อ mount ครั้งแรก -> โหลดยอดขายรายปี (เพื่อทำกราฟเป็นค่า default)
+    useEffect(() => {
+        loadYearData().then(() => {
+            // หลังโหลดเสร็จ -> sync กับ chartData
+            updateChartData("year");
+        });
+    }, []);
+
+    // เมื่อ chartMode เปลี่ยน -> รีเฟรชข้อมูล + update chart
+    useEffect(() => {
+        if (chartMode === "year") {
+            // ถ้าเปลี่ยนเป็น year -> loadYearData (ถ้ายังไม่โหลด)
+            loadYearData().then(() => {
+                updateChartData("year");
+            });
+        } else if (chartMode === "month") {
+            // ถ้าเปลี่ยนเป็น month แต่ยังไม่เลือกเดือน -> chart ยังว่าง
+            updateChartData("month");
+        }
+    }, [chartMode]);
+
+    // เมื่อ monthData หรือ yearData เปลี่ยน -> อัปเดต chart
+    useEffect(() => {
+        updateChartData(chartMode);
+    }, [yearData, monthData]);
+
+    // ฟังก์ชันเปลี่ยน chartData ตามโหมด
+    function updateChartData(mode) {
+        if (mode === "year" && yearData.length) {
+            const labels = yearData.map(item => item.name);
+            const dataset = yearData.map(item => item.sales);
+
+            setChartData({
+                labels,
+                datasets: [
+                    {
+                        label: "ยอดขายรวม (บาท)",
+                        data: dataset,
+                        backgroundColor: "rgba(54, 162, 235, 0.6)",
+                        borderColor: "rgba(54, 162, 235, 1)",
+                        borderWidth: 2
+                    }
+                ]
+            });
+        } else if (mode === "month" && monthData.length) {
+            const labels = monthData.map(item => item.name);    // "คำสั่งซื้อ #1" ...
+            const dataset = monthData.map(item => item.total);  // total บาท
+
+            setChartData({
+                labels,
+                datasets: [
+                    {
+                        label: "ยอดขาย (บาท)",
+                        data: dataset,
+                        backgroundColor: "rgba(255, 159, 64, 0.6)",
+                        borderColor: "rgba(255, 159, 64, 1)",
+                        borderWidth: 2
+                    }
+                ]
+            });
+        } else {
+            // ยังไม่มีข้อมูล (เช่น ยังไม่ได้เลือกเดือน)
+            setChartData({ labels: [], datasets: [] });
+        }
+    }
+
+    // เมื่อเปลี่ยนเดือนใน Dropdown -> loadMonthData -> update chart
+    function handleSelectMonth(e) {
+        const mon = e.value;
+        setSelectedMonth(mon);
+        loadMonthData(mon).then(() => {
+            updateChartData("month");
+        });
+    }
 
     return (
         <div className="p-5">
+            {/* Header */}
             <div className="flex justify-content-between align-items-center mb-4">
                 <h2 className="text-2xl flex align-items-center">
                     📊 Dashboard ผู้ดูแลระบบ
                 </h2>
             </div>
+
             <Card style={{ backgroundColor: '#026DCA', borderRadius: '5px' }}>
                 <div className="grid">
                     <div className="col-12 md:col-5">
                         <div className="grid">
                             {[
-                                { title: "คำสั่งซื้อสำเร็จ", value: completedOrders.length, color: "text-green-500", unit: "รายการ", icon: "✅", onClick: () => setShowCompletedDialog(true) },
-                                { title: "คำสั่งซื้อไม่สำเร็จ", value: failedOrders.length, color: "text-red-500", unit: "รายการ", icon: "❌", onClick: () => setShowFailedDialog(true) },
+                                { title: "คำสั่งซื้อสำเร็จ", value: completedOrders.length, color: "text-green-500", unit: "รายการ", icon: "✅" },
+                                { title: "คำสั่งซื้อไม่สำเร็จ", value: failedOrders.length, color: "text-red-500", unit: "รายการ", icon: "❌" },
                                 { title: "สินค้าคงคลัง", value: totalStock, color: "text-blue-500", unit: "ชิ้น", icon: "📦", onClick: () => setInventoryDialog(true) },
                                 { title: "ผู้ใช้งาน", value: userCount, color: "text-purple-500", unit: "คน", icon: "👤" },
                                 { title: "คำขอซ่อมสำเร็จ", value: completedRepairs, color: "text-teal-500", unit: "รายการ", icon: "🛠️" },
                                 { title: "คำขอซ่อมไม่สำเร็จ", value: failedRepairs, color: "text-orange-500", unit: "รายการ", icon: "⚠️" }
-                            ].map((item, index) => (
-                                <div className="col-6 p-2" key={index}>
-                                    <Card
-                                        className="shadow-3 p-1 text-center hover:shadow-lg hover:bg-gray-100 transition-all duration-300 cursor-pointer border-2 border-gray-300"
-                                        onClick={item.onClick}
-                                    >
+                            ].map((item, idx) => (
+                                <div className="col-6 p-2" key={idx}>
+                                    <Card className="shadow-3 p-1 text-center border-2 border-gray-300"  onClick={item.onClick}>
                                         <h4 className="text-gray-700 text-sm flex justify-center items-center">
                                             {item.icon} {item.title}
                                         </h4>
@@ -78,91 +154,98 @@ const Homeadmin = () => {
                         </div>
                     </div>
 
-                    {/* ฝั่งขวา - กราฟยอดขาย (ลดขนาดลงให้สมดุล) */}
+                    {/* ======== ฝั่งขวา: Chart ที่สลับได้ (ปี/เดือน) ======== */}
                     <div className="col-12 md:col-7">
-                        <Card title="ยอดขายรายเดือน" className="shadow-3 p-2 relative">
-                            {/* ✅ ปรับ `Chart` ให้อยู่ใต้ปุ่ม */}
-                            <div className="mt-10">
-                                <Chart type="bar" data={salesChartData} options={{
-                                    maintainAspectRatio: false,
-                                    plugins: {
-                                        legend: {
-                                            display: false
-                                        }
-                                    },
-                                    scales: {
-                                        y: {
-                                            beginAtZero: true,
-                                            ticks: {
-                                                stepSize: 100
-                                            }
-                                        }
-                                    }
-                                }} style={{ height: "440px" }} />
+                        <Card title="ยอดขาย" className="shadow-3 p-2 relative">
+                            {/* Dropdown เลือกโหมด (year / month) */}
+                            <div className="mb-2 flex gap-2">
+                                <Dropdown
+                                    value={chartMode}
+                                    options={[
+                                        { label: "รายปี", value: "year" },
+                                        { label: "รายเดือน", value: "month" }
+                                    ]}
+                                    onChange={(e) => setChartMode(e.value)}
+                                    placeholder="เลือกโหมดกราฟ"
+                                    className="mr-2"
+                                />
+
+                                {chartMode === "month" && (
+                                    <Dropdown
+                                        value={selectedMonth}
+                                        options={["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]}
+                                        onChange={handleSelectMonth}
+                                        placeholder="เลือกเดือน"
+                                    />
+                                )}
                             </div>
-                            <div className="absolute top-3 right-4 z-10 pt-1">
-                                <Button
-                                    className="bg-blue-500 text-white px-3 py-1 rounded shadow-md hover:bg-blue-600 transition"
-                                    
-                                >
-                                    ดูสรุปยอดขาย
-                                </Button>
+
+                            <div className="mt-2" style={{ minHeight: "400px" }}>
+                                <Chart
+                                    type="bar"
+                                    data={chartData}
+                                    options={{
+                                        maintainAspectRatio: false,
+                                        plugins: { legend: { display: false } },
+                                        scales: { y: { beginAtZero: true } }
+                                    }}
+                                    style={{ height: "400px" }}
+                                />
                             </div>
+
+                            <div className="pt-3">
+                                {chartMode === "year" ? (
+                                    <span className="text-green-600 font-bold text-lg">
+                                        ยอดขายรวมทั้งปี: {totalYearSales.toLocaleString()} บาท
+                                    </span>
+                                ) : (
+                                    <span className="text-blue-600 font-bold text-lg">
+                                        ยอดขายรวมเดือน {selectedMonth ?? "-"}: {totalMonthSales.toLocaleString()} บาท
+                                    </span>
+                                )}
+                            </div>
+
+                            {/* ตัวอย่างปุ่ม ถ้าจะเปิด Dialog รายเดือน */}
+                            {chartMode === "month" && (
+                                <div className="pt-2">
+                                    <Button
+                                        label="ดูรายละเอียดคำสั่งซื้อในเดือนนี้"
+                                        onClick={() => setShowMonthDialog(true)}
+                                        className="p-button-info"
+                                    />
+                                </div>
+                            )}
+
+                            <Dialog header="📦 รายการสินค้าคงคลัง" visible={inventoryDialog} style={{ width: '50vw' }} onHide={() => setInventoryDialog(false)}>
+                                <DataTable value={productStock} paginator rows={5}>
+                                    <Column field="id" header="รหัสสินค้า"></Column>
+                                    <Column field="name" header="ชื่อสินค้า"></Column>
+                                    <Column field="type" header="ประเภท"></Column>
+                                    <Column field="stock" header="จำนวนคงเหลือ"></Column>
+                                </DataTable>
+                            </Dialog>
                         </Card>
                     </div>
-
                 </div>
-                {/* ✅ Modal แสดงสรุปยอดขายรายเดือน */}
+
+                {/* ======== Dialog รายเดือน (ตัวอย่าง) ======== */}
                 <Dialog
-                    header={`📊 สรุปยอดขายประจำเดือน`}
-                    style={{ width: '50vw' }}
-                    
+                    header="รายละเอียดคำสั่งซื้อรายเดือน"
+                    visible={showMonthDialog}
+                    onHide={() => setShowMonthDialog(false)}
+                    style={{ width: "50vw" }}
                 >
-                    <div className="p-3">
-                        <h3 className="text-xl font-bold text-gray-700">
-                            ยอดขายรวม: <span className="text-green-500">฿</span>
-                        </h3>
-                        <DataTable paginator rows={5} className="mt-3">
-                            <Column field="name" header="ชื่อสินค้า"></Column>
-                            <Column field="quantity" header="จำนวน"></Column>
-                            <Column field="total" header="รวม (บาท)"></Column>
-                        </DataTable>
-                    </div>
-                </Dialog>
-
-
-                {/* ✅ Modal แสดงรายละเอียดสินค้าคงคลัง */}
-                <Dialog header="📦 รายการสินค้าคงคลัง" visible={inventoryDialog} style={{ width: '50vw' }} onHide={() => setInventoryDialog(false)}>
-                    <DataTable value={productStock} paginator rows={5}>
-                        <Column field="id" header="รหัสสินค้า"></Column>
-                        <Column field="name" header="ชื่อสินค้า"></Column>
-                        <Column field="type" header="ประเภท"></Column>
-                        <Column field="stock" header="จำนวนคงเหลือ"></Column>
-                    </DataTable>
-                </Dialog>
-
-                {/* ✅ Modal แสดงรายละเอียดคำสั่งซื้อสำเร็จ */}
-                <Dialog header="✅ รายการคำสั่งซื้อสำเร็จ" visible={showCompletedDialog} style={{ width: '50vw' }} onHide={() => setShowCompletedDialog(false)}>
-                    <DataTable value={completedOrders} paginator rows={5}>
-                        <Column field="id" header="รหัสคำสั่งซื้อ"></Column>
-                        <Column field="customer_name" header="ลูกค้า"></Column>
-                        <Column field="total_amount" header="ยอดรวม"></Column>
-                        <Column field="order_date" header="วันที่สั่งซื้อ"></Column>
-                    </DataTable>
-                </Dialog>
-
-                {/* ✅ Modal แสดงรายละเอียดคำสั่งซื้อไม่สำเร็จ */}
-                <Dialog header="❌ รายการคำสั่งซื้อไม่สำเร็จ" visible={showFailedDialog} style={{ width: '50vw' }} onHide={() => setShowFailedDialog(false)}>
-                    <DataTable value={failedOrders} paginator rows={5}>
-                        <Column field="id" header="รหัสคำสั่งซื้อ"></Column>
-                        <Column field="customer_name" header="ลูกค้า"></Column>
-                        <Column field="total_amount" header="ยอดรวม"></Column>
-                        <Column field="order_date" header="วันที่สั่งซื้อ"></Column>
+                    <DataTable value={monthData} paginator rows={5}>
+                        <Column field="name" header="คำสั่งซื้อ" />
+                        <Column field="order_date" header="วันที่สั่งซื้อ" />
+                        <Column
+                            field="total"
+                            header="ยอดขายรวม (บาท)"
+                            body={(rowData) => rowData.total?.toLocaleString() || "0"}
+                        />
                     </DataTable>
                 </Dialog>
             </Card>
         </div>
     );
-};
-
-export default Homeadmin;
+}

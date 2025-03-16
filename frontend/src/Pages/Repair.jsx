@@ -18,8 +18,47 @@ const Repair = () => {
 
   const [errors, setErrors] = useState({});
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [addresses, setAddresses] = useState([]);  // เก็บที่อยู่ของผู้ใช้
+  const [selectedAddress, setSelectedAddress] = useState(null); // ที่อยู่ที่เลือก
   const navigate = useNavigate();
   const fileUploadRef = useRef(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    setIsLoggedIn(!!token);
+
+    const fetchAddresses = async () => {
+      try {
+        const res = await fetch("http://localhost:1234/api/addresses", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setAddresses(data.data || []);
+          if (data.data.length > 0) {
+            setSelectedAddress(data.data[0]); // ตั้งค่าที่อยู่เริ่มต้นเป็นอันแรก
+          }
+        }
+      } catch (err) {
+        console.error("เกิดข้อผิดพลาดในการดึงที่อยู่:", err);
+      }
+    };
+
+    if (token) fetchAddresses();
+  }, []);
+
+  const handleAddressSelection = (selected) => {
+    if (selected) {
+      setForm((prevForm) => ({
+        ...prevForm,
+        addressLine: selected.addressLine,
+        province: selected.province,
+        district: selected.district,
+        subdistrict: selected.subdistrict,
+        postcode: selected.postalCode,
+      }));
+    }
+  };
 
   const serviceTypes = [
     { label: "ประตูม้วน", value: "shutter" },
@@ -55,7 +94,7 @@ const Repair = () => {
   const handleImageUpload = (event) => {
     // เช็คว่าถูกเรียกกี่ครั้ง
     console.log("uploadHandler is called with:", event.files);
-  
+
     setForm((prevForm) => {
       const newFiles = [];
       event.files.forEach((file) => {
@@ -65,14 +104,14 @@ const Repair = () => {
           newFiles.push({ file, previewUrl: URL.createObjectURL(file) });
         }
       });
-  
+
       return {
         ...prevForm,
         images: [...prevForm.images, ...newFiles],
       };
     });
   };
-  
+
 
   // ✅ ฟังก์ชันลบรูปภาพออกจาก state
   const handleRemoveImage = (event) => {
@@ -134,8 +173,8 @@ const Repair = () => {
           problemDescription: "",
           serviceType: "",
           images: [],
-      });
-      fileUploadRef.current.clear();
+        });
+        fileUploadRef.current.clear();
         navigate("/profile");
       } else {
         const errorData = await response.json();
@@ -176,7 +215,11 @@ const Repair = () => {
       >
         <RepairForm
           form={form}
-          setForm={setForm} 
+          setForm={setForm}
+          addresses={addresses}
+          useExistingAddress={useExistingAddress}
+          setUseExistingAddress={setUseExistingAddress}
+          handleAddressSelection={handleAddressSelection}
           handleInputChange={handleInputChange}
           serviceTypes={serviceTypes}
           errors={errors}
@@ -194,10 +237,15 @@ const Repair = () => {
               maxFileSize={1000000}
               multiple
               customUpload
-              uploadHandler={handleImageUpload}
-              onRemove={handleRemoveImage}
+              uploadHandler={(e) =>
+                setForm((prevForm) => ({
+                  ...prevForm,
+                  images: [...prevForm.images, ...e.files.map(file => ({ file, previewUrl: URL.createObjectURL(file) }))],
+                }))
+              }
               chooseLabel="เลือกไฟล์"
               auto={true}
+              onRemove={handleRemoveImage}
             />
           </div>
         </div>
