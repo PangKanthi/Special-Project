@@ -15,10 +15,7 @@ const useSalesData = () => {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
-            // ✅ กรองเฉพาะออเดอร์ที่มี status เป็น "complete"
             const completedOrders = response.data.data.filter(order => order.status === "complete");
-
-            // ✅ สร้างโครงสร้างสำหรับจัดเก็บยอดขายแต่ละเดือน
             const salesByMonth = {};
 
             completedOrders.forEach(order => {

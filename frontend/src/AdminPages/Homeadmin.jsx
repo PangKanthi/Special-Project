@@ -1,205 +1,141 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card } from "primereact/card";
+import { Dropdown } from "primereact/dropdown";
 import { Chart } from "primereact/chart";
+import { Dialog } from "primereact/dialog";
+import { DataTable } from "primereact/datatable";
+import { Column } from "primereact/column";
 import useCompletedOrders from "./Homeadmin component/useCompletedOrders";
 import useCompletedRepairs from "./Homeadmin component/useCompletedRepairs";
-import useSalesData from "./Homeadmin component/useSalesData";
 import useUserCount from "./Homeadmin component/useUserCount";
 import useInventoryData from "./Homeadmin component/useInventoryData";
+import useSalesData from "./Homeadmin component/useSalesData";
+import useFailedOrders from "./Homeadmin component/useFailedOrders";
 
 const Homeadmin = () => {
-    const completedOrders = useCompletedOrders();
-    const completedRepairs = useCompletedRepairs();
-    const salesData = useSalesData();
-    const userCount = useUserCount();
+    const [selectedMonth, setSelectedMonth] = useState("Jan");
+    const completedOrders = useCompletedOrders(selectedMonth);
+    const completedRepairs = useCompletedRepairs(selectedMonth);
     const { totalStock, productStock } = useInventoryData();
+    const [inventoryDialog, setInventoryDialog] = useState(false);
+    const salesDataFromAPI = useSalesData(selectedMonth);
+    const failedOrders = useFailedOrders(selectedMonth);
+    const userCount = useUserCount();
 
-    const chartConfig = {
-        labels: salesData.map(item => item.name),
+
+    const months = [
+        { label: "มกราคม", value: "Jan" },
+        { label: "กุมภาพันธ์", value: "Feb" },
+        { label: "มีนาคม", value: "Mar" },
+        { label: "เมษายน", value: "Apr" },
+        { label: "พฤษภาคม", value: "May" },
+        { label: "มิถุนายน", value: "Jun" },
+        { label: "กรกฎาคม", value: "Jul" },
+        { label: "สิงหาคม", value: "Aug" },
+        { label: "กันยายน", value: "Sep" },
+        { label: "ตุลาคม", value: "Oct" },
+        { label: "พฤศจิกายน", value: "Nov" },
+        { label: "ธันวาคม", value: "Dec" }
+    ];
+
+    // ข้อมูลตัวอย่าง
+    const data = {
+        ordersCompleted: 120,
+        inventory: 500,
+        users: 80,
+        repairsCompleted: 30,
+        ordersFailed: 10,
+        repairsFailed: 5,
+        sales: [200, 300, 250, 400, 350, 450, 500, 600, 550, 700, 750, 800]
+    };
+
+    // ✅ แปลงข้อมูลจาก API ให้เข้ากับโครงสร้าง Chart.js
+    const salesChartData = {
+        labels: salesDataFromAPI.map(item => item.name),
         datasets: [
             {
                 label: "ยอดขาย (บาท)",
-                data: salesData.map(item => item.sales),
-                backgroundColor: ["#FFC107", "#00BFFF", "#E91E63", "#9C27B0"],
-            },
-        ],
+                data: salesDataFromAPI.map(item => item.sales),
+                backgroundColor: "rgba(54, 162, 235, 0.6)",
+                borderColor: "rgba(54, 162, 235, 1)",
+                borderWidth: 2
+            }
+        ]
     };
 
     return (
-        <div className="p-6 space-y-6 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white">
-            <div className="flex justify-between align-items-center gap-4 flex-wrap">
-                {/* Box 1 */}
-                <Card className="p-4 flex-1 text-center shadow-lg border-round-3xl" style={{ background: "#f1b81e", color: "#fff" }}>
-                    <div className="text-3xl font-bold">{completedOrders}</div>
-                    <div className="text-xl mt-2">คำสั่งซื้อที่สำเร็จ</div>
-                    <i className="pi pi-shopping-cart text-3xl mt-2"></i>
-                </Card>
-
-                <Card className="p-4 flex-1 text-center shadow-lg border-round-3xl" style={{ background: "#673AB7", color: "#fff" }}>
-                    <div className="text-3xl font-bold">{totalStock}</div>
-                    <div className="text-xl mt-2">สินค้าคงคลัง</div>
-                    <i className="pi pi-box text-3xl mt-2"></i>
-                </Card>
-
-                <Card className="p-4 flex-1 text-center shadow-lg border-round-3xl" style={{ background: "#03A9F4", color: "#fff" }}>
-                    <div className="text-3xl font-bold">{userCount}</div>
-                    <div className="text-xl mt-2">ผู้ใช้งาน</div>
-                    <i className="pi pi-users text-3xl mt-2"></i>
-                </Card>
-
-                <Card className="p-4 flex-1 text-center shadow-lg border-round-3xl" style={{ background: "#E91E63", color: "#fff" }}>
-                    <div className="text-3xl font-bold">{completedRepairs}</div>
-                    <div className="text-xl mt-2">คำขอซ่อมที่สำเร็จ</div>
-                    <i className="pi pi-wrench text-3xl mt-2"></i>
-                </Card>
+        <div className="p-5">
+            {/* Header */}
+            <div className="flex justify-content-between align-items-center mb-4">
+                <h2 className="text-2xl font-semibold flex align-items-center">
+                    📊 Dashboard ผู้ดูแลระบบ
+                </h2>
+                <Dropdown
+                    value={selectedMonth}
+                    options={months}
+                    onChange={(e) => setSelectedMonth(e.value)}
+                    placeholder="เลือกเดือน"
+                    className="w-12rem"
+                />
             </div>
 
-            <div className="bg-gray-100 shadow-lg rounded-lg p-6 mt-5">
-                <h4 className="text-2xl font-semibold text-center mb-4 text-gray-900">
-                    📦 รายละเอียดสินค้าคงเหลือ
-                </h4>
-                <div className="overflow-x-auto">
-                    <table className="min-w-full bg-white shadow-md rounded-lg">
-                        {/* 🟢 หัวตาราง */}
-                        <thead className="bg-blue-500 text-white">
-                            <tr>
-                                <th className="py-3 px-4 text-center">ชื่อสินค้า</th>
-                                <th className="py-3 px-4 text-center">จำนวน</th>
-                                <th className="py-3 px-4 text-center">สถานะ</th>
-                            </tr>
-                        </thead>
-
-                        {/* 🔵 เนื้อหาตาราง */}
-                        <tbody>
-                            {productStock.length > 0 ? (
-                                productStock.map((item, index) => {
-                                    let stockColor = "text-green-600";
-                                    let statusText = "มีของ";
-                                    let statusBg = "bg-green-200 text-green-700";
-
-                                    if (item.stock < 10) {
-                                        stockColor = "text-yellow-500";
-                                        statusText = "ใกล้หมด";
-                                        statusBg = "bg-yellow-200 text-yellow-700";
-                                    }
-                                    if (item.stock <= 0) {
-                                        stockColor = "text-red-600";
-                                        statusText = "ต้องเติมของ";
-                                        statusBg = "bg-red-200 text-red-700";
-                                    }
-
-                                    return (
-                                        <tr key={index} className="border-b border-gray-300 hover:bg-gray-100 transition-all">
-                                            {/* ✅ ปรับสีชื่อสินค้าให้เข้มขึ้น */}
-                                            <td className="py-3 px-4 text-center text-gray-900 font-semibold hover:text-blue-600 transition-all">
-                                                {item.name}
-                                            </td>
-                                            <td className={`py-3 px-4 text-center font-bold ${stockColor}`}>
-                                                {item.stock} ชิ้น
-                                            </td>
-                                            <td className="py-3 px-4 text-center">
-                                                <span className={`px-3 py-1 rounded-full text-sm font-semibold ${statusBg}`}>
-                                                    {statusText}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    );
-                                })
-                            ) : (
-                                <tr>
-                                    <td colSpan="3" className="text-center py-4 text-gray-500">ไม่มีข้อมูลสินค้า</td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+            {/* Layout: การ์ด 6 อัน + กราฟยอดขาย */}
+            <div className="grid">
+                {/* ฝั่งซ้าย - การ์ด 6 อัน (ขยายกว้างขึ้น) */}
+                <div className="col-12 md:col-5">
+                    <div className="grid">
+                        {[
+                            { title: "คำสั่งซื้อสำเร็จ", value: completedOrders, color: "text-green-500", unit: "รายการ" },
+                            { title: "คำสั่งซื้อไม่สำเร็จ", value: failedOrders, color: "text-red-500", unit: "รายการ" }, // ✅ ใช้ API จริง
+                            { title: "สินค้าคงคลัง", value: totalStock, color: "text-blue-500", unit: "ชิ้น", onClick: () => setInventoryDialog(true) }, // ✅ เปิด Modal เมื่อคลิก
+                            { title: "ผู้ใช้งาน", value: userCount, color: "text-purple-500", unit: "คน" },
+                            { title: "คำขอซ่อมสำเร็จ", value: completedRepairs, color: "text-teal-500", unit: "รายการ" },
+                            { title: "คำขอซ่อมไม่สำเร็จ", value: data.repairsFailed, color: "text-orange-500", unit: "รายการ" }
+                        ].map((item, index) => (
+                            <div className="col-6 p-2" key={index}>
+                                <Card
+                                    className="shadow-3 p-2 text-center hover:shadow-5 transition-all duration-300 cursor-pointer"
+                                    onClick={item.onClick} // ✅ รองรับการคลิก
+                                >
+                                    <h4 className="text-gray-700 text-sm">{item.title}</h4>
+                                    <h3 className={`font-bold text-md ${item.color}`}>{item.value} {item.unit}</h3>
+                                </Card>
+                            </div>
+                        ))}
+                    </div>
                 </div>
-            </div>
 
-
-
-
-            {/* ✅ กราฟยอดขาย */}
-            <Card className="p-6 shadow-lg bg-gray-50 mt-5 rounded-lg">
-                <h4 className="text-2xl font-semibold text-center text-blue-600">
-                    📊 ยอดขายรายเดือน
-                </h4>
-                <Chart
-                    type="bar"
-                    data={{
-                        ...chartConfig,
-                        datasets: chartConfig.datasets.map(dataset => ({
-                            ...dataset,
-                            backgroundColor: "#4CAF50", // ✅ สีแถบกราฟเขียวสดใส
-                            borderColor: "#388E3C", // ✅ เส้นขอบเข้มขึ้น
-                            borderWidth: 2
-                        }))
-                    }}
-                    options={{
-                        responsive: true,
-                        scales: {
-                            y: {
-                                ticks: {
-                                    callback: function (value) {
-                                        return value.toLocaleString() + " ฿";
-                                    },
-                                    color: "#333333", // ✅ เปลี่ยนสีเป็นดำเทา
-                                },
-                                grid: {
-                                    color: "#E0E0E0" // ✅ ทำเส้นตารางจางลง
+                {/* ฝั่งขวา - กราฟยอดขาย (ลดขนาดลงให้สมดุล) */}
+                <div className="col-12 md:col-7">
+                    <Card title="ยอดขายรายเดือน" className="shadow-3 p-3">
+                        <Chart type="bar" data={salesChartData} options={{
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false
                                 }
                             },
-                            x: {
-                                ticks: {
-                                    color: "#333333", // ✅ เปลี่ยนสีเป็นดำเทา
-                                },
-                                grid: {
-                                    color: "rgba(0, 0, 0, 0.1)" // ✅ ทำเส้นตาราง X จางลง
-                                }
-                            }
-                        },
-                        plugins: {
-                            tooltip: {
-                                backgroundColor: "rgba(0,0,0,0.8)", // ✅ ทำให้ Tooltip ดูเข้มขึ้น
-                                titleColor: "#ffffff",
-                                bodyColor: "#ffffff",
-                                callbacks: {
-                                    label: function (tooltipItem) {
-                                        return `ยอดขาย: ${tooltipItem.raw.toLocaleString()} ฿`;
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        stepSize: 100
                                     }
                                 }
                             }
-                        }
-                    }}
-                />
-            </Card>
-
-
-            {/* ✅ สรุปยอดขายรายเดือน */}
-            <div className="bg-gray-50 shadow-lg rounded-lg p-6 mt-5">
-                <h4 className="text-2xl font-semibold text-center text-blue-600 mb-4">
-                    📅 สรุปยอดขายรายเดือน
-                </h4>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-                    {salesData.length > 0 ? (
-                        salesData.map((item, index) => (
-                            <div
-                                key={index}
-                                className="p-4 bg-white shadow-md rounded-xl text-center flex flex-col items-center justify-center min-h-[120px] 
-                               hover:shadow-lg transform hover:scale-105 transition-all"
-                            >
-                                <h5 className="font-semibold text-gray-800">{item.name}</h5>
-                                <p className={`text-lg font-bold ${item.sales > 0 ? "text-green-600" : "text-red-500"}`}>
-                                    {item.sales.toLocaleString()} ฿
-                                </p>
-                            </div>
-                        ))
-                    ) : (
-                        <p className="text-center text-gray-500 col-span-6">ไม่มีข้อมูลยอดขาย</p>
-                    )}
+                        }} style={{ height: "435px" }} />
+                    </Card>
                 </div>
             </div>
-
-
+            {/* ✅ Modal แสดงรายละเอียดสินค้าคงคลัง */}
+            <Dialog header="📦 รายการสินค้าคงคลัง" visible={inventoryDialog} style={{ width: '50vw' }} onHide={() => setInventoryDialog(false)}>
+                <DataTable value={productStock} paginator rows={5}>
+                    <Column field="id" header="รหัสสินค้า"></Column>
+                    <Column field="name" header="ชื่อสินค้า"></Column>
+                    <Column field="type" header="ประเภท"></Column>
+                    <Column field="stock" header="จำนวนคงเหลือ"></Column>
+                </DataTable>
+            </Dialog>
         </div>
     );
 };
