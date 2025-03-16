@@ -9,7 +9,7 @@ import { Dropdown } from "primereact/dropdown";
 import axios from "axios";
 import useLocationData from "../../Hooks/useLocationData";
 
-const API_ADDRESSES_URL = "http://localhost:1234/api/addresses";
+const API_ADDRESSES_URL = "https://api.d-dayengineering.com/api/addresses";
 
 const UserTable = ({ users, onEdit, onDelete }) => {
   const { provinces, amphures, tambons } = useLocationData();

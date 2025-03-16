@@ -4,7 +4,7 @@ import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
 import { FileUpload } from "primereact/fileupload";
 
-const API_URL = "http://localhost:1234/api/work-samples"; // 🔹 URL ของ Backend
+const API_URL = "https://api.d-dayengineering.com/api/work-samples"; // 🔹 URL ของ Backend
 
 const PortfolioDialog = ({
   visible,
@@ -31,7 +31,7 @@ const PortfolioDialog = ({
         selectedPortfolio.images.map((img) =>
           img.startsWith("http")
             ? img
-            : `http://localhost:1234/${img.startsWith("/") ? img.substring(1) : img
+            : `https://api.d-dayengineering.com/${img.startsWith("/") ? img.substring(1) : img
             }`
         )
       );

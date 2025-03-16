@@ -1,7 +1,6 @@
 import fs from 'fs';
 import prisma from '../config/db.js';
 import CartService from './cartService.js';
-import doorConfig from "../config/doorConfig.json" assert { type: "json" };
 import NotificationService from './notificationService.js';
 
 class OrderService {

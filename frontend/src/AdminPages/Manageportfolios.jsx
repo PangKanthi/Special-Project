@@ -4,7 +4,7 @@ import PortfolioFilters from './Manageportfolios component/PortfolioFilters';
 import PortfolioList from './Manageportfolios component/PortfolioList';
 import PortfolioDialog from './Manageportfolios component/PortfolioDialog';
 
-const API_URL = "http://localhost:1234/api/work-samples";
+const API_URL = "https://api.d-dayengineering.com/api/work-samples";
 
 const ManagePortfolios = () => {
     const [visible, setVisible] = useState(false);

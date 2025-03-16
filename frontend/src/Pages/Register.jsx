@@ -74,7 +74,7 @@ const Register = () => {
     if (!Object.values(newErrors).some((error) => error)) {
       console.log("Form submitted successfully:", { ...formData, password });
 
-      let url = "http://localhost:1234/api/auth/register";
+      let url = "https://api.d-dayengineering.com/api/auth/register";
 
       try {
         const response = await axios.post(url, { ...formData, password });
@@ -84,7 +84,7 @@ const Register = () => {
           setErrorMessage("");
           setIsRegistered(true);
           const loginResponse = await axios.post(
-            "http://localhost:1234/api/auth/login",
+            "https://api.d-dayengineering.com/api/auth/login",
             {
               username: formData.username,
               password,

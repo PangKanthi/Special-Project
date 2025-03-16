@@ -114,7 +114,7 @@ const Repair = () => {
 
     try {
       const response = await fetch(
-        "http://localhost:1234/api/repair-requests/",
+        "https://api.d-dayengineering.com/api/repair-requests/",
         {
           method: "POST",
           headers: {

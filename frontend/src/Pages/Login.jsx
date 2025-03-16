@@ -36,7 +36,7 @@ const Login = () => {
         setSuccessMessage('');
     
         try {
-            const response = await axios.post("http://localhost:1234/api/auth/login", { username, password });
+            const response = await axios.post("https://api.d-dayengineering.com/api/auth/login", { username, password });
             console.log("🔑 Login Response:", response.data); // ตรวจสอบข้อมูลที่ได้รับจาก API
     
             if (response.data.success) {

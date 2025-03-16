@@ -11,7 +11,7 @@ function ShopCart() {
   useEffect(() => {
     const fetchCart = async () => {
       try {
-        const response = await fetch("http://localhost:1234/api/cart", {
+        const response = await fetch("https://api.d-dayengineering.com/api/cart", {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
 
@@ -37,7 +37,7 @@ function ShopCart() {
     console.log("🗑 Removing productId:", productId);
 
     try {
-      const response = await fetch("http://localhost:1234/api/cart/remove", {
+      const response = await fetch("https://api.d-dayengineering.com/api/cart/remove", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -134,7 +134,7 @@ function ShopCart() {
                 {item.product?.images && item.product.images.length > 0 ? (
                   <Carousel
                     value={item.product.images.map(
-                      (img) => `http://localhost:1234${img}`
+                      (img) => `https://api.d-dayengineering.com${img}`
                     )}
                     numVisible={1}
                     numScroll={1}
