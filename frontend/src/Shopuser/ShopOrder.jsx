@@ -74,7 +74,7 @@ function ShopOrder() {
         addressId: selectedAddress.id,
         orderItems,
         totalAmount: grandTotal,
-    };
+      };
 
       const orderResponse = await fetch("http://localhost:1234/api/orders", {
         method: "POST",
@@ -87,6 +87,13 @@ function ShopOrder() {
 
       if (!orderResponse.ok) throw new Error("ไม่สามารถสร้างคำสั่งซื้อได้");
 
+      await fetch("http://localhost:1234/api/cart/clear", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "application/json",
+        },
+      });
       alert("สั่งซื้อสำเร็จ!");
       navigate("/shop-order-info");
     } catch (error) {

@@ -116,7 +116,6 @@ class OrderService {
         });
     }
 
-    // ใน orderService.js
     static async updateOrderStatus(orderId, status) {
         return await prisma.order.update({
             where: { id: orderId },
@@ -236,6 +235,18 @@ class OrderService {
             include: { order_items: true }
         });
     }
+
+    static async updateOrderItem(orderItemId, newProductId, newQuantity, newPrice) {
+        return await prisma.order_item.update({
+            where: { id: orderItemId },
+            data: {
+                productId: newProductId,
+                quantity: newQuantity,
+                price: newPrice
+            }
+        });
+    }
+    
 }
 
 export default OrderService;

@@ -83,7 +83,22 @@ const Register = () => {
           setSuccessMessage(response.data.message);
           setErrorMessage("");
           setIsRegistered(true);
-          setTimeout(() => navigate("/login"), 1000);
+          const loginResponse = await axios.post(
+            "http://localhost:1234/api/auth/login",
+            {
+              username: formData.username,
+              password,
+            }
+          );
+          if (loginResponse.data.success) {
+            // 🏆 เก็บ Token ลง localStorage
+            localStorage.setItem("token", loginResponse.data.data.token);
+            setTimeout(() => {
+              navigate("/add-address", {
+                state: { userId: response.data.data.id },
+              });
+            }, 1000);
+          }
         } else {
           setErrorMessage(response.data.message);
           setSuccessMessage("");
