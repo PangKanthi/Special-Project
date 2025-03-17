@@ -30,9 +30,9 @@ import ShopOrder from "./Shopuser/ShopOrder";
 import ShopOrderinformation from "./Shopuser/ShopOrderinformation";
 import ProtectedRoute from "./protectedRoute/protectedRoute";
 import Profile from "../src/User Pages/Profile";
-import ProductAutoDetail from "./Pagesinside/ProductAutoDetail"
-import ResetPassword from "./Pages/PasswordReset/ResetPassword"
-import RequestReset from "./Pages/PasswordReset/RequestReset"
+import ProductAutoDetail from "./Pagesinside/ProductAutoDetail";
+import ResetPassword from "./Pages/PasswordReset/ResetPassword";
+import RequestReset from "./Pages/PasswordReset/RequestReset";
 import AddAddress from "./Pages/AddAddress";
 import "primeflex/primeflex.css";
 import "primereact/resources/themes/saga-blue/theme.css";
@@ -80,8 +80,8 @@ const App = () => {
           <Route path="/about" element={<About />} />
           <Route path="/portfolio" element={<Portfolio />} />
           <Route path="/contact" element={<Contact />} />
-          <Route path="/reset-password" element={<ResetPassword/>} />
-          <Route path="/requestreset" element={<RequestReset/>} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/requestreset" element={<RequestReset />} />
           <Route path="/add-address" element={<AddAddress />} />
 
           <Route
@@ -101,12 +101,54 @@ const App = () => {
               </ProtectedRoute>
             }
           />
-          <Route path="/manageorders" element={<Manageorders />} />
-          <Route path="/manageproducts" element={<Manageproducts />} />
-          <Route path="/manageusers" element={<Manageusers />} />
-          <Route path="/managerepairrequests" element={<Managerepairrequests />} />
-          <Route path="/manageportfolios" element={<Manageportfolios />} />
-          <Route path="/history" element={<History />} />
+          <Route
+            path="/manageorders"
+            element={
+              <ProtectedRoute requiredRole="A">
+                <Manageorders />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/manageproducts"
+            element={
+              <ProtectedRoute requiredRole="A">
+                <Manageproducts />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/manageusers"
+            element={
+              <ProtectedRoute requiredRole="A">
+                <Manageusers />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/managerepairrequests"
+            element={
+              <ProtectedRoute requiredRole="A">
+                <Managerepairrequests />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/manageportfolios"
+            element={
+              <ProtectedRoute requiredRole="A">
+                <Manageportfolios />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/history"
+            element={
+              <ProtectedRoute requiredRole="A">
+                <History />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </div>
       {showFooter && (
