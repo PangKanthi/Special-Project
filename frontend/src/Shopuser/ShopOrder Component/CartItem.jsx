@@ -23,7 +23,7 @@ function CartItem({ item }) {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row items-start border-b border-gray-300 pb-4 mb-4">
+    <div className="lg:flex flex-col lg:flex-row items-start border-b border-gray-300 pb-4 mb-4">
       {/* 🔹 ส่วนแสดงรูปสินค้า */}
       <div className="w-[200px] lg:w-[300px] lg:mr-6">
         {Array.isArray(item.product.images) &&

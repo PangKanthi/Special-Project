@@ -18,6 +18,7 @@ import useCompletedRepairs from "./Homeadmin component/useCompletedRepairs";
 import useFailedRepairs from "./Homeadmin component/useFailedRepairs";
 import useUserCount from "./Homeadmin component/useUserCount";
 import useInventoryData from "./Homeadmin component/useInventoryData";
+import NotificationButton from "./Homeadmin component/NotificationButton";
 
 export default function Homeadmin() {
     // ============== Hook dashboard ด้านซ้าย ==============
@@ -126,6 +127,7 @@ export default function Homeadmin() {
                 <h2 className="text-2xl flex align-items-center">
                     📊 Dashboard ผู้ดูแลระบบ
                 </h2>
+                <NotificationButton />
             </div>
 
             <Card style={{ backgroundColor: '#026DCA', borderRadius: '5px' }}>

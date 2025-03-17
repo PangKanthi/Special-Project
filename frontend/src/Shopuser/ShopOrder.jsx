@@ -129,13 +129,11 @@ function ShopOrder() {
         </div>
       </div>
       <div className="pl-5 pr-5 lg:pt-7">
-        <Card>
           <SummaryCard
             totalProductPrice={totalProductPrice}
             grandTotal={grandTotal}
             onConfirmOrder={handleOrderConfirmation}
           />
-        </Card>
       </div>
     </div>
   );

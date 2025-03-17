@@ -245,6 +245,7 @@ function ShopCart() {
               boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
               padding: "20px",
               backgroundColor: "#f6f6f6",
+              height: "350px",
             }}
           >
             <div className="flex justify-content-between text-lg">
@@ -257,7 +258,11 @@ function ShopCart() {
               <p>฿ {vatAmount.toLocaleString()}</p>
             </div>
 
-            <div className="flex justify-content-between text-lg font-bold border-t pt-2">
+            <div className="border-t border-gray-300 my-3"></div>
+
+            <div className="flex justify-content-between text-lg font-bold border-t pt-2"
+            style={{ borderTop: "1px solid #ddd", paddingTop: "15px" }}
+            >
               <p>ยอดรวมทั้งหมด</p>
               <p>฿ {grandTotal.toLocaleString()}</p>
             </div>
