@@ -18,37 +18,66 @@ const Repair = () => {
 
   const [errors, setErrors] = useState({});
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [addresses, setAddresses] = useState([]);  // เก็บที่อยู่ของผู้ใช้
-  const [selectedAddress, setSelectedAddress] = useState(null); // ที่อยู่ที่เลือก
+
+  // ✅ เก็บรายการที่อยู่ทั้งหมดใน state
+  const [addresses, setAddresses] = useState([]);
+
+  // ✅ เก็บที่อยู่ที่เลือกจาก Dropdown
+  const [selectedAddress, setSelectedAddress] = useState(null);
+
+  // ✅ เก็บข้อมูล user (ชื่อ, นามสกุล, เบอร์) เพื่อแสดงในหน้า
+  const [user, setUser] = useState(null);
+
   const navigate = useNavigate();
   const fileUploadRef = useRef(null);
 
+  // ✅ ดึง Token เพื่อเช็คว่า login อยู่หรือไม่
   useEffect(() => {
     const token = localStorage.getItem("token");
     setIsLoggedIn(!!token);
 
+    // 📌 ฟังก์ชันดึงข้อมูลที่อยู่
     const fetchAddresses = async () => {
       try {
-        const res = await fetch("http://localhost:1234/api/addresses", {
+        const res = await fetch(`${process.env.REACT_APP_API}/api/addresses`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
         if (res.ok) {
           setAddresses(data.data || []);
-          if (data.data.length > 0) {
-            setSelectedAddress(data.data[0]); // ตั้งค่าที่อยู่เริ่มต้นเป็นอันแรก
-          }
+          // ⬇️ ลบโค้ด auto-select ที่อยู่แรกออก
+          // if (data.data.length > 0) {
+          //   setSelectedAddress(data.data[0]); // ❌ ไม่เลือกอัตโนมัติ
+          // }
         }
       } catch (err) {
         console.error("เกิดข้อผิดพลาดในการดึงที่อยู่:", err);
       }
     };
 
-    if (token) fetchAddresses();
+    // 📌 ฟังก์ชันดึงข้อมูลผู้ใช้
+    const fetchUser = async () => {
+      try {
+        const res = await fetch(`${process.env.REACT_APP_API}/api/users/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (res.ok) setUser(data);
+      } catch (err) {
+        console.error("เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้:", err);
+      }
+    };
+
+    if (token) {
+      fetchAddresses();
+      fetchUser();
+    }
   }, []);
 
+  // ✅ ฟังก์ชัน handleAddressSelection สำหรับเลือกที่อยู่จาก Dropdown
   const handleAddressSelection = (selected) => {
     if (selected) {
+      setSelectedAddress(selected);
       setForm((prevForm) => ({
         ...prevForm,
         addressLine: selected.addressLine,
@@ -57,16 +86,30 @@ const Repair = () => {
         subdistrict: selected.subdistrict,
         postcode: selected.postalCode,
       }));
+    } else {
+      // ถ้า user กลับมาเลือกเป็น "null" (ไม่มีที่อยู่)
+      setSelectedAddress(null);
+      setForm((prevForm) => ({
+        ...prevForm,
+        addressLine: "",
+        province: "",
+        district: "",
+        subdistrict: "",
+        postcode: "",
+      }));
     }
   };
 
+  // ✅ ประเภทการซ่อม
   const serviceTypes = [
     { label: "ประตูม้วน", value: "shutter" },
     { label: "อะไหล่ประตูม้วน", value: "shutter_parts" },
   ];
 
+  // ✅ ฟังก์ชัน validate ฟิลด์ว่าง
   const validateNotEmpty = (value) => value.trim() !== "";
 
+  // ✅ ฟังก์ชัน handleInputChange
   const handleInputChange = (e, field) => {
     const value = e.target.value;
     setForm((prevForm) => ({
@@ -79,6 +122,7 @@ const Repair = () => {
     }));
   };
 
+  // ✅ ฟังก์ชัน validate ฟิลด์ซ่อม
   const validateRepairField = (field, value) => {
     switch (field) {
       case "addressLine":
@@ -92,19 +136,18 @@ const Repair = () => {
 
   // ✅ ฟังก์ชันเพิ่มไฟล์ลง state
   const handleImageUpload = (event) => {
-    // เช็คว่าถูกเรียกกี่ครั้ง
     console.log("uploadHandler is called with:", event.files);
 
     setForm((prevForm) => {
       const newFiles = [];
       event.files.forEach((file) => {
-        // ถ้าชื่อไฟล์ตรงกัน หรือ file.size ตรงกัน ให้ถือว่าซ้ำ
-        const isDuplicate = prevForm.images.some((img) => img.file.name === file.name && img.file.size === file.size);
+        const isDuplicate = prevForm.images.some(
+          (img) => img.file.name === file.name && img.file.size === file.size
+        );
         if (!isDuplicate) {
           newFiles.push({ file, previewUrl: URL.createObjectURL(file) });
         }
       });
-
       return {
         ...prevForm,
         images: [...prevForm.images, ...newFiles],
@@ -112,18 +155,17 @@ const Repair = () => {
     });
   };
 
-
   // ✅ ฟังก์ชันลบรูปภาพออกจาก state
   const handleRemoveImage = (event) => {
     setForm((prevForm) => {
       const updatedImages = prevForm.images.filter(
         (image) => image.file.name !== event.file.name
       );
-
       return { ...prevForm, images: updatedImages };
     });
   };
 
+  // ✅ ฟังก์ชัน handleSubmit
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -131,6 +173,8 @@ const Repair = () => {
       navigate("/login");
       return;
     }
+
+    console.log("📤 ข้อมูลที่ถูกส่งไปยัง API:", form);
 
     const formData = new FormData();
     formData.append("problemDescription", form.problemDescription);
@@ -140,15 +184,31 @@ const Repair = () => {
       formData.append("images", img.file);
     });
 
-    if (!form.useExistingAddress) {
-      const addressData = {
-        addressLine: form.addressLine.trim() || "",
-        province: form.province?.name_th || "",
-        district: form.district?.name_th || "",
-        subdistrict: form.subdistrict || "",
-        postalCode: form.postcode || "",
-      };
-      formData.append("address", JSON.stringify(addressData));
+    // ⬇️ เช็คว่ามี selectedAddress หรือไม่
+    if (selectedAddress) {
+      // ถ้า user เลือกที่อยู่ใน Dropdown
+      formData.append(
+        "address",
+        JSON.stringify({
+          addressLine: selectedAddress.addressLine,
+          province: selectedAddress.province,
+          district: selectedAddress.district,
+          subdistrict: selectedAddress.subdistrict,
+          postalCode: selectedAddress.postalCode,
+        })
+      );
+    } else {
+      // ถ้า user ไม่ได้เลือก -> ใช้ค่าที่กรอกเอง
+      formData.append(
+        "address",
+        JSON.stringify({
+          addressLine: form.addressLine.trim() || "",
+          province: form.province?.name_th || "",
+          district: form.district?.name_th || "",
+          subdistrict: form.subdistrict || "",
+          postalCode: form.postcode || "",
+        })
+      );
     }
 
     try {
@@ -165,6 +225,7 @@ const Repair = () => {
 
       if (response.ok) {
         alert("แจ้งซ่อมสำเร็จ");
+        // ล้างฟอร์ม
         setForm({
           province: "",
           district: "",
@@ -185,6 +246,7 @@ const Repair = () => {
     }
   };
 
+  // ✅ เช็ค token อีกครั้งเผื่อ user logout ไป
   useEffect(() => {
     const token = localStorage.getItem("token");
     setIsLoggedIn(!!token);
@@ -217,11 +279,12 @@ const Repair = () => {
           form={form}
           setForm={setForm}
           addresses={addresses}
-          useExistingAddress={useExistingAddress}
-          setUseExistingAddress={setUseExistingAddress}
+          selectedAddress={selectedAddress}
+          setSelectedAddress={setSelectedAddress}
           handleAddressSelection={handleAddressSelection}
           handleInputChange={handleInputChange}
           serviceTypes={serviceTypes}
+          user={user}
           errors={errors}
         />
 
@@ -237,15 +300,10 @@ const Repair = () => {
               maxFileSize={1000000}
               multiple
               customUpload
-              uploadHandler={(e) =>
-                setForm((prevForm) => ({
-                  ...prevForm,
-                  images: [...prevForm.images, ...e.files.map(file => ({ file, previewUrl: URL.createObjectURL(file) }))],
-                }))
-              }
+              uploadHandler={handleImageUpload}
+              onRemove={handleRemoveImage}
               chooseLabel="เลือกไฟล์"
               auto={true}
-              onRemove={handleRemoveImage}
             />
           </div>
         </div>
@@ -254,7 +312,7 @@ const Repair = () => {
           <Button
             label={isLoggedIn ? "บันทึก" : "เข้าสู่ระบบเพื่อแจ้งซ่อม"}
             className="p-button-primary p-button-block"
-            onClick={(e) => handleSubmit(e)}
+            onClick={handleSubmit}
           />
         </div>
       </div>
