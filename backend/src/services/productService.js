@@ -29,12 +29,6 @@ class ProductService {
         status: data.status ?? false,
       }
     });
-
-    // ถ้าเป็นอะไหล่ให้ตรวจสอบสต็อกและแจ้งเตือน
-    if (createdProduct.is_part) {
-      await checkStockAndNotify(createdProduct);
-    }
-
     return createdProduct;
   }
 
@@ -77,11 +71,6 @@ class ProductService {
         status: data.status === "true" || data.status === true,
       }
     });
-
-    // ถ้าเป็นอะไหล่ให้ตรวจสอบสต็อกและแจ้งเตือน
-    if (updatedProduct.is_part) {
-      await checkStockAndNotify(updatedProduct);
-    }
 
     return updatedProduct;
   }
