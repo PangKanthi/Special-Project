@@ -1,8 +1,6 @@
 import fs from 'fs';
 import prisma from '../config/db.js';
 import CartService from './cartService.js';
-import NotificationService from './notificationService.js';
-// import doorConfig from "../config/doorConfig.json" assert { type: "json" };
 const rawData = fs.readFileSync("src/config/doorConfig.json", "utf-8");
 const doorConfig = JSON.parse(rawData);
 class OrderService {
