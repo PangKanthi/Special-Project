@@ -115,12 +115,14 @@ const AddressPage = () => {
     <div className="flex gap-2">
       <Button
         label="แก้ไข"
-        className="p-button-sm p-button-text p-button-secondary"
+        icon="pi pi-pen-to-square"
+        className="p-button-sm"
         onClick={() => handleEdit(rowData)}
       />
       <Button
         label="ลบ"
-        className="p-button-sm p-button-text p-button-danger"
+        icon="pi pi-trash"
+        className="p-button-sm p-button-danger"
         onClick={() => confirmDelete(rowData.id)} // ใช้ confirmDelete แทน
       />
     </div>

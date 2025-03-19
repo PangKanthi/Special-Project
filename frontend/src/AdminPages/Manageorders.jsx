@@ -71,16 +71,34 @@ const ManageOrders = () => {
   };
 
   const statusTemplate = (rowData) => {
-    const statusColors = {
-      pending: "warning",
-      confirm: "info",
-      complete: "success",
-      cancel: "danger",
-    };
-    return (
-      <Tag value={rowData.status} severity={statusColors[rowData.status]} />
-    );
+    let severity = "";
+    let statusText = "";
+
+    switch (rowData.status) {
+      case "pending":
+        severity = "warning"; // สีเหลือง
+        statusText = "รอการยืนยัน";
+        break;
+      case "confirm":
+        severity = "info"; // สีฟ้า
+        statusText = "ได้รับการยืนยันแล้ว";
+        break;
+      case "complete":
+        severity = "success"; // สีเขียว
+        statusText = "เสร็จแล้ว";
+        break;
+      case "cancel":
+        severity = "danger"; // สีแดง
+        statusText = "ยกเลิก";
+        break;
+      default:
+        severity = "secondary"; // สีเทา
+        statusText = "ไม่ระบุ";
+    }
+
+    return <Tag value={statusText} severity={severity} />;
   };
+
 
   const ImageTemplate = (rowData) => {
     const images = rowData.rowData.product?.images || [];

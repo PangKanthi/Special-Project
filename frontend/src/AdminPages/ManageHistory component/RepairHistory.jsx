@@ -57,9 +57,12 @@ const RepairHistory = () => {
     // Template ปุ่มลบ
     const deleteButton = (rowData) => {
         return (
-            <button onClick={() => deleteRepairRequest(rowData.id)}>
-                ลบ
-            </button>
+            <Button
+                label="ลบ"
+                icon="pi pi-trash"
+                className="p-button-danger 
+            p-button-sm" onClick={() => deleteRepairRequest(rowData.id)}>
+            </Button>
         );
     };
 
@@ -141,7 +144,10 @@ const RepairHistory = () => {
                 <Column body={(rowData) => rowData.address?.subdistrict || "ไม่ระบุ"} header="ตำบล" />
                 <Column body={(rowData) => rowData.address?.postalCode || "ไม่ระบุ"} header="รหัสไปรษณีย์" />
                 <Column body={statusTemplate} field="status" header="สถานะ" />
-                <Column body={deleteButton} header="ลบ" />
+                <Column
+                    body={deleteButton}
+                    header="ลบ"
+                />
             </DataTable>
         </div>
     );

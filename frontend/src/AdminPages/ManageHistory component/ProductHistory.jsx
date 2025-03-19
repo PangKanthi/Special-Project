@@ -46,11 +46,14 @@ const ProductHistory = () => {
   };
 
   const statusTemplate = (rowData) => {
-    const statusColors = {
-      complete: "success",
-      cancel: "danger",
+    const statusMapping = {
+      complete: { label: "สำเร็จ", severity: "success" },
+      cancel: { label: "ยกเลิก", severity: "danger" },
     };
-    return <Tag value={rowData.status} severity={statusColors[rowData.status]} />;
+  
+    const status = statusMapping[rowData.status] || { label: "ไม่ทราบ", severity: "warning" };
+  
+    return <Tag value={status.label} severity={status.severity} />;
   };
 
   const viewOrderItems = (order) => {
