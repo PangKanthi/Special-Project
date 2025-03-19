@@ -1,6 +1,5 @@
 import { PrismaClient, Prisma } from "@prisma/client";
 import fs from "fs";
-import NotificationService from './notificationService.js';
 
 const prisma = new PrismaClient();
 
@@ -30,12 +29,6 @@ class ProductService {
         status: data.status ?? false,
       }
     });
-
-    // ถ้าเป็นอะไหล่ให้ตรวจสอบสต็อกและแจ้งเตือน
-    if (createdProduct.is_part) {
-      await checkStockAndNotify(createdProduct);
-    }
-
     return createdProduct;
   }
 
@@ -79,11 +72,6 @@ class ProductService {
       }
     });
 
-    // ถ้าเป็นอะไหล่ให้ตรวจสอบสต็อกและแจ้งเตือน
-    if (updatedProduct.is_part) {
-      await checkStockAndNotify(updatedProduct);
-    }
-
     return updatedProduct;
   }
 
@@ -115,27 +103,6 @@ class ProductService {
   static async getAllParts() {
     return await prisma.product.findMany({
       where: { is_part: true },
-    });
-  }
-}
-
-async function checkStockAndNotify(product) {
-  const { stock_quantity, id, name } = product;
-
-  if (stock_quantity < 0) {
-    await NotificationService.createNotification({
-      message: `อะไหล่ ${name} (ID: ${id}) สต็อกติดลบ: ${stock_quantity}`,
-      type: 'STOCK'
-    });
-  } else if (stock_quantity === 0) {
-    await NotificationService.createNotification({
-      message: `อะไหล่ ${name} (ID: ${id}) หมดสต็อกแล้ว`,
-      type: 'STOCK'
-    });
-  } else if (stock_quantity > 0 && stock_quantity < 10) {
-    await NotificationService.createNotification({
-      message: `อะไหล่ ${name} (ID: ${id}) ใกล้หมด เหลือ ${stock_quantity} ชิ้น`,
-      type: 'STOCK'
     });
   }
 }

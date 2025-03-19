@@ -17,7 +17,6 @@ import userRoute from "./routes/userRoute.js";
 import slipUploadRoute from './routes/slipUploadRoute.js';
 import cartRoute from "./routes/cartRoute.js";
 import errorMiddleware from './middlewares/errorMiddleware.js';
-import notificationRoute from './routes/notificationRoute.js';
 
 const app = express();
 
@@ -61,7 +60,6 @@ app.use('/api/reviews', reviewRoute);
 app.use('/api/work-samples', workSampleRoute);
 app.use('/api/addresses', addressRoute);
 app.use('/api', slipUploadRoute);
-app.use('/api/notifications', notificationRoute);
 
 app.get("/api/users", (req, res) => {
     res.json([{ id: 1, username: "test_user", role: "U" }]);

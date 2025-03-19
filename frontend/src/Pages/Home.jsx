@@ -102,7 +102,7 @@ const Home = () => {
             >
               <Card
                 title={product.name}
-                subTitle={product.description}
+                // subTitle={product.description}
                 style={{
                   marginBottom: "1rem",
                   height: "100%",

@@ -55,7 +55,7 @@ const ManageOrders = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        `https://api.d-dayengineering.com/api/orders/${orderId}`,
+        `${process.env.REACT_APP_API}/api/orders/${orderId}`,
         { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -89,7 +89,7 @@ const ManageOrders = () => {
       try {
         const token = localStorage.getItem("token");
         await axios.put(
-          "https://api.d-dayengineering.com/api/orders/order-items",
+          `${process.env.REACT_APP_API}/api/orders/order-items`,
           { orderItemId, productId, quantity, price },
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -110,7 +110,7 @@ const ManageOrders = () => {
       <div style={{ display: "flex", gap: "5px" }}>
         {images.length > 0 ? (
           images.map((image, index) => {
-            const imageUrl = `https://api.d-dayengineering.com${image}`;
+            const imageUrl = `${process.env.REACT_APP_API}${image}`;
             return (
               <img
                 key={index}

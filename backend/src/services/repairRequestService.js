@@ -1,6 +1,5 @@
 import fs from 'fs';
 import prisma from '../config/db.js';
-import NotificationService from './notificationService.js';
 
 class RepairRequestService {
   static async createRepairRequest(userId, addressId, problemDescription, serviceType, imageUrls = [], status = 'pending') {
@@ -15,12 +14,6 @@ class RepairRequestService {
           status,
           request_date: new Date()
         }
-      });
-
-      // 👇 แจ้งเตือนว่ามีคำขอซ่อมใหม่
-      await NotificationService.createNotification({
-        message: `มีคำขอซ่อมใหม่จาก User ID #${userId}, RepairRequest ID #${newRequest.id}`,
-        type: 'REPAIR'
       });
 
       return newRequest;
@@ -64,7 +57,7 @@ class RepairRequestService {
           problem_description: problemDescription || existingRequest.problem_description,
           service_type: serviceType || existingRequest.service_type,
           images: imageUrls.length > 0 ? imageUrls : existingRequest.images,
-          status: status || existingRequest.status // 👈 เพิ่ม status ที่นี่
+          status: status || existingRequest.status
         },
         include: {
           address: true
@@ -151,24 +144,6 @@ class RepairRequestService {
             where: { id: productId },
             data: { stock_quantity: { decrement: quantity_used } },
           });
-  
-          // เช็คเงื่อนไขและแจ้งเตือนถ้าสต็อกต่ำหรือหมด
-          if (updatedPart.stock_quantity <= 10 && updatedPart.stock_quantity > 0) {
-            await NotificationService.createNotification({
-              message: `อะไหล่ ${updatedPart.name} (ID: ${updatedPart.id}) ใกล้หมด เหลือ ${updatedPart.stock_quantity} ชิ้น`,
-              type: 'STOCK'
-            });
-          } else if (updatedPart.stock_quantity === 0) {
-            await NotificationService.createNotification({
-              message: `อะไหล่ ${updatedPart.name} (ID: ${updatedPart.id}) หมดสต็อก`,
-              type: 'STOCK'
-            });
-          } else if (updatedPart.stock_quantity < 0) {
-            await NotificationService.createNotification({
-              message: `อะไหล่ ${updatedPart.name} (ID: ${updatedPart.id}) สต็อกติดลบ: ${updatedPart.stock_quantity}`,
-              type: 'STOCK'
-            });
-          }
         }
   
         return { message: "บันทึกการใช้อะไหล่สำเร็จ" };
