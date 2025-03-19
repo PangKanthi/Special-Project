@@ -4,7 +4,7 @@ import PortfolioFilters from './Manageportfolios component/PortfolioFilters';
 import PortfolioList from './Manageportfolios component/PortfolioList';
 import PortfolioDialog from './Manageportfolios component/PortfolioDialog';
 
-const API_URL = "http://localhost:1234/api/work-samples";
+const API_URL = `${process.env.REACT_APP_API}/api/work-samples`;
 
 const ManagePortfolios = () => {
     const [visible, setVisible] = useState(false);
@@ -112,7 +112,7 @@ const ManagePortfolios = () => {
 
     return (
         <div className="p-5">
-            <h2 className="text-2xl font-bold mb-4">Portfolio</h2>
+            <h2 className="text-2xl font-bold mb-4">การจัดการผลงาน</h2>
 
             <PortfolioFilters onAdd={() => { setSelectedPortfolio(null); setVisible(true); }} />
 
@@ -137,6 +137,7 @@ const ManagePortfolios = () => {
                 visible={visible}
                 onClose={() => setVisible(false)}
                 onWorkSampleAdded={handleAddWorkSample}
+                fetchPortfolios={fetchPortfolios}
                 onUpdate={handleUpdate}
                 selectedPortfolio={selectedPortfolio}
             />

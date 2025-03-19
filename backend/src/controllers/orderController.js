@@ -2,12 +2,12 @@ import OrderService from '../services/orderService.js';
 
 export const createOrder = async (req, res, next) => {
     try {
-        const { addressId, orderItems } = req.body;
+        const { addressId, orderItems, totalAmount } = req.body;
         if (!addressId || !orderItems || orderItems.length === 0) {
             return res.status(400).json({ error: 'ข้อมูลไม่ครบถ้วน' });
         }
 
-        const order = await OrderService.createOrder(req.user.id, addressId, orderItems);
+        const order = await OrderService.createOrder(req.user.id, addressId, orderItems, totalAmount);
         res.status(201).json(order);
     } catch (error) {
         next(error);
@@ -28,6 +28,43 @@ export const getOrderById = async (req, res, next) => {
         const order = await OrderService.getOrderById(req.params.id);
         if (!order) return res.status(404).json({ error: "Order not found" });
         res.status(200).json({ message: "Get data successfully", data: order });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const deleteOrder = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const deletedOrder = await OrderService.deleteOrder(parseInt(id));
+
+        if (!deletedOrder) {
+            return res.status(404).json({ error: "Order not found" });
+        }
+
+        res.status(200).json({ message: "Order deleted successfully", data: deletedOrder });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const getAllOrders = async (req, res, next) => {
+    try {
+        const orders = await OrderService.getAllOrders(); // เรียกใช้ service ที่เราจะสร้าง
+        res.status(200).json({ message: "Get all orders successfully", data: orders });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const updateOrderStatus = async (req, res, next) => {
+    try {
+        const { status } = req.body;
+        const { id } = req.params;
+
+        const updatedOrder = await OrderService.updateOrderStatus(parseInt(id), status);
+
+        res.status(200).json({ message: "Order status updated", data: updatedOrder });
     } catch (error) {
         next(error);
     }
@@ -86,4 +123,21 @@ export const getLatestOrder = async (req, res, next) => {
         next(error);
     }
 };
+
+export const updateOrderItem = async (req, res, next) => {
+    try {
+        const { orderItemId, productId, quantity, price } = req.body;
+
+        if (!orderItemId || !productId || !quantity || !price) {
+            return res.status(400).json({ error: "ข้อมูลไม่ครบถ้วน" });
+        }
+
+        const updatedOrderItem = await OrderService.updateOrderItem(orderItemId, productId, quantity, price);
+
+        res.status(200).json({ message: "อัปเดตรายการสินค้าในออเดอร์สำเร็จ", data: updatedOrderItem });
+    } catch (error) {
+        next(error);
+    }
+};
+
 

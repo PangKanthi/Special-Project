@@ -1,74 +1,273 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from "react";
 import { Card } from "primereact/card";
-import { DataTable } from 'primereact/datatable';
-import { Column } from 'primereact/column';
-import { Button } from 'primereact/button';
-import { Dropdown } from 'primereact/dropdown';
-import { InputText } from 'primereact/inputtext';
-import { Tag } from 'primereact/tag';
+import { DataTable } from "primereact/datatable";
+import { Column } from "primereact/column";
+import { Button } from "primereact/button";
+import { Dialog } from "primereact/dialog";
+import { Dropdown } from "primereact/dropdown";
+import { Tag } from "primereact/tag";
+import { TabView, TabPanel } from "primereact/tabview";
+import axios from "axios";
 
-const Manageorders = () => {
-    const orders = [
-        { id: "00001", name: "Christine Brooks", address: "089 Kutch Green Apt. 448", date: "04 Sep 2019", type: "ซ่อม", status: "สำเร็จ" },
-        { id: "00002", name: "Rosie Pearson", address: "979 Immanuel Ferry Suite 526", date: "28 May 2019", type: "ติดตั้ง", status: "กำลังทำ" },
-        { id: "00003", name: "Darrell Caldwell", address: "8587 Frida Ports", date: "23 Nov 2019", type: "เช็ครายปี", status: "ยกเลิก" },
-        { id: "00004", name: "Gilbert Johnston", address: "768 Destiny Lake Suite 600", date: "05 Feb 2019", type: "ติดตั้ง", status: "สำเร็จ" },
-        { id: "00005", name: "Alan Cain", address: "042 Mylene Throughway", date: "29 Jul 2019", type: "ซ่อม", status: "กำลังทำ" },
-        { id: "00006", name: "Alfred Murray", address: "543 Weimann Mountain", date: "15 Aug 2019", type: "ติดตั้ง", status: "สำเร็จ" },
-        { id: "00007", name: "Maggie Sullivan", address: "New Scottieberg", date: "21 Dec 2019", type: "ติดตั้ง", status: "กำลังทำ" },
-        { id: "00008", name: "Rosie Todd", address: "New Jon", date: "30 Apr 2019", type: "ซ่อม", status: "รออนุมัติ" },
-        { id: "00009", name: "Dollie Hines", address: "124 Lyla Forge Suite 975", date: "09 Jan 2019", type: "ติดตั้ง", status: "กำลังทำ" }
-    ];
+const ManageOrders = () => {
+  const [orders, setOrders] = useState([]);
+  const [orderItems, setOrderItems] = useState([]);
+  const [visibleItems, setVisibleItems] = useState(false);
+  const [selectedAddress, setSelectedAddress] = useState(null);
+  const [visibleAddress, setVisibleAddress] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
 
-    const [search, setSearch] = useState("");
+  // สถานะของออเดอร์ที่ใช้ใน TabPanel
+  const items = [
+    { label: "ทั้งหมด", value: "ทั้งหมด", icon: "pi pi-list" },
+    { label: "รอการยืนยัน", value: "pending", icon: "pi pi-clock" },
+    { label: "ได้รับการยืนยัน", value: "confirm", icon: "pi pi-check-circle" },
+  ];
 
-    const statusTemplate = (rowData) => {
-        const statusColor = {
-            "สำเร็จ": "success",
-            "กำลังทำ": "info",
-            "รออนุมัติ": "warning",
-            "ยกเลิก": "danger"
-        };
-        return <Tag value={rowData.status} severity={statusColor[rowData.status]} />;
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  // ดึงข้อมูลออเดอร์
+  const fetchOrders = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(`${process.env.REACT_APP_API}/api/orders`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      console.log("📌 Orders from API:", response.data.data);
+      setOrders(response.data.data);
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+    }
+  };
+
+  const filterOrdersByStatus = (status) => {
+    if (status === "ทั้งหมด")
+      return orders.filter(
+        (order) => order.status !== "complete" && order.status !== "cancel"
+      );
+    return orders.filter((order) => order.status === status);
+  };
+
+  const updateStatus = async (orderId, newStatus) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.put(
+        `${process.env.REACT_APP_API}/api/orders/${orderId}`,
+        { status: newStatus },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order.id === orderId ? { ...order, status: newStatus } : order
+        )
+      );
+    } catch (error) {
+      console.error("Error updating status:", error);
+    }
+  };
+
+  const statusTemplate = (rowData) => {
+    const statusColors = {
+      pending: "warning",
+      confirm: "info",
+      complete: "success",
+      cancel: "danger",
+    };
+    return (
+      <Tag value={rowData.status} severity={statusColors[rowData.status]} />
+    );
+  };
+
+  const ImageTemplate = (rowData) => {
+    const images = rowData.rowData.product?.images || [];
+
+    const updateOrderItem = async (orderItemId, productId, quantity, price) => {
+      try {
+        const token = localStorage.getItem("token");
+        await axios.put(
+          `${process.env.REACT_APP_API}/api/orders/order-items`,
+          { orderItemId, productId, quantity, price },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        setOrderItems((prevOrderItems) =>
+          prevOrderItems.map((item) =>
+            item.id === orderItemId
+              ? { ...item, productId, quantity, price }
+              : item
+          )
+        );
+      } catch (error) {
+        console.error("Error updating order item:", error);
+      }
     };
 
     return (
-        <div className="p-5">
-            <h2 className="text-2xl font-bold mb-4">Order List</h2>
-            <div className="p-4 mb-4 flex flex-wrap items-center gap-3 bg-white shadow-md rounded-lg">
-                <div className="flex items-center gap-2 flex-wrap flex-grow">
-                    <Button icon="pi pi-filter" label="Filter By" className="p-button-outlined p-button-secondary" />
-                    <Dropdown options={["14 Feb 2019", "28 May 2019", "05 Feb 2019"]} placeholder="14 Feb 2019" />
-                    <Dropdown options={["ซ่อม", "ติดตั้ง", "เช็ครายปี"]} placeholder="Order Type" />
-                    <Dropdown options={["ทั้งหมด", "สำเร็จ", "กำลังทำ", "ยกเลิก"]} placeholder="Order Status" />
-                    <Button icon="pi pi-refresh" label="Reset Filter" className="p-button-danger p-button-outlined" />
-                </div>
-                <div className="ml-auto w-72">
-                    <span className="p-input-icon-left w-full flex items-center">
-                        <i className="pi pi-search pl-3 text-gray-500" />
-                        <InputText value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search Order" className="w-full pl-8" />
-                    </span>
-                </div>
-            </div>
-
-            <Card>
-                <DataTable value={orders} paginator rows={9}>
-                    <Column field="id" header="ID" sortable></Column>
-                    <Column field="name" header="NAME" sortable></Column>
-                    <Column field="address" header="ADDRESS" sortable></Column>
-                    <Column field="date" header="DATE" sortable></Column>
-                    <Column field="type" header="TYPE" sortable></Column>
-                    <Column field="status" header="STATUS" body={statusTemplate} sortable></Column>
-                    <Column header="ACTION" body={(rowData) => (
-                        <div className="flex gap-2">
-                            <Button icon="pi pi-pencil" className="p-button-rounded p-button-secondary p-button-sm" />
-                            <Button icon="pi pi-trash" className="p-button-rounded p-button-danger p-button-sm" />
-                        </div>
-                    )}></Column>
-                </DataTable>
-            </Card>
-        </div>
+      <div style={{ display: "flex", gap: "5px" }}>
+        {images.length > 0 ? (
+          images.map((image, index) => {
+            const imageUrl = `${process.env.REACT_APP_API}${image}`;
+            return (
+              <img
+                key={index}
+                src={imageUrl}
+                alt="repair-img"
+                width="50"
+                height="50"
+                style={{ borderRadius: "5px" }}
+                onError={(e) => {
+                  e.target.src = "https://via.placeholder.com/50";
+                }}
+              />
+            );
+          })
+        ) : (
+          <span>ไม่มีรูป</span>
+        )}
+      </div>
     );
+  };
+
+  const viewOrderItems = (order) => {
+    setOrderItems(order.order_items);
+    setVisibleItems(true);
+  };
+
+  const viewAddressDetails = (order) => {
+    setSelectedAddress(order.address);
+    setVisibleAddress(true);
+  };
+
+  return (
+    <div className="p-5">
+      <h2 className="text-2xl font-bold mb-4">Order List</h2>
+
+      <Card>
+        <TabView
+          activeIndex={activeIndex}
+          onTabChange={(e) => setActiveIndex(e.index)}
+        >
+          {items.map((tab, index) => (
+            <TabPanel
+              key={index}
+              header={
+                <div>
+                  <i className={tab.icon} style={{ marginRight: "5px" }}></i>
+                  {tab.label}
+                </div>
+              }
+            >
+              <DataTable
+                value={filterOrdersByStatus(tab.value)}
+                dataKey="id"
+                paginator
+                rows={10}
+              >
+                <Column
+                  header="ID"
+                  body={(rowData) => rowData.user?.id || "-"}
+                />
+                <Column
+                  header="ชื่อ"
+                  body={(rowData) => rowData.user?.firstname || "-"}
+                />
+                <Column
+                  header="นามสกุล"
+                  body={(rowData) => rowData.user?.lastname || "-"}
+                />
+                <Column
+                  header="เบอร์โทรศัพท์"
+                  body={(rowData) => rowData.user?.phone || "-"}
+                />
+                <Column
+                  header="ที่อยู่"
+                  body={(rowData) => (
+                    <Button
+                      label="ดูที่อยู่"
+                      icon="pi pi-map-marker"
+                      className="p-button-sm"
+                      onClick={() => viewAddressDetails(rowData)}
+                    />
+                  )}
+                />
+                <Column
+                  header="รายการสินค้า"
+                  body={(rowData) => (
+                    <Button
+                      label="ดูสินค้า"
+                      icon="pi pi-eye"
+                      className="p-button-sm"
+                      onClick={() => viewOrderItems(rowData)}
+                    />
+                  )}
+                />
+                <Column field="total_amount" header="ยอดรวมทั้งหมด" />
+                <Column header="สถานะ" body={statusTemplate} />
+                <Column
+                  header="เปลี่ยนสถานะ"
+                  body={(rowData) => (
+                    <Dropdown
+                      value={rowData.status}
+                      options={[
+                        { label: "รอการยืนยัน", value: "pending" },
+                        { label: "ได้รับการยืนยัน", value: "confirm" },
+                        { label: "เสร็จสิ้น", value: "complete" },
+                        { label: "ยกเลิก", value: "cancel" },
+                      ]}
+                      onChange={(e) => updateStatus(rowData.id, e.value)}
+                      style={{ width: "150px" }}
+                      autoWidth={false}
+                    />
+                  )}
+                />
+              </DataTable>
+            </TabPanel>
+          ))}
+        </TabView>
+      </Card>
+
+      <Dialog
+        header="รายการสินค้า"
+        visible={visibleItems}
+        draggable={false}
+        style={{ width: "40vw" }}
+        onHide={() => setVisibleItems(false)}
+      >
+        <DataTable value={orderItems}>
+          <Column field="product.id" header="Product ID" />
+          <Column
+            header="Image"
+            body={(rowData) => <ImageTemplate rowData={rowData} />}
+          />
+          <Column field="quantity" header="Quantity" />
+          <Column field="price" header="Price" />
+        </DataTable>
+      </Dialog>
+
+      <Dialog
+        header="รายละเอียดที่อยู่"
+        visible={visibleAddress}
+        style={{ width: "50vw" }}
+        onHide={() => setVisibleAddress(false)}
+      >
+        {selectedAddress ? (
+          <DataTable value={[selectedAddress]}>
+            <Column field="addressLine" header="ที่อยู่" />
+            <Column field="subdistrict" header="ตำบล/แขวง" />
+            <Column field="district" header="อำเภอ/เขต" />
+            <Column field="province" header="จังหวัด" />
+            <Column field="postalCode" header="รหัสไปรษณีย์" />
+          </DataTable>
+        ) : (
+          <p>ไม่มีข้อมูลที่อยู่</p>
+        )}
+      </Dialog>
+    </div>
+  );
 };
 
-export default Manageorders;
+export default ManageOrders;

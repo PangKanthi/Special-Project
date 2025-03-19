@@ -34,7 +34,8 @@ function ShopOrderHeader({
         {addresses.length > 1 && (
           <div className="mb-2" style={{ maxWidth: "400px" }}>
             <Dropdown
-              value={currentAddress.id}
+              placeholder="เลือกที่อยู่"
+              value={selectedAddress ? selectedAddress.id : null}
               options={addresses}
               onChange={(e) => {
                 const selected = addresses.find((addr) => addr.id === e.value);
@@ -45,7 +46,6 @@ function ShopOrderHeader({
                 `${address.addressLine}, ตำบล${address.subdistrict}, อำเภอ${address.district}, จังหวัด${address.province}, ${address.postalCode}`
               }
               optionValue="id"
-              placeholder="เลือกที่อยู่"
               className="w-full"
             />
           </div>
@@ -54,7 +54,8 @@ function ShopOrderHeader({
         <div className="border p-3 rounded bg-gray-100">
           <p>
             <strong>ที่อยู่ :</strong> {currentAddress.addressLine}, ตำบล
-            {currentAddress.subdistrict}, อำเภอ{currentAddress.district}, จังหวัด
+            {currentAddress.subdistrict}, อำเภอ{currentAddress.district},
+            จังหวัด
             {currentAddress.province}, {currentAddress.postalCode}
           </p>
           <p>

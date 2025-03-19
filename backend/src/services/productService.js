@@ -15,7 +15,7 @@ class ProductService {
   }
 
   static async createProduct(data, imageUrls) {
-    return await prisma.product.create({
+    const createdProduct = await prisma.product.create({
       data: {
         name: data.name,
         description: data.description,
@@ -25,16 +25,16 @@ class ProductService {
         warranty: data.warranty,
         stock_quantity: data.stock_quantity,
         colors: data.colors,
-        images: imageUrls
+        images: imageUrls,
+        status: data.status ?? false,
       }
     });
+    return createdProduct;
   }
 
   static async updateProduct(id, data, newImages) {
-    const product = await prisma.product.findUnique({
-      where: { id: Number(id) }
-    });
-
+    // หา product เดิม
+    const product = await prisma.product.findUnique({ where: { id: Number(id) } });
     if (!product) throw new Error("Product not found");
 
     let updatedColors = product.colors;
@@ -56,7 +56,7 @@ class ProductService {
       }
     }
 
-    return await prisma.product.update({
+    const updatedProduct = await prisma.product.update({
       where: { id: Number(id) },
       data: {
         name: data.name,
@@ -67,9 +67,12 @@ class ProductService {
         warranty: data.warranty || null,
         stock_quantity: data.stock_quantity ? parseInt(data.stock_quantity, 10) : 0,
         colors: updatedColors,
-        images: updatedImages
+        images: updatedImages,
+        status: data.status === "true" || data.status === true,
       }
     });
+
+    return updatedProduct;
   }
 
   static async deleteProduct(id) {
@@ -91,10 +94,16 @@ class ProductService {
 
   static async getRandomProducts(count) {
     return await prisma.$queryRawUnsafe(`
-      SELECT * FROM "product" 
+      SELECT * FROM "product"
       ORDER BY RANDOM()
       LIMIT ${parseInt(count, 10)};
     `);
+  }
+
+  static async getAllParts() {
+    return await prisma.product.findMany({
+      where: { is_part: true },
+    });
   }
 }
 

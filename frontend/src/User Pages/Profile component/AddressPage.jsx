@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
+import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
 import AddressForm from "./AddressPage component/AddressForm";
 import useAddressForm from "./AddressPage component/useAddressForm";
 import { DataTable } from "primereact/datatable";
@@ -29,52 +30,34 @@ const AddressPage = () => {
 
   const [visible, setVisible] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [editIndex, setEditIndex] = useState(null);
 
   const handleSave = async () => {
     if (!validateForm()) return;
 
     try {
-      if (isEditing && newAddress.id) {
-        // PUT: อัปเดตที่อยู่
-        const response = await fetch(
-          `http://localhost:1234/api/addresses/${newAddress.id}`,
-          {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-            body: JSON.stringify({
-              address: {
-                addressLine: newAddress.addressLine,
-                province: newAddress.province,
-                district: newAddress.district,
-                subdistrict: newAddress.subdistrict,
-                postalCode: parseInt(newAddress.postalCode, 10),
-              },
-            }),
-          }
-        );
-        if (!response.ok) throw new Error("Failed to update address");
-      } else {
-        const response = await fetch("http://localhost:1234/api/addresses", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+      const method = isEditing ? "PUT" : "POST";
+      const url = isEditing
+        ? `${process.env.REACT_APP_API}/api/addresses/${newAddress.id}`
+        : `${process.env.REACT_APP_API}/api/addresses`;
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          address: {
+            addressLine: newAddress.addressLine,
+            province: newAddress.province,
+            district: newAddress.district,
+            subdistrict: newAddress.subdistrict,
+            postalCode: parseInt(newAddress.postalCode, 10),
           },
-          body: JSON.stringify({
-            address: {
-              addressLine: newAddress.addressLine,
-              province: newAddress.province,
-              district: newAddress.district,
-              subdistrict: newAddress.subdistrict,
-              postalCode: parseInt(newAddress.postalCode, 10),
-            },
-          }),
-        });
-      }
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to save address");
 
       setVisible(false);
       resetForm();
@@ -97,37 +80,57 @@ const AddressPage = () => {
     setVisible(true);
   };
 
+  // ✅ ฟังก์ชันแจ้งเตือนก่อนลบ
+  const confirmDelete = (id) => {
+    confirmDialog({
+      message: "คุณแน่ใจหรือไม่ว่าต้องการลบที่อยู่นี้?",
+      header: "ยืนยันการลบ",
+      icon: "pi pi-exclamation-triangle",
+      acceptLabel: "ลบ",
+      rejectLabel: "ยกเลิก",
+      acceptClassName: "p-button-danger",
+      accept: () => handleDelete(id), // เรียกฟังก์ชันลบจริง ๆ ถ้ากด "ลบ"
+    });
+  };
+
+  // ✅ ฟังก์ชันลบที่อยู่
   const handleDelete = async (id) => {
     try {
-      await fetch(`http://localhost:1234/api/addresses/${id}`, {
+      const response = await fetch(`${process.env.REACT_APP_API}/api/addresses/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
-      fetchAddresses(); // โหลดข้อมูลใหม่จาก backend
+
+      if (!response.ok) throw new Error("Failed to delete address");
+
+      fetchAddresses();
     } catch (error) {
-      console.error("Error deleting address:", error);
+      console.error("❌ Error deleting address:", error);
     }
   };
 
-  const actionTemplate = (rowData, { rowIndex }) => (
+  const actionTemplate = (rowData) => (
     <div className="flex gap-2">
       <Button
         label="แก้ไข"
         className="p-button-sm p-button-text p-button-secondary"
-        onClick={() => handleEdit(rowData, rowIndex)}
+        onClick={() => handleEdit(rowData)}
       />
       <Button
         label="ลบ"
         className="p-button-sm p-button-text p-button-danger"
-        onClick={() => handleDelete(rowData.id)}
+        onClick={() => confirmDelete(rowData.id)} // ใช้ confirmDelete แทน
       />
     </div>
   );
 
   return (
     <div className="p-4">
+      {/* ✅ ConfirmDialog สำหรับแจ้งเตือนก่อนลบ */}
+      <ConfirmDialog />
+
       <Button
         icon="pi pi-plus"
         label="เพิ่มที่อยู่ใหม่"

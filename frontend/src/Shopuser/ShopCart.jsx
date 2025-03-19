@@ -7,17 +7,18 @@ import { Carousel } from "primereact/carousel";
 function ShopCart() {
   const navigate = useNavigate();
   const [cart, setCart] = useState([]);
+
   useEffect(() => {
     const fetchCart = async () => {
       try {
-        const response = await fetch("http://localhost:1234/api/cart", {
+        const response = await fetch(`${process.env.REACT_APP_API}/api/cart`, {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
 
         if (!response.ok) throw new Error("ไม่สามารถดึงข้อมูลตะกร้าได้");
 
         const data = await response.json();
-        console.log("🛒 ตะกร้าสินค้า:", data.items);
+        console.log("🛒 ตะกร้าสินค้า:", data.items); // ตรวจสอบ API Response
         setCart(data.items);
       } catch (error) {
         console.error(error);
@@ -36,7 +37,7 @@ function ShopCart() {
     console.log("🗑 Removing productId:", productId);
 
     try {
-      const response = await fetch("http://localhost:1234/api/cart/remove", {
+      const response = await fetch(`${process.env.REACT_APP_API}/api/cart/remove`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -111,41 +112,14 @@ function ShopCart() {
   };
 
   const totalProductPrice = cart.reduce((sum, item) => {
-    if (!item?.product || item.product.price === undefined) {
-      console.warn(
-        "❌ พบสินค้าที่ไม่มีข้อมูล `price` หรือ `product` ในตะกร้า:",
-        item
-      );
-      return sum;
-    }
-
-    const price =
-      typeof item.product.price === "number"
-        ? item.product.price
-        : parseFloat(item.product.price) || 0;
-
-    return sum + price * item.quantity;
-  }, 0);
-
-  const totalInstallationFee = cart.reduce((sum, item) => {
-    return (
-      sum +
-      (!item.product?.is_part && item.installOption === "ติดตั้ง"
-        ? 150 * item.quantity
-        : 0)
-    );
+    const price = Number(item.price ?? item.product?.price ?? 0);
+    const quantity = Number(item.quantity ?? 1);
+    return sum + price * quantity;
   }, 0);
 
   const VAT_RATE = 0.07;
-  const SHIPPING_COST = totalProductPrice > 1000 ? 0 : 50;
-  const DISCOUNT = totalProductPrice > 2000 ? 200 : 0;
   const vatAmount = totalProductPrice * VAT_RATE;
-  const grandTotal =
-    totalProductPrice +
-    totalInstallationFee +
-    vatAmount +
-    SHIPPING_COST -
-    DISCOUNT;
+  const grandTotal = totalProductPrice + vatAmount;
 
   return (
     <div className="px-4 sm:px-6 md:px-8 lg:pl-8 pr-8">
@@ -160,7 +134,7 @@ function ShopCart() {
                 {item.product?.images && item.product.images.length > 0 ? (
                   <Carousel
                     value={item.product.images.map(
-                      (img) => `http://localhost:1234${img}`
+                      (img) => `${process.env.REACT_APP_API}${img}`
                     )}
                     numVisible={1}
                     numScroll={1}
@@ -233,19 +207,20 @@ function ShopCart() {
                       ตร.ม. | หนา {item.thickness || "-"} มม.
                     </p>
                   )}
-                  {/* ✅ แสดงจำนวนสินค้าในตะกร้า */}
                   <p className="text-xs lg:text-base">
                     <strong>จำนวน:</strong> {item.quantity} ชิ้น
                   </p>
-                  {/* ✅ แสดงราคาต่อชิ้น และรวมทั้งหมดตามจำนวน */}
                   <p className="text-sm lg:text-base">
                     <strong>ราคาต่อชิ้น:</strong> ฿
-                    {Number(item.product.price).toLocaleString()}
+                    {Number(
+                      item.price ?? item.product?.price ?? 0
+                    ).toLocaleString()}
                   </p>
                   <p className="text-sm font-bold text-red-500 lg:text-lg">
                     <strong>ราคารวม:</strong> ฿
                     {Number(
-                      item.product.price * item.quantity
+                      (item.price ?? item.product?.price ?? 0) *
+                        (item.quantity ?? 1)
                     ).toLocaleString()}
                   </p>
                 </div>
@@ -274,40 +249,17 @@ function ShopCart() {
           >
             <div className="flex justify-content-between text-lg">
               <p>ยอดรวมสินค้า</p>
-              <p>฿{totalProductPrice.toLocaleString()}</p>
+              <p>฿ {totalProductPrice.toLocaleString()}</p>
             </div>
-
-            {totalInstallationFee > 0 && (
-              <div className="flex justify-content-between text-lg">
-                <p>ค่าติดตั้ง</p>
-                <p>฿{totalInstallationFee.toLocaleString()}</p>
-              </div>
-            )}
 
             <div className="flex justify-content-between text-lg">
               <p>ภาษีมูลค่าเพิ่ม (7%)</p>
-              <p>฿{vatAmount.toLocaleString()}</p>
+              <p>฿ {vatAmount.toLocaleString()}</p>
             </div>
-
-            <div className="flex justify-content-between text-lg">
-              <p>ค่าจัดส่ง</p>
-              <p className={SHIPPING_COST === 0 ? "text-green-500" : ""}>
-                {SHIPPING_COST === 0
-                  ? "ฟรี"
-                  : `฿${SHIPPING_COST.toLocaleString()}`}
-              </p>
-            </div>
-
-            {DISCOUNT > 0 && (
-              <div className="flex justify-content-between text-lg text-red-500 font-bold">
-                <p>ส่วนลด</p>
-                <p>-฿{DISCOUNT.toLocaleString()}</p>
-              </div>
-            )}
 
             <div className="flex justify-content-between text-lg font-bold border-t pt-2">
               <p>ยอดรวมทั้งหมด</p>
-              <p>฿{grandTotal.toLocaleString()}</p>
+              <p>฿ {grandTotal.toLocaleString()}</p>
             </div>
 
             <Button

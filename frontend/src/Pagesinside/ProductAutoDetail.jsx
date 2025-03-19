@@ -9,30 +9,36 @@ import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 import { useNavigate } from "react-router-dom";
 import { Toast } from "primereact/toast";
+import { Dropdown } from "primereact/dropdown";
+
+import useLocationData from "../Hooks/useLocationData";
+import { calculateTotalDoorPrice } from "../utils";
+import { fetchDoorConfig } from "../services/doorConfigService";
 
 import "primeflex/primeflex.css";
 
 const normalCategoryOptions = [
   { label: "ทั้งหมด", value: null },
-  { label: "ประตูม้วนแบบไฟฟ้า", value: "electric_shutter" },
+  { label: "ประตูม้วนแบบไฟฟ้า", value: "electric_rolling_shutter" },
   { label: "ประตูม้วนแบบรอกโซ่", value: "chain_electric_shutter" },
-  { label: "ประตูม้วนแบบสปริง", value: "spring_shutter" },
+  { label: "ประตูม้วนแบบมือดึง", value: "manual_rolling_shutter" },
 ];
+
 
 const partCategoryOptions = [
   { label: "ทั้งหมด", value: null },
-  { label: "แผ่นประตูม้วน", value: "shutter_panel" },
-  { label: "รางประตู", value: "door_track" },
-  { label: "เพลา", value: "shaft" },
-  { label: "สปริง", value: "spring" },
-  { label: "ฝาครอบเพลา", value: "shaft_cover" },
-  { label: "ตัวล็อกประตู", value: "door_lock" },
-  { label: "มอเตอร์", value: "motor" },
-  { label: "กล่องควบคุม", value: "control_box" },
-  { label: "รีโมทคอนโทรล / ปุ่มควบคุม", value: "remote_control" },
-  { label: "ระบบเซนเซอร์", value: "sensor_system" },
-  { label: "แบตเตอรี่สำรอง", value: "backup_battery" },
-  { label: "มือหมุนฉุกเฉิน", value: "emergency_crank" },
+  { label: "แผ่นประตูม้วน", value: "แผ่นประตูม้วน" },
+  { label: "เสารางประตูม้วน", value: "เสารางประตูม้วน" },
+  { label: "แกนเพลาประตูม้วน", value: "แกนเพลาประตูม้วน" },
+  { label: "กล่องเก็บม้วนประตู", value: "กล่องเก็บม้วนประตู" },
+  { label: "ตัวล็อกประตูม้วน", value: "ตัวล็อกประตูม้วน" },
+  { label: "กุญแจประตูม้วน", value: "กุญแจประตูม้วน" },
+  { label: "รอกโซ่ประตูม้วน", value: "รอกโซ่ประตูม้วน" },
+  { label: "ชุดเฟืองโซ่ประตูม้วน", value: "ชุดเฟืองโซ่ประตูม้วน" },
+  { label: "โซ่ประตูม้วน", value: "โซ่ประตูม้วน" },
+  { label: "ตัวล็อคโซ่สาว", value: "ตัวล็อคโซ่สาว" },
+  { label: "ชุดมอเตอร์ประตูม้วน", value: "ชุดมอเตอร์ประตูม้วน" },
+  { label: "สวิตช์กดควบคุม", value: "สวิตช์กดควบคุม" },
 ];
 
 const checkLogin = () => {
@@ -50,18 +56,18 @@ const ProductAutoDetail = () => {
   const [width, setWidth] = useState("");
   const [length, setLength] = useState("");
   const [thickness, setThickness] = useState("");
+  const [totalPrice, setTotalPrice] = useState(null);
+  const [errorMessage, setErrorMessage] = useState(null);
   const toast = useRef(null);
-  const navigate = useNavigate();
   const isLoggedIn = checkLogin();
 
-  const handleIncrease = () => {
-    setQuantity((prev) => (prev < product.stock_quantity ? prev + 1 : prev));
-  };
+  const [thicknessOptions, setThicknessOptions] = useState([]);
+  const [selectedThickness, setSelectedThickness] = useState("");
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await fetch(`http://localhost:1234/api/products/${id}`);
+        const res = await fetch(`${process.env.REACT_APP_API}/api/products/${id}`);
         const data = await res.json();
         setProduct(data);
       } catch (error) {
@@ -70,6 +76,52 @@ const ProductAutoDetail = () => {
     };
     fetchProduct();
   }, [id]);
+
+  useEffect(() => {
+    const loadConfig = async () => {
+      try {
+        if (!product?.category) return;
+
+        const data = await fetchDoorConfig();
+        if (data[product.category]) {
+          const allThickness = new Set();
+
+          data[product.category].priceTiers?.forEach((tier) => {
+            allThickness.add(tier.thickness);
+          });
+
+          setThicknessOptions([...allThickness]);
+        } else {
+          setThicknessOptions([]);
+        }
+      } catch (error) {
+        console.error("Error fetching door config:", error);
+      }
+    };
+
+    loadConfig();
+  }, [product?.category]);
+
+  const handleCalculate = async () => {
+    if (!product || !width || !length || !selectedThickness) {
+      setErrorMessage("กรุณากรอกข้อมูลให้ครบ");
+      return;
+    }
+
+    const { result, errorMessage } = await calculateTotalDoorPrice(
+      product.category,
+      parseFloat(width),
+      parseFloat(length),
+      selectedThickness
+    );
+
+    setTotalPrice(result);
+    setErrorMessage(errorMessage);
+  };
+
+  const handleIncrease = () => {
+    setQuantity((prev) => prev + 1);
+  };
 
   if (!product) {
     return <div className="text-center p-4">Loading...</div>;
@@ -85,7 +137,7 @@ const ProductAutoDetail = () => {
   const categoryLabel = matchedCategory ? matchedCategory.label : "ไม่ระบุ";
 
   const productImages =
-    product.images?.map((img) => `http://localhost:1234${img}`) || [];
+    product.images?.map((img) => `${process.env.REACT_APP_API}${img}`) || [];
 
   const imageItemTemplate = (imageUrl) => {
     return (
@@ -102,17 +154,44 @@ const ProductAutoDetail = () => {
     );
   };
 
-  const handleBuy = () => {
+  const handleBuy = async () => {
     if (!isLoggedIn) {
       window.location.href = "/login";
       return;
     }
 
-    handleAddToCart();
-    navigate("/shop-cart");
-  };
+    const isPart = product.is_part;
 
-  const isOutOfStock = product.stock_quantity === 0;
+    if (!isPart && totalPrice === null) {
+      toast.current?.show({
+        severity: "warn",
+        summary: "⚠️ กรุณาคำนวณราคาก่อน",
+        detail: "โปรดกดปุ่ม 'คำนวณราคา' ก่อนซื้อสินค้า",
+        life: 3000,
+      });
+      return;
+    }
+
+    if (
+      !isPart &&
+      (!selectedColor ||
+        !installOption ||
+        !width ||
+        !length ||
+        !selectedThickness)
+    ) {
+      toast.current?.show({
+        severity: "warn",
+        summary: "⚠️ กรุณากรอกข้อมูลให้ครบ",
+        detail: "โปรดกรอกข้อมูลทั้งหมดให้ครบถ้วนก่อนดำเนินการซื้อ",
+        life: 3000,
+      });
+      return;
+    }
+
+    await handleAddToCart();
+    window.location.href = "/shop-cart";
+  };
 
   const handleAddToCart = async () => {
     if (!isLoggedIn) {
@@ -120,53 +199,43 @@ const ProductAutoDetail = () => {
       return;
     }
 
-    let finalColor = product.is_part ? "" : selectedColor || "default";
-    let finalInstallOption = product.is_part ? "" : installOption;
-    let finalWidth = product.is_part ? 0 : width ? parseFloat(width) : 0;
-    let finalLength = product.is_part ? 0 : length ? parseFloat(length) : 0;
-    let finalThickness = product.is_part
-      ? 0
+    const isPart = product.is_part;
+
+    if (!isPart && totalPrice === null) {
+      toast.current?.show({
+        severity: "warn",
+        summary: "⚠️ กรุณาคำนวณราคาก่อน",
+        detail: "โปรดกดปุ่ม 'คำนวณราคา' ก่อนเพิ่มสินค้าลงตะกร้าหรือซื้อสินค้า",
+        life: 3000,
+      });
+      return;
+    }
+
+    const finalColor = isPart ? "" : selectedColor || "default";
+    const finalInstallOption = isPart ? "" : installOption;
+    const finalWidth = isPart ? 0 : width ? parseFloat(width) : 0;
+    const finalLength = isPart ? 0 : length ? parseFloat(length) : 0;
+    const finalThickness = isPart
+      ? ""
       : thickness
       ? parseFloat(thickness)
-      : 0;
+      : selectedThickness;
 
     if (
-      !product.is_part &&
-      product.colors &&
-      product.colors.length > 0 &&
-      !selectedColor
+      !isPart &&
+      (!selectedColor || !installOption || !width || !length || !finalThickness)
     ) {
       toast.current?.show({
         severity: "warn",
-        summary: "⚠️ กรุณาเลือกสี",
-        detail: "โปรดเลือกสีของสินค้าก่อนเพิ่มลงตะกร้า",
-        life: 3000,
-      });
-      return;
-    }
-
-    if (!product.is_part && !installOption) {
-      toast.current?.show({
-        severity: "warn",
-        summary: "⚠️ กรุณาเลือกตัวเลือกการติดตั้ง",
-        detail: "กรุณาเลือกว่าจะติดตั้งสินค้าหรือไม่",
-        life: 3000,
-      });
-      return;
-    }
-
-    if (!product.is_part && (!width || !length || !thickness)) {
-      toast.current?.show({
-        severity: "warn",
-        summary: "⚠️ กรุณากรอกขนาดให้ครบ",
-        detail: "โปรดกรอก กว้าง, ยาว และ หนา ให้ครบทุกช่อง",
+        summary: "⚠️ กรุณากรอกข้อมูลให้ครบ",
+        detail: "โปรดกรอกข้อมูลทั้งหมดให้ครบถ้วนก่อนดำเนินการ",
         life: 3000,
       });
       return;
     }
 
     try {
-      const response = await fetch("http://localhost:1234/api/cart/add", {
+      const response = await fetch(`${process.env.REACT_APP_API}/api/cart/add`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -175,7 +244,7 @@ const ProductAutoDetail = () => {
         body: JSON.stringify({
           productId: product.id,
           quantity,
-          price: product.price,
+          price: isPart ? product.price : totalPrice,
           color: finalColor,
           width: finalWidth,
           length: finalLength,
@@ -185,9 +254,8 @@ const ProductAutoDetail = () => {
       });
 
       const result = await response.json();
-      if (!response.ok) {
+      if (!response.ok)
         throw new Error(result.error || "เพิ่มสินค้าลงตะกร้าไม่สำเร็จ");
-      }
 
       toast.current.show({
         severity: "success",
@@ -208,9 +276,7 @@ const ProductAutoDetail = () => {
   };
 
   const handleDecrease = () => {
-    if (quantity > 1) {
-      setQuantity((prev) => prev - 1);
-    }
+    setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
   };
 
   return (
@@ -247,11 +313,6 @@ const ProductAutoDetail = () => {
 
             <div className="col-12 md:col-6 mt-4 md:mt-0">
               <h2 className="mt-0">{product.name}</h2>
-              {isOutOfStock && (
-                <div className="p-message p-message-error text-red-600 text-lg font-bold">
-                  ❌ สินค้าหมด ไม่สามารถสั่งซื้อได้
-                </div>
-              )}
               {!product.is_part &&
                 product.colors &&
                 product.colors.length > 0 && (
@@ -308,52 +369,60 @@ const ProductAutoDetail = () => {
                   </div>
                 </div>
               )}
-              <p>ขนาด ( 2000/ตร.ม. )</p>
               {!product.is_part && (
-                <div className="flex">
-                  <div className="flex align-items-center">
+                <div>
+                  <h4>กรุณากรอกขนาด กว้าง ยาว หน่วยเป็น เมตร และ เลือกความหนา</h4>
+                  <div className="flex gap-2">
                     <input
                       type="text"
                       value={width}
                       onChange={(e) => setWidth(e.target.value)}
-                      placeholder="กว้าง = ตร.ม."
+                      placeholder="กว้าง = ม."
                       className="p-inputtext p-component"
-                      style={{ width: "100px" }}
+                      style={{ width: "100px", height: "55px" }}
                     />
-                  </div>
-                  <div className="flex align-items-center pl-2">
+                    
                     <input
                       type="text"
                       value={length}
                       onChange={(e) => setLength(e.target.value)}
-                      placeholder="ยาว = ตร.ม."
+                      placeholder="ยาว = ม."
                       className="p-inputtext p-component"
-                      style={{ width: "100px" }}
+                      style={{ width: "100px", height: "55px" }}
+                    />
+                    <Dropdown
+                      value={selectedThickness}
+                      onChange={(e) => setSelectedThickness(e.value)}
+                      options={thicknessOptions}
+                      optionLabel="name"
+                      placeholder="เลือกความหนา"
+                      className="p-inputtext p-component"
+                      style={{ width: "250px" }}
                     />
                   </div>
-                  <div className="flex align-items-center pl-2">
-                    <input
-                      type="text"
-                      value={thickness}
-                      onChange={(e) => setThickness(e.target.value)}
-                      placeholder="หนา = มิน"
-                      className="p-inputtext p-component"
-                      style={{ width: "100px" }}
+                  <div className="flex flex-column mt-3">
+                    <Button
+                      label="คำนวณราคาประตูม้วนต่อบาน"
+                      onClick={handleCalculate}
+                      className="p-button-primary"
                     />
+
+                    {totalPrice !== null && (
+                      <p className="text-2xl font-bold mt-3">
+                        ราคาประตูต่อบาน: {totalPrice.toLocaleString()} บาท
+                      </p>
+                    )}
+
+                    {errorMessage && (
+                      <p className="text-red-500 mt-2">{errorMessage}</p>
+                    )}
                   </div>
                 </div>
               )}
-
-              <p className="text-2xl font-bold mb-3">
-                {product.price
-                  ? `${Number(product.price).toLocaleString()} บาท`
-                  : "ไม่ระบุราคา"}
-              </p>
-
               <div className="flex-auto">
                 <label
                   htmlFor="minmax-buttons"
-                  className="font-bold block mb-2"
+                  className="font-bold block mb-2 mt-1"
                 >
                   จำนวน:
                 </label>
@@ -388,7 +457,6 @@ const ProductAutoDetail = () => {
                     label="+"
                     className="p-button-secondary"
                     onClick={handleIncrease}
-                    disabled={quantity >= product.stock_quantity} // Prevent exceeding stock
                     style={{
                       width: "30px",
                       height: "30px",
@@ -400,11 +468,7 @@ const ProductAutoDetail = () => {
                     }}
                   />
                 </div>
-                <p className="text-sm mt-2">
-                  สินค้าคงเหลือ: {product.stock_quantity} ชิ้น
-                </p>
               </div>
-
               <p
                 onClick={() => setShowDialog(true)}
                 style={{
@@ -446,15 +510,18 @@ const ProductAutoDetail = () => {
                 <div className="pl-5 pr-5">
                   <div>
                     <h3>รายละเอียด</h3>
-                    <p className="text-sm text-500">
-                      หมวดหมู่: {categoryLabel}
-                    </p>
-                  </div>
-                  <div className="pt-8">
-                    <h3>การรับประกัน</h3>
                     {product.description && (
                       <p className="mt-2" style={{ whiteSpace: "pre-line" }}>
                         {product.description}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="pt-8">
+                    <h3>การรับประกัน</h3>
+                    {product.warranty && (
+                      <p className="mt-2" style={{ whiteSpace: "pre-line" }}>
+                        {product.warranty}
                       </p>
                     )}
                   </div>

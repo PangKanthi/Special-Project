@@ -1,0 +1,233 @@
+{
+    "manual_rolling_shutter": {
+      "displayName": "ประตูม้วนแบบมือดึง",
+      "description": "เหมาะสำหรับร้านค้าหรือที่พักอาศัยขนาดเล็กถึงกลาง",
+      "warranty": "1 ปี",
+      "priceTiers": [
+        {
+          "thickness": "0.4 mm (เบอร์ 23)",
+          "pricePerSqm": 1200,
+          "minArea": 7,
+          "maxArea": 36
+        }
+      ],
+      "bom": [
+        {
+          "part": "แผ่นประตูม้วน",
+          "quantityPerMeter": 16,
+          "unit": "แผ่น / ความสูง 1 เมตร"
+        },
+        {
+          "part": "เสารางประตูม้วน",
+          "quantity": 1,
+          "unit": "คู่"
+        },
+        {
+          "part": "แกนเพลาประตูม้วน",
+          "quantity": 1,
+          "unit": "ชิ้น"
+        },
+        {
+          "part": "กล่องเก็บม้วนประตู",
+          "quantity": 1,
+          "unit": "ตู้"
+        },
+        {
+          "part": "กุญแจประตูม้วน",
+          "quantity": 1,
+          "unit": "อัน"
+        },
+        {
+          "part": "ตัวล็อกประตูม้วน",
+          "quantity": 2,
+          "unit": "อัน"
+        }
+      ]
+    },
+  
+    "chain_electric_shutter": {
+      "displayName": "ประตูม้วนแบบรอกโซ่",
+      "description": "เหมาะสำหรับขนาดใหญ่ขึ้น ต้องการใช้ระบบรอกโซ่เพื่อช่วยผ่อนแรง",
+      "warranty": "1 ปี",
+      "priceTiers": [
+        {
+          "thickness": "0.6-0.7 mm (เบอร์ 22)",
+          "pricePerSqm": 2000,
+          "minArea": 15,
+          "maxArea": 36
+        },
+        {
+          "thickness": "0.9-1.0 mm (เบอร์ 20)",
+          "pricePerSqm": 2500,
+          "minArea": 15,
+          "maxArea": 36
+        },
+        {
+          "thickness": "1.2 mm (เบอร์ 18)",
+          "pricePerSqm": 3000,
+          "minArea": 15,
+          "maxArea": 36
+        }
+      ],
+      "bom": [
+        {
+          "part": "แผ่นประตูม้วน",
+          "quantityPerMeter": 13,
+          "unit": "แผ่น / ความสูง 1 เมตร"
+        },
+        {
+          "part": "แกนเพลาประตูม้วน",
+          "quantity": 1,
+          "unit": "ชิ้น"
+        },
+        {
+          "part": "เสารางประตูม้วน",
+          "quantity": 1,
+          "unit": "คู่"
+        },
+        {
+          "part": "รอกโซ่ประตูม้วน",
+          "quantity": 1,
+          "unit": "ชุด"
+        },
+        {
+          "part": "ชุดเฟืองโซ่ประตูม้วน",
+          "quantity": 1,
+          "unit": "ชุด"
+        },
+        {
+          "part": "โซ่ประตูม้วน",
+          "quantity": 1,
+          "unit": "ชุด"
+        },
+        {
+          "part": "ตัวล็อคโซ่สาว",
+          "quantity": 1,
+          "unit": "ตัว"
+        },
+        {
+          "part": "กล่องเก็บม้วนประตู",
+          "quantity": 1,
+          "unit": "ตู้"
+        }
+      ],
+      "chainCapacity": [
+        {
+          "areaRange": "15-30 ตร.ม.",
+          "chainSize": "1500 กิโล"
+        },
+        {
+          "areaRange": "30-35 ตร.ม.",
+          "chainSize": "2000 กิโล"
+        }
+      ]
+    },
+  
+    "electric_rolling_shutter": {
+      "displayName": "ประตูม้วนแบบไฟฟ้า",
+      "description": "ใช้มอเตอร์ช่วยในการยก เหมาะกับพื้นที่ขนาดกลางถึงใหญ่มาก",
+      "warranty": "1 ปี",
+      "priceTiers": [
+        {
+          "thickness": "0.6-0.7 mm (เบอร์ 22)",
+          "priceRanges": [
+            { "minArea": 15, "maxArea": 20, "pricePerSqm": 2000 },
+            { "minArea": 21, "maxArea": 25, "pricePerSqm": 1900 },
+            { "minArea": 26, "maxArea": 36, "pricePerSqm": 1800 }
+          ]
+        },
+        {
+          "thickness": "0.9-1.0 mm (เบอร์ 20)",
+          "priceRanges": [
+            { "minArea": 15, "maxArea": 20, "pricePerSqm": 2200 },
+            { "minArea": 21, "maxArea": 25, "pricePerSqm": 2100 },
+            { "minArea": 26, "maxArea": 36, "pricePerSqm": 2000 }
+          ]
+        },
+        {
+          "thickness": "1.2 mm (เบอร์ 18)",
+          "priceRanges": [
+            { "minArea": 15, "maxArea": 20, "pricePerSqm": 2500 },
+            { "minArea": 21, "maxArea": 25, "pricePerSqm": 2400 },
+            { "minArea": 26, "maxArea": 36, "pricePerSqm": 2300 }
+          ]
+        }
+      ],
+      "bom": [
+        {
+          "part": "แผ่นประตูม้วน",
+          "quantityPerMeter": 13,
+          "unit": "แผ่น / ความสูง 1 เมตร"
+        },
+        {
+          "part": "แกนเพลาประตูม้วน",
+          "quantity": 1,
+          "unit": "ชิ้น"
+        },
+        {
+          "part": "เสารางประตูม้วน",
+          "quantity": 1,
+          "unit": "คู่"
+        },
+        {
+          "part": "ชุดมอเตอร์ประตูม้วน",
+          "quantity": 1,
+          "unit": "ชุด"
+        },
+        {
+          "part": "ชุดเฟืองโซ่ประตูม้วน",
+          "quantity": 1,
+          "unit": "ชุด"
+        },
+        {
+          "part": "สวิตช์กดควบคุม",
+          "quantity": 1,
+          "unit": "ตัว"
+        },
+        {
+          "part": "กล่องเก็บม้วนประตู",
+          "quantity": 1,
+          "unit": "ตู้"
+        }
+      ],
+      "motorCapacity": [
+        {
+          "size": "5x5 ม.",
+          "motor": "600 กิโล (เบอร์ 22)"
+        },
+        {
+          "size": "5x6 ม.",
+          "motor": "800 กิโล (เบอร์ 22)"
+        },
+        {
+          "size": "6x6 ม.",
+          "motor": "1000 กิโล (เบอร์ 22)"
+        },
+        {
+          "size": "5x5 ม.",
+          "motor": "800 กิโล (เบอร์ 20)"
+        },
+        {
+          "size": "5x6 ม.",
+          "motor": "1000 กิโล (เบอร์ 20)"
+        },
+        {
+          "size": "6x6 ม.",
+          "motor": "1000 กิโล (เบอร์ 20)"
+        },
+        {
+          "size": "5x5 ม.",
+          "motor": "1000 กิโล (เบอร์ 18)"
+        },
+        {
+          "size": "5x6 ม.",
+          "motor": "1000 กิโล (เบอร์ 18)"
+        },
+        {
+          "size": "6x6 ม. ขึ้นไป",
+          "motor": "1500 กิโล (เบอร์ 18)"
+        }
+      ]
+    }
+  }
+  

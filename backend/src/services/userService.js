@@ -34,6 +34,16 @@ class UserService {
     });
   }
 
+  static async getUserPassById(id) {
+    console.log("🔍 Checking Database for User ID:", id);
+    return await prisma.user.findUnique({
+      where: { id: Number(id) },
+      select: {
+        password: true,
+      }
+    });
+  }
+
   static async createUser(data) {
     return await prisma.user.create({
       data: {
@@ -52,16 +62,38 @@ class UserService {
     const { id: _, ...updateData } = data;
     return await prisma.user.update({
       where: { id: Number(id) },
-      data: updateData,
-      select: {
-        id: true,
-        username: true,
-        firstname: true,
-        lastname: true,
-        email: true,
-        phone: true,
-        role: true
-      }
+      data: {
+        username: updateData.username,
+        firstname: updateData.firstname,
+        lastname: updateData.lastname,
+        email: updateData.email,
+        phone: updateData.phone,
+        role: updateData.role,
+      },
+    });
+  }
+
+  static async updateUserProfile(id, data) {
+    console.log(id)
+    console.log(data)
+    const { id: _, ...updateData } = data;
+    return await prisma.user.update({
+      where: { id: Number(id) },
+      data: {
+        firstname: updateData.firstname,
+        lastname: updateData.lastname,
+        email: updateData.email,
+        phone: updateData.phone,
+      },
+    });
+  }
+
+  static async updatePass(id, password){
+    return await prisma.user.update({
+      where: { id: Number(id) },
+      data: {
+        password: password,
+      },
     });
   }
 

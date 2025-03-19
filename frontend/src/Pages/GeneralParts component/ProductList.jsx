@@ -20,12 +20,17 @@ const ProductList = ({ products }) => {
             <Card
               title={product.name}
               subTitle={product.description}
+              style={{
+                marginBottom: "1rem",
+                cursor: "pointer",
+                transition: "transform 0.2s",
+              }}
               header={
                 <img
                   alt={product.name}
                   src={
                     product.images && product.images.length > 0
-                      ? `http://localhost:1234${product.images[0]}`
+                      ? `${process.env.REACT_APP_API}${product.images[0]}`
                       : "https://via.placeholder.com/300"
                   }
                   style={{
@@ -46,6 +51,10 @@ const ProductList = ({ products }) => {
                 </span>
               }
               className="m-2 p-shadow-5"
+              onMouseOver={(e) =>
+                (e.currentTarget.style.transform = "scale(1.05)")
+              }
+              onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
             />
           </Link>
         </div>

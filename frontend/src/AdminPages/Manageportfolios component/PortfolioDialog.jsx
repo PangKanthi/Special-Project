@@ -4,7 +4,7 @@ import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
 import { FileUpload } from "primereact/fileupload";
 
-const API_URL = "http://localhost:1234/api/work-samples"; // 🔹 URL ของ Backend
+const API_URL = `${process.env.REACT_APP_API}/api/work-samples`; // 🔹 URL ของ Backend
 
 const PortfolioDialog = ({
   visible,
@@ -12,6 +12,7 @@ const PortfolioDialog = ({
   onWorkSampleAdded,
   onUpdate,
   selectedPortfolio,
+  fetchPortfolios
 }) => {
   const [localPortfolio, setLocalPortfolio] = useState(null);
   const [title, setTitle] = useState("");
@@ -30,9 +31,8 @@ const PortfolioDialog = ({
         selectedPortfolio.images.map((img) =>
           img.startsWith("http")
             ? img
-            : `http://localhost:1234/${
-                img.startsWith("/") ? img.substring(1) : img
-              }`
+            : `${process.env.REACT_APP_API}/${img.startsWith("/") ? img.substring(1) : img
+            }`
         )
       );
 
@@ -52,8 +52,13 @@ const PortfolioDialog = ({
       previewUrl: URL.createObjectURL(file),
     }));
 
-    setUploadedFiles([...uploadedFiles, ...newFiles]);
+    // console.log(newFiles)
+
+    // setUploadedFiles([...uploadedFiles, ...newFiles]);
+    setUploadedFiles(newFiles);
   };
+
+  console.log(uploadedFiles)
 
   const onRemoveFile = (event) => {
     const removedFile = event.file;
@@ -65,7 +70,6 @@ const PortfolioDialog = ({
   const handleRemoveImage = (index, e) => {
     e.preventDefault();
     e.stopPropagation();
-
     const updatedImages = [...images];
     updatedImages.splice(index, 1);
     setImages(updatedImages);
@@ -73,6 +77,11 @@ const PortfolioDialog = ({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    console.log(images)
+
+
+
     if (!title.trim() || !description.trim()) {
       alert("กรุณากรอกชื่อผลงานและคำอธิบาย");
       return;
@@ -88,6 +97,8 @@ const PortfolioDialog = ({
       }
     });
 
+
+
     uploadedFiles.forEach((file) => {
       formData.append("images", file.file);
     });
@@ -98,9 +109,14 @@ const PortfolioDialog = ({
       return;
     }
 
+    console.log("localPortfolio",localPortfolio)
+
     try {
       let response;
+
+
       if (localPortfolio) {
+        console.log("on edit");
         response = await fetch(`${API_URL}/${localPortfolio.id}`, {
           method: "PUT",
           headers: {
@@ -108,7 +124,15 @@ const PortfolioDialog = ({
           },
           body: formData,
         });
-      } else {
+        console.log(response)
+        if (response.status === 200) {
+          const data = await response.json();
+          onWorkSampleAdded(data)
+          handleCloseDialog();
+        }
+      } else if (localPortfolio === null) {
+        console.log("on upload");
+
         response = await fetch(API_URL, {
           method: "POST",
           headers: {
@@ -116,19 +140,39 @@ const PortfolioDialog = ({
           },
           body: formData,
         });
+        console.log(response)
+        if(response.status === 201){
+          // const data = await response.json();
+          // onWorkSampleAdded(data)
+          fetchPortfolios();
+          handleCloseDialog();
+        }
       }
 
-      const data = await response.json();
-      if (response.ok) {
-        if (localPortfolio) {
-          onUpdate(data);
-        } else {
-          onWorkSampleAdded(data);
-        }
-        handleCloseDialog();
-      } else {
-        alert("Error: " + data.message);
-      }
+
+      // }
+
+      // else {
+      //   response = await fetch(API_URL, {
+      //     method: "POST",
+      //     headers: {
+      //       Authorization: `Bearer ${token}`,
+      //     },
+      //     body: formData,
+      //   });
+      // }
+
+      // const data = await response.json();
+      // if (response.ok) {
+      //   if (localPortfolio) {
+      //     onUpdate(data);
+      //   } else {
+      //     onWorkSampleAdded(data);
+      //   }
+      //   handleCloseDialog();
+      // } else {
+      //   alert("Error: " + data.message);
+      // }
     } catch (error) {
       console.error("Upload error:", error);
       alert("เกิดข้อผิดพลาดในการอัปโหลด");
@@ -146,7 +190,7 @@ const PortfolioDialog = ({
 
   return (
     <Dialog
-      header={localPortfolio ? "Edit Work Sample" : "Upload Work Sample"}
+      header={localPortfolio ? "แก้ไขผลงาน" : "เพิ่มผลงานใหม่"}
       visible={visible}
       onHide={handleCloseDialog}
       style={{ width: "30vw" }}
@@ -158,27 +202,26 @@ const PortfolioDialog = ({
         <div className="p-6">
           {/* ✅ Input สำหรับชื่อผลงาน */}
           <div className="w-full mb-4">
-            <label className="block text-gray-700">Work Title</label>
+            <label className="block text-gray-700">ชื่อผลงาน</label>
             <InputText
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter work title"
+              placeholder="ระบุชื่อผลงาน"
               className="w-full mt-2 p-2 border rounded-lg"
             />
           </div>
 
           {/* ✅ Input สำหรับคำอธิบาย */}
           <div className="w-full mb-4">
-            <label className="block text-gray-700">Description</label>
+            <label className="block text-gray-700">คำอธิบายผลงาน</label>
             <InputText
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Enter description"
+              placeholder="ระบุคำอธิบายผลงาน"
               className="w-full mt-2 p-2 border rounded-lg"
             />
           </div>
 
-          {/* ✅ แสดงรูปภาพที่มีอยู่แล้ว */}
           {images.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-4">
               {images.map((img, index) => (
@@ -199,7 +242,6 @@ const PortfolioDialog = ({
             </div>
           )}
 
-          {/* ✅ FileUpload รองรับหลายไฟล์ */}
           <FileUpload
             multiple
             accept="image/*"
@@ -208,21 +250,20 @@ const PortfolioDialog = ({
             customUpload
             uploadHandler={onImageSelect}
             onRemove={onRemoveFile}
-            chooseLabel="Choose Photos"
+            chooseLabel="เลือกรูปภาพ"
             className="mb-4"
           />
 
-          {/* ✅ ปุ่ม Submit และ Cancel */}
           <div className="flex justify-content-between w-full mt-6">
             <Button
               type="button"
-              label="Cancel"
+              label="ยกเลิก"
               className="p-button-danger w-1/3"
               onClick={handleCloseDialog}
             />
             <Button
               type="submit"
-              label={localPortfolio ? "Save" : "Add Now"}
+              label={localPortfolio ? "บันทึก" : "เพิ่มทันที"}
               className="p-button-primary w-1/3"
             />
           </div>

@@ -93,14 +93,14 @@ const UserDialog = ({ editingUser, visible, onHide, onSave }) => {
     <Dialog
       visible={visible}
       onHide={onHide}
-      header="Edit User"
+      header="แก้ไขข้อมูลผู้ใช้"
       modal
       className="w-auto"
       draggable={false}
     >
       <div className="p-6 flex flex-column gap-4 w-auto">
         <div>
-          <label className="block text-sm font-medium w-11">Username</label>
+          <label className="block text-sm font-medium w-11">ชื่อผู้ใช้</label>
           <InputText
             value={localUser.username}
             onChange={(e) => handleChange("username", e.target.value)}
@@ -112,7 +112,7 @@ const UserDialog = ({ editingUser, visible, onHide, onSave }) => {
           )}
         </div>
         <div>
-          <label className="block text-sm font-medium">First Name</label>
+          <label className="block text-sm font-medium">ชื่อจริง</label>
           <InputText
             value={localUser.firstname}
             onChange={(e) => handleChange("firstname", e.target.value)}
@@ -124,7 +124,7 @@ const UserDialog = ({ editingUser, visible, onHide, onSave }) => {
           )}
         </div>
         <div>
-          <label className="block text-sm font-medium">Last Name</label>
+          <label className="block text-sm font-medium">นามสกุล</label>
           <InputText
             value={localUser.lastname}
             onChange={(e) => handleChange("lastname", e.target.value)}
@@ -136,7 +136,7 @@ const UserDialog = ({ editingUser, visible, onHide, onSave }) => {
           )}
         </div>
         <div>
-          <label className="block text-sm font-medium">Phone</label>
+          <label className="block text-sm font-medium">เบอร์โทรศัพท์</label>
           <InputText
             value={localUser.phone}
             onChange={(e) => handleChange("phone", e.target.value)}
@@ -148,7 +148,7 @@ const UserDialog = ({ editingUser, visible, onHide, onSave }) => {
           )}
         </div>
         <div>
-          <label className="block text-sm font-medium">Email</label>
+          <label className="block text-sm font-medium">อีเมล</label>
           <InputText
             value={localUser.email}
             onChange={(e) => handleChange("email", e.target.value)}
@@ -160,7 +160,7 @@ const UserDialog = ({ editingUser, visible, onHide, onSave }) => {
           )}
         </div>
         <div>
-          <label className="block text-sm font-medium">Role</label>
+          <label className="block text-sm font-medium">บทบาท</label>
           <Dropdown
             value={localUser.role}
             options={roleOptions}
@@ -173,9 +173,9 @@ const UserDialog = ({ editingUser, visible, onHide, onSave }) => {
           )}
         </div>
         <div className="flex justify-content-center gap-2 mt-6">
-          <Button label="Cancel" className="p-button-danger" onClick={onHide} />
+          <Button label="ยกเลิก" className="p-button-danger" onClick={onHide} />
           <Button
-            label="Save"
+            label="บันทึก"
             className="p-button-primary"
             onClick={handleSave}
           />

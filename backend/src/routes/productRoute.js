@@ -1,5 +1,5 @@
 import express from "express";
-import { getAllProducts, getProductById, createProduct, updateProduct, deleteProduct,getRandomProducts } from "../controllers/productController.js";
+import { getAllProducts, getProductById, createProduct, updateProduct, deleteProduct, getRandomProducts, getAllParts } from "../controllers/productController.js";
 import authMiddleware from "../middlewares/authMiddleware.js";
 import { productUpload } from "../middlewares/uploadMiddleware.js";
 
@@ -7,9 +7,11 @@ const router = express.Router();
 
 router.get("/", getAllProducts);
 router.get("/random", getRandomProducts);
+router.get("/parts", getAllParts);
 router.get("/:id", getProductById);
 router.post("/", authMiddleware.verifyToken, authMiddleware.isAdmin, productUpload, createProduct);
 router.put("/:id", authMiddleware.verifyToken, authMiddleware.isAdmin, productUpload, updateProduct);
 router.delete("/:id", authMiddleware.verifyToken, authMiddleware.isAdmin, deleteProduct);
+
 
 export default router;

@@ -16,7 +16,12 @@ const Automatic = () => {
 
   // Pagination
   const [first, setFirst] = useState(0);
-  const [rows, setRows] = useState(12);
+  const [rows, setRows] = useState(6);
+
+  const onPageChange = (event) => {
+    setFirst(event.first);
+    setRows(event.rows);
+};
 
   // ดึงสินค้าจาก backend
   useEffect(() => {
@@ -25,7 +30,7 @@ const Automatic = () => {
         setIsLoading(true);
         setError(null);
 
-        const res = await fetch('http://localhost:1234/api/products');
+        const res = await fetch(`${process.env.REACT_APP_API}/api/products`);
         if (!res.ok) {
           throw new Error('Failed to fetch products');
         }
@@ -45,9 +50,9 @@ const Automatic = () => {
   // เมนูกรองตามค่า category ใน DB
   const menuOptions = [
     { label: 'ทั้งหมด', value: null },
-    { label: 'ประตูม้วนแบบไฟฟ้า', value: 'electric_shutter' },
+    { label: 'ประตูม้วนแบบไฟฟ้า', value: 'electric_rolling_shutter' },
     { label: 'ประตูม้วนแบบรอกโซ่', value: 'chain_electric_shutter' },
-    { label: 'ประตูม้วนแบบสปริง', value: 'spring_shutter' },
+    { label: 'ประตูม้วนแบบมือดึง', value: 'manual_rolling_shutter' },
   ];
 
   // กรองฝั่ง Frontend
@@ -57,12 +62,13 @@ const Automatic = () => {
     // 2) ค้นหาจาก search ใน name
     // 3) ถ้า selectedMenu != null ต้อง product.category === selectedMenu
     const matchPart = product.is_part === false;
+    const matchStatus = product.status === false;
     const matchSearch = product.name
       .toLowerCase()
       .includes(search.toLowerCase());
     const matchMenu = selectedMenu ? product.category === selectedMenu : true;
 
-    return matchPart && matchSearch && matchMenu;
+    return matchPart && matchSearch && matchMenu && matchStatus;
   });
 
   // Pagination
@@ -142,7 +148,7 @@ const Automatic = () => {
         first={first}
         rows={rows}
         totalRecords={filteredProducts.length}
-        onPageChange={(e) => setFirst(e.first)}
+        onPage={onPageChange}
         className="mt-4"
       />
     </div>

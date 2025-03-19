@@ -12,34 +12,7 @@ const PortfolioList = ({ portfolios, onDelete, onEdit }) => {
     const token = localStorage.getItem("token");
 
     try {
-      const response = await fetch(
-        `http://localhost:1234/api/work-samples/${id}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.ok) {
-        toast.current.show({
-          severity: "success",
-          summary: "Deleted",
-          detail: "Work sample has been deleted",
-          life: 3000,
-        });
         onDelete(id);
-      } else {
-        const errorData = await response.json();
-        console.error("Error deleting:", errorData);
-        toast.current.show({
-          severity: "error",
-          summary: "Error",
-          detail: "Failed to delete work sample",
-          life: 3000,
-        });
-      }
     } catch (error) {
       console.error("Error deleting work sample:", error);
       toast.current.show({
@@ -80,12 +53,12 @@ const PortfolioList = ({ portfolios, onDelete, onEdit }) => {
             >
               {portfolio.images && portfolio.images.length > 0 ? (
                 <img
-                src={`http://localhost:1234${portfolio.images[0]}`}
+                src={`${process.env.REACT_APP_API}${portfolio.images[0]}`}
                   alt="work"
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <span className="text-gray-500">No Image</span>
+                <span className="text-gray-500">ไม่มีรูปภาพ</span>
               )}
             </div>
 

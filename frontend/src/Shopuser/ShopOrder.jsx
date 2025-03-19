@@ -3,23 +3,36 @@ import { useLocation, useNavigate } from "react-router-dom";
 import ShopOrderHeader from "./ShopOrder Component/ShopOrderHeader";
 import CartItem from "./ShopOrder Component/CartItem";
 import SummaryCard from "./ShopOrder Component/SummaryCard";
-import SlipPayment from "./ShopOrder Component/SlipPayment";
 import { Card } from "primereact/card";
 
 function ShopOrder() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { cart } = location.state || {};
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [selectedAddressIndex, setSelectedAddressIndex] = useState(0);
   const [addresses, setAddresses] = useState([]);
   const [form, setForm] = useState({ images: [] });
   const [user, setUser] = useState(null);
+  const [cart, setCart] = useState([]);
 
   useEffect(() => {
+    const fetchCart = async () => {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_API}/api/cart`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        });
+
+        if (!response.ok) throw new Error("ไม่สามารถดึงข้อมูลตะกร้าได้");
+
+        const data = await response.json();
+        setCart(data.items || []);
+      } catch (error) {
+        console.error("❌ API Error:", error.message);
+      }
+    };
     const fetchAddresses = async () => {
       try {
-        const res = await fetch("http://localhost:1234/api/addresses", {
+        const res = await fetch(`${process.env.REACT_APP_API}/api/addresses`, {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
         const data = await res.json();
@@ -30,7 +43,7 @@ function ShopOrder() {
     };
     const fetchUser = async () => {
       try {
-        const res = await fetch("http://localhost:1234/api/users/me", {
+        const res = await fetch(`${process.env.REACT_APP_API}/api/users/me`, {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
         const data = await res.json();
@@ -39,7 +52,7 @@ function ShopOrder() {
         console.error("เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้:", err);
       }
     };
-
+    fetchCart();
     fetchAddresses();
     fetchUser();
   }, []);
@@ -49,33 +62,21 @@ function ShopOrder() {
       alert("กรุณาเลือกที่อยู่ก่อนทำการสั่งซื้อ");
       return;
     }
-    if (!form.images.length) {
-      alert("กรุณาอัปโหลดสลิปโอนเงินก่อน");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("slip", form.images[0].file);
-    formData.append("amount", grandTotal);
 
     try {
-      const uploadResponse = await fetch(
-        "http://localhost:1234/api/upload-slip",
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
-      const uploadResult = await uploadResponse.json();
-      if (!uploadResponse.ok) throw new Error(uploadResult.error);
+      const orderItems = cart.map((item) => ({
+        productId: item.product?.id,
+        quantity: item.quantity,
+        price: item.price,
+      }));
 
       const orderData = {
-        cart,
-        slipUrl: uploadResult.imageUrl,
         addressId: selectedAddress.id,
+        orderItems,
+        totalAmount: grandTotal,
       };
 
-      const orderResponse = await fetch("http://localhost:1234/api/orders", {
+      const orderResponse = await fetch(`${process.env.REACT_APP_API}/api/orders`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -86,6 +87,13 @@ function ShopOrder() {
 
       if (!orderResponse.ok) throw new Error("ไม่สามารถสร้างคำสั่งซื้อได้");
 
+      await fetch(`${process.env.REACT_APP_API}/api/cart/clear`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "application/json",
+        },
+      });
       alert("สั่งซื้อสำเร็จ!");
       navigate("/shop-order-info");
     } catch (error) {
@@ -94,26 +102,15 @@ function ShopOrder() {
     }
   };
 
-  const totalProductPrice = cart.reduce(
-    (sum, item) => sum + item.product.price * item.quantity,
-    0
-  );
-  const totalInstallationFee = cart.reduce(
-    (sum, item) =>
-      sum + (item.installOption === "ติดตั้ง" ? 150 * item.quantity : 0),
-    0
-  );
+  const totalProductPrice = cart.reduce((sum, item) => {
+    const price = Number(item.price ?? item.product?.price ?? 0);
+    const quantity = Number(item.quantity ?? 1);
+    return sum + price * quantity;
+  }, 0);
 
   const VAT_RATE = 0.07;
-  const SHIPPING_COST = totalProductPrice > 1000 ? 0 : 50;
-  const DISCOUNT = totalProductPrice > 2000 ? 200 : 0;
   const vatAmount = totalProductPrice * VAT_RATE;
-  const grandTotal =
-    totalProductPrice +
-    totalInstallationFee +
-    vatAmount +
-    SHIPPING_COST -
-    DISCOUNT;
+  const grandTotal = totalProductPrice + vatAmount;
 
   return (
     <div className="lg:flex justify-content-center pt-6">
@@ -135,16 +132,8 @@ function ShopOrder() {
         <Card>
           <SummaryCard
             totalProductPrice={totalProductPrice}
-            totalInstallationFee={totalInstallationFee}
             grandTotal={grandTotal}
-          />
-        </Card>
-        <Card>
-          <SlipPayment
-            form={form}
-            setForm={setForm}
-            grandTotal={grandTotal}
-            handleOrderConfirmation={handleOrderConfirmation}
+            onConfirmOrder={handleOrderConfirmation}
           />
         </Card>
       </div>

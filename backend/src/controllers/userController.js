@@ -33,14 +33,33 @@ export const createUser = async (req, res, next) => {
 
 export const updateUser = async (req, res, next) => {
   try {
-    if (req.body.password) {
-      req.body.password = await bcrypt.hash(req.body.password, 10);
-    }
     const updatedUser = await UserService.updateUser(req.params.id, req.body);
     res.json(updatedUser);
   } catch (error) {
     next(error);
   }
+};
+
+export const updateUserProfile = async (req, res, next) => {
+  try {
+    const updatedUser = await UserService.updateUserProfile(req.user.id, req.body);
+    res.json(updatedUser);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const changeUserPassword = async (req, res) => {
+    const { oldPassword, newPassword } = req.body;
+    const user = await UserService.getUserPassById(req.user.id);
+    if (!user) return res.status(404).json({ error: "ไม่พบผู้ใช้" });
+    console.log("Id",user.password)
+    console.log("oldPassword: ",oldPassword)
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) return res.status(400).json({ error: "รหัสผ่านเก่าไม่ถูกต้อง" });
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await UserService.updatePass(req.user.id, hashedPassword );
+    res.json({ message: "เปลี่ยนรหัสผ่านสำเร็จ" });
 };
 
 export const deleteUser = async (req, res, next) => {

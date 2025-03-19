@@ -1,135 +1,251 @@
-"use client";
-import { useState } from "react";
+// File: src/Homeadmin.jsx
+import React, { useState, useEffect } from "react";
 import { Card } from "primereact/card";
-import { Dropdown } from "primereact/dropdown";
+import { Button } from "primereact/button";
 import { Chart } from "primereact/chart";
-import { Carousel } from "primereact/carousel";
+import { Dialog } from "primereact/dialog";
+import { DataTable } from "primereact/datatable";
+import { Column } from "primereact/column";
+import { Dropdown } from "primereact/dropdown";
 
-const Homeadmin = () => {
-    const [selectedMonth, setSelectedMonth] = useState("October");
-    const revenueData = {
-        labels: ["5k", "10k", "15k", "20k", "25k", "30k", "35k", "40k", "45k", "50k", "55k", "60k"],
-        datasets: [
-            {
-                label: "Sales",
-                data: [30, 50, 40, 60, 70, 100, 50, 80, 60, 90, 100, 70],
-                backgroundColor: "rgba(165, 105, 189, 0.5)",
-                borderColor: "#A569BD",
-                borderWidth: 2,
-                fill: true,
-            },
-            {
-                label: "Profit",
-                data: [20, 30, 25, 40, 50, 90, 35, 70, 50, 80, 90, 60],
-                backgroundColor: "rgba(240, 128, 128, 0.5)",
-                borderColor: "#E74C3C",
-                borderWidth: 2,
-                fill: true,
-            },
-        ],
-    };
+// ----- Hook สำหรับยอดขาย (ที่เราแยกไฟล์) -----
+import useSalesDataSeparate from "./Homeadmin component/useSalesDataSeparate";
 
-    const salesAnalyticsData = {
-        labels: ["2015", "2016", "2017", "2018", "2019"],
-        datasets: [
-            {
-                label: "Product A",
-                data: [10, 30, 50, 75, 100],
-                borderColor: "#2E86C1",
-                fill: false,
-                tension: 0.4,
-            },
-            {
-                label: "Product B",
-                data: [5, 25, 40, 60, 90],
-                borderColor: "#16A085",
-                fill: false,
-                tension: 0.4,
-            },
-        ],
-    };
+// ----- Hook อื่น ๆ ของคุณ -----
+import useCompletedOrders from "./Homeadmin component/useCompletedOrders";
+import useFailedOrders from "./Homeadmin component/useFailedOrders";
+import useCompletedRepairs from "./Homeadmin component/useCompletedRepairs";
+import useFailedRepairs from "./Homeadmin component/useFailedRepairs";
+import useUserCount from "./Homeadmin component/useUserCount";
+import useInventoryData from "./Homeadmin component/useInventoryData";
 
-    const products = [
-        { name: "ประตูไฟฟ้าอัตโนมัติ", price: "89,900 บาท" },
-        { name: "Smart Lock", price: "55,000 บาท" },
-        { name: "CCTV Security", price: "22,500 บาท" },
-    ];
+export default function Homeadmin() {
+    // ============== Hook dashboard ด้านซ้าย ==============
+    const completedOrders = useCompletedOrders();
+    const failedOrders = useFailedOrders();
+    const completedRepairs = useCompletedRepairs();
+    const failedRepairs = useFailedRepairs();
+    const { totalStock, productStock } = useInventoryData();
+    const userCount = useUserCount();
+    const [inventoryDialog, setInventoryDialog] = useState(false);
 
-    const productTemplate = (product) => (
-        <div className="text-center p-3">
-            <h3 className="text-lg font-bold">{product.name}</h3>
-            <p className="text-blue-500 font-medium">{product.price}</p>
-        </div>
-    );
+    // ============== เรียกใช้ Hook แยก ==============
+    const {
+        yearData, totalYearSales,
+        monthData, totalMonthSales,
+        loadYearData, loadMonthData
+    } = useSalesDataSeparate();
+
+    // ============== State เกี่ยวกับกราฟ ==============
+    const [chartMode, setChartMode] = useState("year");       // "year" | "month"
+    const [chartData, setChartData] = useState({ labels: [], datasets: [] });
+    const [selectedMonth, setSelectedMonth] = useState(null);
+
+    // ============== Dialog ตัวอย่าง: แสดงรายการรายเดือน ==============
+    const [showMonthDialog, setShowMonthDialog] = useState(false);
+
+    // เมื่อ mount ครั้งแรก -> โหลดยอดขายรายปี (เพื่อทำกราฟเป็นค่า default)
+    useEffect(() => {
+        loadYearData().then(() => {
+            // หลังโหลดเสร็จ -> sync กับ chartData
+            updateChartData("year");
+        });
+    }, []);
+
+    // เมื่อ chartMode เปลี่ยน -> รีเฟรชข้อมูล + update chart
+    useEffect(() => {
+        if (chartMode === "year") {
+            // ถ้าเปลี่ยนเป็น year -> loadYearData (ถ้ายังไม่โหลด)
+            loadYearData().then(() => {
+                updateChartData("year");
+            });
+        } else if (chartMode === "month") {
+            // ถ้าเปลี่ยนเป็น month แต่ยังไม่เลือกเดือน -> chart ยังว่าง
+            updateChartData("month");
+        }
+    }, [chartMode]);
+
+    // เมื่อ monthData หรือ yearData เปลี่ยน -> อัปเดต chart
+    useEffect(() => {
+        updateChartData(chartMode);
+    }, [yearData, monthData]);
+
+    // ฟังก์ชันเปลี่ยน chartData ตามโหมด
+    function updateChartData(mode) {
+        if (mode === "year" && yearData.length) {
+            const labels = yearData.map(item => item.name);
+            const dataset = yearData.map(item => item.sales);
+
+            setChartData({
+                labels,
+                datasets: [
+                    {
+                        label: "ยอดขายรวม (บาท)",
+                        data: dataset,
+                        backgroundColor: "rgba(54, 162, 235, 0.6)",
+                        borderColor: "rgba(54, 162, 235, 1)",
+                        borderWidth: 2
+                    }
+                ]
+            });
+        } else if (mode === "month" && monthData.length) {
+            const labels = monthData.map(item => item.name);    // "คำสั่งซื้อ #1" ...
+            const dataset = monthData.map(item => item.total);  // total บาท
+
+            setChartData({
+                labels,
+                datasets: [
+                    {
+                        label: "ยอดขาย (บาท)",
+                        data: dataset,
+                        backgroundColor: "rgba(255, 159, 64, 0.6)",
+                        borderColor: "rgba(255, 159, 64, 1)",
+                        borderWidth: 2
+                    }
+                ]
+            });
+        } else {
+            // ยังไม่มีข้อมูล (เช่น ยังไม่ได้เลือกเดือน)
+            setChartData({ labels: [], datasets: [] });
+        }
+    }
+
+    // เมื่อเปลี่ยนเดือนใน Dropdown -> loadMonthData -> update chart
+    function handleSelectMonth(e) {
+        const mon = e.value;
+        setSelectedMonth(mon);
+        loadMonthData(mon).then(() => {
+            updateChartData("month");
+        });
+    }
 
     return (
         <div className="p-5">
-            <h2 className="text-2xl font-bold mb-4">Dashboard</h2>
-            <Card className="mb-4">
-                <div className="flex justify-between items-center">
-                    <h3 className="text-xl font-semibold">Revenue</h3>
-                    <div className="ml-auto">
-                        <Dropdown
-                            value={selectedMonth}
-                            options={["October", "November", "December"]}
-                            onChange={(e) => setSelectedMonth(e.value)}
-                            placeholder="Select Month"
-                        />
-                    </div>
-                </div>
-                <Chart type="line" data={revenueData} />
-            </Card>
-
-            <div className="grid">
-                {/* Customers Card */}
-                <div className="col-12 md:col-4">
-                    <Card className="h-full flex flex-column justify-content-center align-items-center">
-                        <h3 className="text-xl font-semibold">Customers</h3>
-                        <div className="flex justify-center my-3">
-                            <div
-                                style={{
-                                    width: "80px",
-                                    height: "80px",
-                                    border: "5px solid #4A90E2",
-                                    borderRadius: "50%",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                }}
-                            >
-                                <span className="text-lg font-bold">📊</span>
-                            </div>
-                        </div>
-                        <p className="text-lg font-bold">34,249</p>
-                        <p className="text-sm text-gray-500">New Customers</p>
-                        <p className="text-lg font-bold">1,420</p>
-                        <p className="text-sm text-gray-500">Repeated</p>
-                    </Card>
-                </div>
-
-                {/* Featured Product Carousel */}
-                <div className="col-12 md:col-4">
-                    <Card className="h-full flex flex-column justify-content-center align-items-center">
-                        <h3 className="text-xl font-semibold text-center mb-3">Featured Product</h3>
-                        <Carousel
-                            value={products}
-                            itemTemplate={productTemplate}
-                            numVisible={1}
-                            numScroll={1}
-                        />
-                    </Card>
-                </div>
-
-                <div className="col-12 md:col-4">
-                    <Card className="h-full flex flex-column justify-content-center align-items-center">
-                        <h3 className="text-xl font-semibold">Sales Analytics</h3>
-                        <Chart type="line" data={salesAnalyticsData} />
-                    </Card>
-                </div>
+            {/* Header */}
+            <div className="flex justify-content-between align-items-center mb-4">
+                <h2 className="text-2xl flex align-items-center">
+                    📊 Dashboard ผู้ดูแลระบบ
+                </h2>
             </div>
 
+            <Card style={{ backgroundColor: '#026DCA', borderRadius: '5px' }}>
+                <div className="grid">
+                    <div className="col-12 md:col-5">
+                        <div className="grid">
+                            {[
+                                { title: "คำสั่งซื้อสำเร็จ", value: completedOrders.length, color: "text-green-500", unit: "รายการ", icon: "✅" },
+                                { title: "คำสั่งซื้อไม่สำเร็จ", value: failedOrders.length, color: "text-red-500", unit: "รายการ", icon: "❌" },
+                                { title: "สินค้าคงคลัง", value: totalStock, color: "text-blue-500", unit: "ชิ้น", icon: "📦", onClick: () => setInventoryDialog(true) },
+                                { title: "ผู้ใช้งาน", value: userCount, color: "text-purple-500", unit: "คน", icon: "👤" },
+                                { title: "คำขอซ่อมสำเร็จ", value: completedRepairs, color: "text-teal-500", unit: "รายการ", icon: "🛠️" },
+                                { title: "คำขอซ่อมไม่สำเร็จ", value: failedRepairs, color: "text-orange-500", unit: "รายการ", icon: "⚠️" }
+                            ].map((item, idx) => (
+                                <div className="col-6 p-2" key={idx}>
+                                    <Card className="shadow-3 p-1 text-center border-2 border-gray-300"  onClick={item.onClick}>
+                                        <h4 className="text-gray-700 text-sm flex justify-center items-center">
+                                            {item.icon} {item.title}
+                                        </h4>
+                                        <h3 className={`font-bold text-md ${item.color} mt-2`}>
+                                            {item.value} {item.unit}
+                                        </h3>
+                                    </Card>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* ======== ฝั่งขวา: Chart ที่สลับได้ (ปี/เดือน) ======== */}
+                    <div className="col-12 md:col-7">
+                        <Card title="ยอดขาย" className="shadow-3 p-2 relative">
+                            {/* Dropdown เลือกโหมด (year / month) */}
+                            <div className="mb-2 flex gap-2">
+                                <Dropdown
+                                    value={chartMode}
+                                    options={[
+                                        { label: "รายปี", value: "year" },
+                                        { label: "รายเดือน", value: "month" }
+                                    ]}
+                                    onChange={(e) => setChartMode(e.value)}
+                                    placeholder="เลือกโหมดกราฟ"
+                                    className="mr-2"
+                                />
+
+                                {chartMode === "month" && (
+                                    <Dropdown
+                                        value={selectedMonth}
+                                        options={["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]}
+                                        onChange={handleSelectMonth}
+                                        placeholder="เลือกเดือน"
+                                    />
+                                )}
+                            </div>
+
+                            <div className="mt-2" style={{ minHeight: "400px" }}>
+                                <Chart
+                                    type="bar"
+                                    data={chartData}
+                                    options={{
+                                        maintainAspectRatio: false,
+                                        plugins: { legend: { display: false } },
+                                        scales: { y: { beginAtZero: true } }
+                                    }}
+                                    style={{ height: "400px" }}
+                                />
+                            </div>
+
+                            <div className="pt-3">
+                                {chartMode === "year" ? (
+                                    <span className="text-green-600 font-bold text-lg">
+                                        ยอดขายรวมทั้งปี: {totalYearSales.toLocaleString()} บาท
+                                    </span>
+                                ) : (
+                                    <span className="text-blue-600 font-bold text-lg">
+                                        ยอดขายรวมเดือน {selectedMonth ?? "-"}: {totalMonthSales.toLocaleString()} บาท
+                                    </span>
+                                )}
+                            </div>
+
+                            {/* ตัวอย่างปุ่ม ถ้าจะเปิด Dialog รายเดือน */}
+                            {chartMode === "month" && (
+                                <div className="pt-2">
+                                    <Button
+                                        label="ดูรายละเอียดคำสั่งซื้อในเดือนนี้"
+                                        onClick={() => setShowMonthDialog(true)}
+                                        className="p-button-info"
+                                    />
+                                </div>
+                            )}
+
+                            <Dialog header="📦 รายการสินค้าคงคลัง" visible={inventoryDialog} style={{ width: '50vw' }} onHide={() => setInventoryDialog(false)}>
+                                <DataTable value={productStock} paginator rows={5}>
+                                    <Column field="id" header="รหัสสินค้า"></Column>
+                                    <Column field="name" header="ชื่อสินค้า"></Column>
+                                    <Column field="type" header="ประเภท"></Column>
+                                    <Column field="stock" header="จำนวนคงเหลือ"></Column>
+                                </DataTable>
+                            </Dialog>
+                        </Card>
+                    </div>
+                </div>
+
+                {/* ======== Dialog รายเดือน (ตัวอย่าง) ======== */}
+                <Dialog
+                    header="รายละเอียดคำสั่งซื้อรายเดือน"
+                    visible={showMonthDialog}
+                    onHide={() => setShowMonthDialog(false)}
+                    style={{ width: "50vw" }}
+                >
+                    <DataTable value={monthData} paginator rows={5}>
+                        <Column field="name" header="คำสั่งซื้อ" />
+                        <Column field="order_date" header="วันที่สั่งซื้อ" />
+                        <Column
+                            field="total"
+                            header="ยอดขายรวม (บาท)"
+                            body={(rowData) => rowData.total?.toLocaleString() || "0"}
+                        />
+                    </DataTable>
+                </Dialog>
+            </Card>
         </div>
     );
-};
-
-export default Homeadmin;
+}
