@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
+import { Toast } from "primereact/toast";
 import { Button } from "primereact/button";
+import { Card } from "primereact/card";
 import { FileUpload } from "primereact/fileupload";
 import RepairForm from "./Repair component/RepairForm";
 import { useNavigate } from "react-router-dom";
@@ -30,6 +32,7 @@ const Repair = () => {
 
   const navigate = useNavigate();
   const fileUploadRef = useRef(null);
+  const toast = useRef(null);
 
   // ✅ ดึง Token เพื่อเช็คว่า login อยู่หรือไม่
   useEffect(() => {
@@ -224,8 +227,17 @@ const Repair = () => {
       );
 
       if (response.ok) {
-        alert("แจ้งซ่อมสำเร็จ");
-        // ล้างฟอร์ม
+        console.log("✅ แจ้งซ่อมสำเร็จ");
+        toast.current.show({
+          severity: "success",
+          summary: "สำเร็จ",
+          detail: "แจ้งซ่อมสำเร็จ",
+          life: 3000, // แสดงผล 3 วินาที
+        });
+        // ✅ รอ 1.5 วินาทีก่อนเปลี่ยนหน้า
+        setTimeout(() => {
+          navigate("/profile");
+        }, 1500);
         setForm({
           province: "",
           district: "",
@@ -236,13 +248,22 @@ const Repair = () => {
           images: [],
         });
         fileUploadRef.current.clear();
-        navigate("/profile");
       } else {
         const errorData = await response.json();
-        alert(`เกิดข้อผิดพลาด: ${errorData.error}`);
+        toast.current.show({
+          severity: "error",
+          summary: "เกิดข้อผิดพลาด",
+          detail: errorData.error || "กรุณาลองอีกครั้ง",
+          life: 3000,
+        });
       }
     } catch (err) {
-      alert("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
+      toast.current.show({
+        severity: "error",
+        summary: "เชื่อมต่อเซิร์ฟเวอร์ผิดพลาด",
+        detail: "กรุณาลองใหม่ภายหลัง",
+        life: 3000,
+      });
     }
   };
 
@@ -259,20 +280,26 @@ const Repair = () => {
         flexDirection: "column",
         alignItems: "center",
         paddingTop: "50px",
+        backgroundSize: "cover",
+        paddingBottom: "50px",
       }}
     >
+      <Toast ref={toast} />
       <h2
         style={{ fontSize: "2rem", fontWeight: "bold", marginBottom: "20px" }}
       >
         แจ้งซ่อม
       </h2>
-      <div
+      <Card
+        className="p-shadow-6"
         style={{
           width: "100%",
           maxWidth: "800px",
-          backgroundColor: "#F5F5F5",
+          backgroundColor: "#ffffffcc", // โปร่งแสงนิดหน่อย
           padding: "2rem",
-          borderRadius: "10px",
+          borderRadius: "12px",
+          boxShadow: "0px 10px 20px rgba(0, 0, 0, 0.2)", // ✅ เงาหนาและดูพรีเมียม
+          backdropFilter: "blur(8px)",
         }}
       >
         <RepairForm
@@ -315,7 +342,7 @@ const Repair = () => {
             onClick={handleSubmit}
           />
         </div>
-      </div>
+      </Card>
     </div>
   );
 };

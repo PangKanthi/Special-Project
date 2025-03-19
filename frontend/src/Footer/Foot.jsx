@@ -1,40 +1,69 @@
-import React from 'react';
-import 'primeflex/primeflex.css';
+import React from "react";
+import "primeflex/primeflex.css";
+import { Divider } from "primereact/divider";
 
 const Footer = () => {
   return (
-    <div style={{ backgroundColor: '#0a74da', color: '#ffffff', padding: '15px'}}>
-      <div className="flex justify-content-center flex-wrap gap-8">
-        <div style={{ width: '150px', textAlign: 'center' }}>
-          <div style={{ paddingTop: '70px' }}>
-            <div style={{ backgroundColor: '#ffffff', padding:'16px'}}>
-              <img src="../assets/logo.png" alt="Company Logo" style={{ width: '100px'}} />
-            </div>
+    <div style={{
+      backgroundColor: "#0a74da",
+      color: "#ffffff",
+      padding: "20px 10px", // ✅ ลด Padding ให้เตี้ยลง
+      textAlign: "center",
+      boxShadow: "0px -4px 8px rgba(0, 0, 0, 0.2)",
+    }}>
+      <div className="grid align-items-center">
+        {/* ✅ โลโก้ */}
+        <div className="col-12 md:col-2 flex justify-content-center align-items-center">
+          <div style={{
+            backgroundColor: "#ffffff",
+            padding: "12px", // ✅ ลดขนาด padding ให้เล็กลง
+            borderRadius: "10px",
+            boxShadow: "0px 3px 6px rgba(0, 0, 0, 0.1)",
+          }}>
+            <img src="../assets/logo.png" alt="Company Logo" style={{ width: "80px" }} /> {/* ✅ ลดขนาดโลโก้ */}
           </div>
         </div>
-        <div style={{ paddingTop: '90px' }}>
-          <h3>ดีเดย์ ประตูม้วน ระยอง</h3>
+
+        {/* ✅ ชื่อบริษัท */}
+        <div className="col-12 md:col-2 flex justify-content-center align-items-center">
+          <h3 style={{ fontWeight: "bold", marginBottom: "0", fontSize: "16px" }}>ดีเดย์ ประตูม้วน ระยอง</h3>
         </div>
 
-        <div style={{ width: '300px', paddingTop: '35px'}}>
-          <h4>เกี่ยวกับเรา</h4>
-          <p>จำหน่ายติดตั้งประตูม้วนไฟฟ้าลิ่ม ระยอง ติดตั้งประตูม้วนทุกชนิด ใช้งานสะดวก ใช้วัสดุคุณภาพ ราคาไม่แพง</p>
-          <p>โทร: 08-6033-5224</p>
+        {/* ✅ เกี่ยวกับเรา */}
+        <div className="col-12 md:col-3">
+          <h4 style={{ fontSize: "14px", borderBottom: "1px solid #ffffff", display: "inline-block", paddingBottom: "3px" }}>เกี่ยวกับเรา</h4>
+          <p style={{ fontSize: "12px", lineHeight: "1.4" }}>
+            จำหน่ายติดตั้งประตูม้วนไฟฟ้าลิ่ม ระยอง ติดตั้งประตูม้วนทุกชนิด ใช้งานสะดวก ใช้วัสดุคุณภาพ ราคาไม่แพง
+          </p>
+          <p style={{ fontSize: "14px", fontWeight: "bold" }}>📞 08-6033-5224</p>
         </div>
 
-        <div style={{ width: '300px', paddingTop: '35px'}}>
-          <h4>ติดต่อเรา</h4>
-          <p>ดีเดย์ ประตูม้วน ระยอง</p>
-          <p>407/ หมู่ 2 ต.บานทอง อ.ปลวกแดง จ.ระยอง 21140</p>
-          <p>โทร: 08-6033-5224</p>
-          <p>Email: Ddayshutter@Hotmail.com</p>
+        {/* ✅ ติดต่อเรา */}
+        <div className="col-12 md:col-3">
+          <h4 style={{ fontSize: "14px", borderBottom: "1px solid #ffffff", display: "inline-block", paddingBottom: "3px" }}>ติดต่อเรา</h4>
+          <p style={{ fontSize: "12px", lineHeight: "1.4" }}>ดีเดย์ ประตูม้วน ระยอง</p>
+          <p style={{ fontSize: "12px" }}>407/ หมู่ 2 ต.บานทอง อ.ปลวกแดง จ.ระยอง 21140</p>
+          <p style={{ fontSize: "14px", fontWeight: "bold" }}>📞 08-6033-5224</p>
+          <p style={{ fontSize: "12px", color: "#ffeb3b", cursor: "pointer" }}>
+            ✉ Email: Ddayshutter@Hotmail.com
+          </p>
         </div>
 
-        <div style={{ width: '300px', paddingTop: '35px'}}>
-          <h4>เวลาทำการ</h4>
-          <p>จันทร์-เสาร์ เวลา 8:30-17:30 น.</p>
+        {/* ✅ เวลาทำการ */}
+        <div className="col-12 md:col-2">
+          <h4 style={{ fontSize: "14px", borderBottom: "1px solid #ffffff", display: "inline-block", paddingBottom: "3px" }}>เวลาทำการ</h4>
+          <p style={{ fontSize: "12px" }}>จันทร์-เสาร์</p>
+          <p style={{ fontSize: "14px", fontWeight: "bold" }}>⏰ 8:30 - 17:30 น.</p>
         </div>
       </div>
+
+      {/* ✅ เส้นแบ่ง Footer */}
+      <Divider style={{ marginTop: "10px", backgroundColor: "#ffffff" }} />
+
+      {/* ✅ Copyright */}
+      <p style={{ fontSize: "10px", opacity: "0.8" }}>
+        © 2024 ดีเดย์ ประตูม้วน ระยอง | All Rights Reserved
+      </p>
     </div>
   );
 };

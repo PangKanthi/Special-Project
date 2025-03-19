@@ -4,7 +4,7 @@ import { Button } from "primereact/button";
 
 const Contact = () => {
   return (
-    <div className="p-6 flex flex-col items-center">
+    <div className="p-6 items-center">
       {/* การ์ดข้อมูลติดต่อ */}
       <Card className="w-full max-w-3xl shadow-lg">
         <h2 className="text-2xl font-semibold border-b-2 border-blue-500 p-3">

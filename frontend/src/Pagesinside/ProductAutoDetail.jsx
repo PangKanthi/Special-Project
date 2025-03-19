@@ -218,8 +218,8 @@ const ProductAutoDetail = () => {
     const finalThickness = isPart
       ? ""
       : thickness
-      ? parseFloat(thickness)
-      : selectedThickness;
+        ? parseFloat(thickness)
+        : selectedThickness;
 
     if (
       !isPart &&
@@ -326,19 +326,36 @@ const ProductAutoDetail = () => {
                           height: "20px",
                           borderRadius: "50%",
                           backgroundColor: color,
-                          border:
-                            selectedColor === color
-                              ? "3px solid #ffffff"
-                              : "1px solid #ccc",
+                          border: selectedColor === color
+                            ? "3px solid #ffffff"
+                            : "2px solid rgb(255, 255, 255)",
+                          boxShadow: selectedColor === color
+                            ? "0 4px 8px rgba(0,0,0,0.3)"
+                            : "0 2px 4px rgba(0,0,0,0.1)",
                           cursor: "pointer",
-                          boxShadow:
-                            selectedColor === color
-                              ? "0 0 5px rgba(0,0,0,0.5)"
-                              : "none",
+                          position: "relative",
+                          transition: "all 0.3s ease-in-out",
+                          transform: selectedColor === color ? "scale(1.1)" : "scale(1)",
                         }}
-                      />
+                      >
+                        {selectedColor === color && (
+                          <span
+                            style={{
+                              position: "absolute",
+                              top: "50%",
+                              left: "50%",
+                              transform: "translate(-50%, -50%)",
+                              color: "white",
+                              fontSize: "12px",
+                              fontWeight: "bold",
+                            }}
+                          >
+                          </span>
+                        )}
+                      </div>
                     ))}
                   </div>
+
                 )}
 
               {!product.is_part && (
@@ -381,7 +398,7 @@ const ProductAutoDetail = () => {
                       className="p-inputtext p-component"
                       style={{ width: "100px", height: "55px" }}
                     />
-                    
+
                     <input
                       type="text"
                       value={length}
@@ -426,31 +443,40 @@ const ProductAutoDetail = () => {
                 >
                   จำนวน:
                 </label>
-                <div className="flex align-items-center">
+                <div className="flex items-center gap-2">
                   <Button
                     label="-"
                     className="p-button-secondary"
                     onClick={handleDecrease}
                     style={{
-                      width: "30px",
-                      height: "30px",
+                      width: "35px",
+                      height: "35px",
                       backgroundColor: "#ffffff",
                       color: "#000000",
-                      fontSize: "30px",
+                      fontSize: "20px",
+                      fontWeight: "bold",
+                      borderRadius: "6px",
+                      border: "1px solid #ccc",
+                      cursor: "pointer",
+                      transition: "all 0.3s ease-in-out",
+                      display: "flex",
+                      alignItems: "center",
                       justifyContent: "center",
-                      paddingBottom: "14px",
                     }}
+                    onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#f0f0f0")}
+                    onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "#ffffff")}
                   />
                   <InputText
                     value={quantity}
                     readOnly
                     style={{
-                      width: "57px",
-                      height: "30px",
+                      width: "50px",
+                      height: "35px",
                       textAlign: "center",
                       fontSize: "16px",
                       fontWeight: "bold",
-                      border: "1px solid #424242",
+                      borderRadius: "6px",
+                      border: "1px solid #ccc",
                     }}
                   />
                   <Button
@@ -458,16 +484,25 @@ const ProductAutoDetail = () => {
                     className="p-button-secondary"
                     onClick={handleIncrease}
                     style={{
-                      width: "30px",
-                      height: "30px",
+                      width: "35px",
+                      height: "35px",
                       backgroundColor: "#ffffff",
                       color: "#000000",
-                      fontSize: "30px",
+                      fontSize: "20px",
+                      fontWeight: "bold",
+                      borderRadius: "6px",
+                      border: "1px solid #ccc",
+                      cursor: "pointer",
+                      transition: "all 0.3s ease-in-out",
+                      display: "flex",
+                      alignItems: "center",
                       justifyContent: "center",
-                      paddingBottom: "14px",
                     }}
+                    onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#f0f0f0")}
+                    onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "#ffffff")}
                   />
                 </div>
+
               </div>
               <p
                 onClick={() => setShowDialog(true)}
