@@ -110,11 +110,11 @@ const Managerepairrequests = ({ setNotifications }) => {
   };
 
   const statusOptions = [
-    { label: "pending", value: "pending" },
-    { label: "confirm", value: "confirm" },
-    { label: "complete", value: "complete" },
-    { label: "cancle", value: "cancle" },
-  ];
+    { label: "รอการยืนยัน", value: "pending" },
+    { label: "ได้รับการยืนยัน", value: "confirm" },
+    { label: "เสร็จแล้ว", value: "complete" },
+    { label: "ยกเลิก", value: "cancle" },
+];
 
   useEffect(() => {
     fetchRepairRequests();
@@ -248,19 +248,34 @@ const Managerepairrequests = ({ setNotifications }) => {
   };
 
   const statusTemplate = (rowData) => {
-    const statusColors = {
-      pending: "warning",
-      confirm: "info",
-      complete: "success",
-      cancle: "danger",
-    };
-    return (
-      <Tag
-        value={rowData.status}
-        severity={statusColors[rowData.status] || "info"}
-      />
-    );
-  };
+    let severity = "";
+    let statusText = "";
+
+    switch (rowData.status) {
+        case "pending":
+            severity = "warning"; // สีเหลือง
+            statusText = "รอการยืนยัน";
+            break;
+        case "confirm":
+            severity = "info"; // สีฟ้า
+            statusText = "ได้รับการยืนยันแล้ว";
+            break;
+        case "complete":
+            severity = "success"; // สีเขียว
+            statusText = "เสร็จแล้ว";
+            break;
+        case "cancel":
+            severity = "danger"; // สีแดง
+            statusText = "ยกเลิก";
+            break;
+        default:
+            severity = "secondary"; // สีเทา
+            statusText = "ไม่ระบุ";
+    }
+
+    return <Tag value={statusText} severity={severity} />;
+};
+
 
   const statusEditor = (rowData) => {
     return (

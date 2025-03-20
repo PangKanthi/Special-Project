@@ -18,6 +18,7 @@ import useCompletedRepairs from "./Homeadmin component/useCompletedRepairs";
 import useFailedRepairs from "./Homeadmin component/useFailedRepairs";
 import useUserCount from "./Homeadmin component/useUserCount";
 import useInventoryData from "./Homeadmin component/useInventoryData";
+import NotificationButton from "./Homeadmin component/NotificationButton";
 
 export default function Homeadmin() {
     // ============== Hook dashboard ด้านซ้าย ==============
@@ -126,6 +127,7 @@ export default function Homeadmin() {
                 <h2 className="text-2xl flex align-items-center">
                     📊 Dashboard ผู้ดูแลระบบ
                 </h2>
+                <NotificationButton />
             </div>
 
             <Card style={{ backgroundColor: '#026DCA', borderRadius: '5px' }}>
@@ -141,7 +143,7 @@ export default function Homeadmin() {
                                 { title: "คำขอซ่อมไม่สำเร็จ", value: failedRepairs, color: "text-orange-500", unit: "รายการ", icon: "⚠️" }
                             ].map((item, idx) => (
                                 <div className="col-6 p-2" key={idx}>
-                                    <Card className="shadow-3 p-1 text-center border-2 border-gray-300"  onClick={item.onClick}>
+                                    <Card className="shadow-3 p-1 text-center border-2 border-gray-300" onClick={item.onClick}>
                                         <h4 className="text-gray-700 text-sm flex justify-center items-center">
                                             {item.icon} {item.title}
                                         </h4>
@@ -221,7 +223,18 @@ export default function Homeadmin() {
                                     <Column field="id" header="รหัสสินค้า"></Column>
                                     <Column field="name" header="ชื่อสินค้า"></Column>
                                     <Column field="type" header="ประเภท"></Column>
-                                    <Column field="stock" header="จำนวนคงเหลือ"></Column>
+                                    <Column
+                                        field="stock"
+                                        header="จำนวนคงเหลือ"
+                                        body={(rowData) => (
+                                            <span style={{
+                                                color: rowData.stock === 0 ? 'red' : rowData.stock < 10 ? 'orange' : 'black',
+                                                fontWeight: rowData.stock === 0 ? 'bold' : 'normal'
+                                            }}>
+                                                {rowData.stock}
+                                            </span>
+                                        )}
+                                    />
                                 </DataTable>
                             </Dialog>
                         </Card>

@@ -52,31 +52,26 @@ const ProductList = ({ products }) => {
               style={{ textDecoration: "none" }}
             >
               <Card
-                title={product.name}
-                style={{
-                  marginBottom: "1rem",
-                  height: "100%",
-                  cursor: "pointer",
-                  transition: "transform 0.2s",
-                }}
                 header={
-                  <img
-                    alt={product.name}
-                    src={
-                      product.images && product.images.length > 0
-                        ? `${process.env.REACT_APP_API}${product.images[0]}`
-                        : "https://via.placeholder.com/300"
-                    }
-                    style={{
-                      width: "250px",
-                      height: "250px",
-                      objectFit: "cover",
-                      borderRadius: "10px",
-                      display: "block",
-                      margin: "0 auto",
-                    }}
-                  />
+                  <div className="pt-3">
+                    <img
+                      alt={product.name}
+                      src={
+                        product.images && product.images.length > 0
+                          ? `${process.env.REACT_APP_API}${product.images[0]}`
+                          : "https://via.placeholder.com/300"
+                      }
+                      style={{
+                        width: "270px",
+                        height: "250px",
+                        objectFit: "contain",
+                        display: "block",
+                        margin: "0 auto",
+                      }}
+                    />
+                  </div>
                 }
+                title={product.name}
                 footer={
                   <div>
                     {info && (

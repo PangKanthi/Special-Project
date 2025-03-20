@@ -3,12 +3,24 @@ import OrderService from '../services/orderService.js';
 export const createOrder = async (req, res, next) => {
     try {
         const { addressId, orderItems, totalAmount } = req.body;
+
+        // Validation เบื้องต้น
         if (!addressId || !orderItems || orderItems.length === 0) {
             return res.status(400).json({ error: 'ข้อมูลไม่ครบถ้วน' });
         }
 
-        const order = await OrderService.createOrder(req.user.id, addressId, orderItems, totalAmount);
-        res.status(201).json(order);
+        // เรียกใช้ Service
+        const order = await OrderService.createOrder(
+            req.user.id,
+            addressId,
+            orderItems,  // <-- array ของ { productId, quantity, price, color, width, ... }
+            totalAmount
+        );
+
+        res.status(201).json({
+            message: "สั่งซื้อสำเร็จ",
+            data: order
+        });
     } catch (error) {
         next(error);
     }
@@ -102,14 +114,17 @@ export const createOrderFromCart = async (req, res, next) => {
     try {
         const { addressId } = req.body;
         if (!addressId) {
-            return res.status(400).json({ error: 'Address ID is required' });
+            return res.status(400).json({ error: "Address ID is required" });
         }
 
         const order = await OrderService.createOrderFromCart(req.user.id, addressId);
-        res.status(201).json(order);
+
+        res.status(201).json({
+            message: "สร้างออเดอร์จากตะกร้าสำเร็จ",
+            data: order
+        });
     } catch (error) {
-        console.error("[ERROR] createOrderFromCart failed:", error);
-        res.status(500).json({ error: "Failed to create order from cart" });
+        next(error);
     }
 };
 
@@ -126,18 +141,43 @@ export const getLatestOrder = async (req, res, next) => {
 
 export const updateOrderItem = async (req, res, next) => {
     try {
-        const { orderItemId, productId, quantity, price } = req.body;
+        const {
+            orderItemId,
+            productId,
+            quantity,
+            price,
+            color,
+            width,
+            length,
+            thickness,
+            installOption
+        } = req.body;
 
+        // ถ้าต้องการ validate เบื้องต้นเพิ่มเติมก็สามารถใส่ได้
         if (!orderItemId || !productId || !quantity || !price) {
             return res.status(400).json({ error: "ข้อมูลไม่ครบถ้วน" });
         }
 
-        const updatedOrderItem = await OrderService.updateOrderItem(orderItemId, productId, quantity, price);
+        const updatedOrderItem = await OrderService.updateOrderItem(
+            orderItemId,
+            productId,
+            quantity,
+            price,
+            color,
+            width,
+            length,
+            thickness,
+            installOption
+        );
 
-        res.status(200).json({ message: "อัปเดตรายการสินค้าในออเดอร์สำเร็จ", data: updatedOrderItem });
+        res.status(200).json({
+            message: "อัปเดตรายการสินค้าในออเดอร์สำเร็จ",
+            data: updatedOrderItem
+        });
     } catch (error) {
         next(error);
     }
 };
+
 
 

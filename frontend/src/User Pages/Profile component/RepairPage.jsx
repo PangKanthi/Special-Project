@@ -21,11 +21,9 @@ const RepairPage = () => {
         filterRepairs(activeTab);
     }, [repairRequests, activeTab]);
 
-    // ✅ ฟังก์ชันจัดรูปแบบวันที่
     const dateTemplate = (rowData) => {
         return moment(rowData.request_date).format("DD/MM/YYYY HH:mm");  // เปลี่ยนรูปแบบวันที่
     };
-
 
     const fetchRepairRequests = async () => {
         try {
@@ -87,26 +85,32 @@ const RepairPage = () => {
 
     const statusTemplate = (rowData) => {
         let severity = "";
+        let statusText = "";
 
         switch (rowData.status) {
             case "pending":
                 severity = "warning"; // สีเหลือง
+                statusText = "รอการยืนยัน";
                 break;
             case "confirm":
                 severity = "info"; // สีฟ้า
+                statusText = "ได้รับการยืนยันแล้ว";
                 break;
             case "complete":
                 severity = "success"; // สีแดง
+                statusText = "เสร็จแล้ว";
                 break;
             case "cancle":
                 severity = "danger"; // สีแดง
+                statusText = "ยกเลิก";
                 break;
             default:
                 severity = "secondary"; // สีฟ้า
+                statusText = "ไม่ระบุ";
 
         }
 
-        return <Tag value={rowData.status} severity={severity} />;
+        return <Tag value={statusText} severity={severity} />;
     };
 
 
