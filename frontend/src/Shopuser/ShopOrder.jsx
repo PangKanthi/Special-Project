@@ -58,49 +58,59 @@ function ShopOrder() {
   }, []);
 
   const handleOrderConfirmation = async () => {
+    // ตรวจสอบ address
     if (!selectedAddress) {
-      alert("กรุณาเลือกที่อยู่ก่อนทำการสั่งซื้อ");
+      alert("กรุณาเลือกที่อยู่");
       return;
     }
-
+  
     try {
       const orderItems = cart.map((item) => ({
         productId: item.product?.id,
         quantity: item.quantity,
         price: item.price,
+        color: item.color,         // หรือ item.color || "default"
+        width: item.width,
+        length: item.length,
+        thickness: item.thickness,
+        installOption: item.installOption
       }));
-
-      const orderData = {
+  
+      const payload = {
         addressId: selectedAddress.id,
         orderItems,
-        totalAmount: grandTotal,
+        totalAmount: grandTotal  // หรือจะคำนวณใหม่ก็ได้
       };
-
-      const orderResponse = await fetch(`${process.env.REACT_APP_API}/api/orders`, {
+  
+      const res = await fetch(`${process.env.REACT_APP_API}/api/orders`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
           "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`
         },
-        body: JSON.stringify(orderData),
+        body: JSON.stringify(payload)
       });
-
-      if (!orderResponse.ok) throw new Error("ไม่สามารถสร้างคำสั่งซื้อได้");
-
+  
+      if (!res.ok) {
+        throw new Error("ไม่สามารถสร้างออเดอร์ได้");
+      }
+  
+      // ถ้าอยากเคลียร์ตะกร้าด้วย
       await fetch(`${process.env.REACT_APP_API}/api/cart/clear`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-          "Content-Type": "application/json",
-        },
+          Authorization: `Bearer ${localStorage.getItem("token")}`
+        }
       });
+  
       alert("สั่งซื้อสำเร็จ!");
       navigate("/shop-order-info");
-    } catch (error) {
-      console.error("❌ API Error:", error.message);
+    } catch (err) {
+      console.error("Error:", err);
       alert("เกิดข้อผิดพลาดในการสั่งซื้อ");
     }
   };
+  
 
   const totalProductPrice = cart.reduce((sum, item) => {
     const price = Number(item.price ?? item.product?.price ?? 0);

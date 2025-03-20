@@ -12,12 +12,12 @@ const router = express.Router();
 
 router.post('/', authMiddleware.verifyToken, createOrder);
 router.get('/user', authMiddleware.verifyToken, getUserOrders);
+router.put('/order-items', authMiddleware.verifyToken, updateOrderItem);
 router.put('/:id', authMiddleware.verifyToken, updateOrderStatus);
 router.get('/', authMiddleware.verifyToken, getAllOrders);
 router.get('/:id', authMiddleware.verifyToken, getOrderById);
 router.post('/from-cart', authMiddleware.verifyToken, createOrderFromCart);
 router.get('/latest', authMiddleware.verifyToken, getLatestOrder);
-router.put('/order-items', authMiddleware.verifyToken, updateOrderItem);
 
 router.post('/:id/upload-slip', authMiddleware.verifyToken, slipUpload, uploadPaymentSlip);
 router.get('/:id/payment-slip', authMiddleware.verifyToken, getPaymentSlip);

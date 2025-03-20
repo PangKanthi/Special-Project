@@ -17,6 +17,7 @@ import userRoute from "./routes/userRoute.js";
 import slipUploadRoute from './routes/slipUploadRoute.js';
 import cartRoute from "./routes/cartRoute.js";
 import errorMiddleware from './middlewares/errorMiddleware.js';
+import doorConfigRoute from "./routes/doorConfigRoute.js";
 
 const app = express();
 

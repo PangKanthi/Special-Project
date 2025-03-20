@@ -93,17 +93,23 @@ model order {
 }
 
 model order_item {
-  id        Int     @id @default(autoincrement())
-  orderId   Int
-  productId Int
-  quantity  Int
-  price     Decimal @db.Decimal(10, 2)
+  id            Int      @id @default(autoincrement())
+  orderId       Int
+  productId     Int
+  quantity      Int
+  price         Decimal  @db.Decimal(10, 2)
+  color         String?  @db.VarChar(50)
+  width         Decimal? @db.Decimal(10, 2)
+  length        Decimal? @db.Decimal(10, 2)
+  thickness     String?  @db.Text
+  installOption String?  @db.VarChar(20)
 
   order   order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@map("order_items")
 }
+
 
 model payment_slip {
   id         Int      @id @default(autoincrement())
@@ -203,4 +209,29 @@ model bom_item {
 
   @@unique([productId, partId])
   @@map("bom_items")
+}
+
+// สร้าง Model สำหรับเก็บประเภทประตู
+model door_config {
+  id           Int      @id @default(autoincrement())
+  category     String   @unique
+  display_name String?          
+  description  String?
+  warranty     String?
+
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  price_tiers  door_config_price_tiers[]
+}
+
+model door_config_price_tiers {
+  id            Int     @id @default(autoincrement())
+  doorConfigId  Int
+  thickness     String
+  price_per_sqm Decimal
+
+  door_config door_config @relation(fields: [doorConfigId], references: [id], onDelete: Cascade)
+
+  @@map("door_config_price_tiers")
 }

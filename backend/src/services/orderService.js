@@ -6,6 +6,7 @@ const doorConfig = JSON.parse(rawData);
 class OrderService {
     static async createOrder(userId, addressId, orderItems, totalAmount) {
         return await prisma.$transaction(async (tx) => {
+            // 1) สร้าง order
             const order = await tx.order.create({
                 data: {
                     userId,
@@ -16,17 +17,24 @@ class OrderService {
                 }
             });
 
+            // 2) สร้าง order_item
             if (orderItems.length > 0) {
                 await tx.order_item.createMany({
-                    data: orderItems.map(item => ({
+                    data: orderItems.map((item) => ({
                         orderId: order.id,
                         productId: item.productId,
                         quantity: item.quantity,
-                        price: item.price
+                        price: item.price,
+
+                        // เพิ่มคอลัมน์ที่ใหม่
+                        color: item.color || null,
+                        width: item.width,
+                        length: item.length,
+                        thickness: item.thickness,
+                        installOption: item.installOption
                     }))
                 });
             }
-
             for (const item of orderItems) {
                 const product = await tx.product.findUnique({
                     where: { id: item.productId }
@@ -91,21 +99,28 @@ class OrderService {
             return order;
         });
     }
-    
+
     static async getAllOrders() {
         const orders = await prisma.order.findMany({
             include: {
                 order_items: {
                     include: {
-                        product: { select: { id: true, name: true, images: true, category: true } } // ✅ เพิ่ม category
+                        product: {
+                            select: {
+                                id: true,
+                                name: true,
+                                images: true,
+                                category: true,
+                                // 🟢 ต้องเพิ่ม "colors" มาด้วย
+                                colors: true
+                            }
+                        }
                     }
                 },
                 user: { select: { id: true, firstname: true, lastname: true, phone: true } },
                 address: true
             }
         });
-
-        console.log("📌 Orders from DB (with category):", JSON.stringify(orders, null, 2)); // ✅ Debug JSON
         return orders;
     }
 
@@ -123,42 +138,59 @@ class OrderService {
     }
 
     static async createOrderFromCart(userId, addressId) {
-        try {
-            console.log("📌 Checking addressId:", addressId);
-
-            if (!addressId) {
-                throw new Error("Address ID is missing");
-            }
-
-            const addressExists = await prisma.address.findUnique({
-                where: { id: addressId },
+        return await prisma.$transaction(async (tx) => {
+            // 1) สร้าง order
+            const order = await tx.order.create({
+                data: {
+                    userId,
+                    addressId,
+                    total_amount: 0,  // หรือคำนวณจริง ๆ
+                    status: 'pending',
+                    payment_status: 'pending'
+                }
             });
 
-            console.log("📌 Address found:", addressExists);
+            // 2) ดึง cart + items
+            const cart = await tx.cart.findUnique({
+                where: { userId },
+                include: { items: true }
+            });
+            if (!cart || cart.items.length === 0) throw new Error("Cart is empty");
 
-            if (!addressExists) {
-                throw new Error(`Address ID ${addressId} not found`);
-            }
+            // (ตัวอย่าง) คำนวณ total_amount
+            const totalAmount = cart.items.reduce((acc, item) => {
+                return acc + Number(item.price ?? 0) * Number(item.quantity ?? 1);
+            }, 0);
 
-            const cart = await CartService.getCart(userId);
-            if (!cart || !cart.items || cart.items.length === 0) {
-                throw new Error("Cart is empty");
-            }
+            // 3) อัปเดต order ให้เก็บ total_amount ที่คำนวณ
+            await tx.order.update({
+                where: { id: order.id },
+                data: { total_amount: totalAmount }
+            });
 
-            const orderItems = cart.items.map(item => ({
-                productId: item.productId,
-                quantity: item.quantity,
-                price: item.price,
-                installOption: item.installOption || "",
-            }));
+            // 4) ย้าย cart_item -> order_item
+            await tx.order_item.createMany({
+                data: cart.items.map((item) => ({
+                    orderId: order.id,
+                    productId: item.productId,
+                    quantity: item.quantity,
+                    price: item.price,
 
-            const order = await this.createOrder(userId, addressId, orderItems);
-            await CartService.clearCart(userId);
+                    // จัดการคอลัมน์ใหม่
+                    color: item.color,
+                    width: item.width,
+                    length: item.length,
+                    thickness: item.thickness,
+                    installOption: item.installOption
+                }))
+            });
+
+            // 5) ล้างตะกร้าหรือปล่อยไว้ก็ได้
+            await tx.cart_item.deleteMany({ where: { cartId: cart.id } });
+
+            // 6) return order
             return order;
-        } catch (error) {
-            console.error("[ERROR] Failed to create order from cart:", error);
-            throw new Error("Failed to create order from cart");
-        }
+        });
     }
 
     static async getUserOrders(userId) {
@@ -184,7 +216,6 @@ class OrderService {
             }
         });
     }
-
 
     static async getOrderById(orderId) {
         return await prisma.order.findUnique({
@@ -235,17 +266,59 @@ class OrderService {
         });
     }
 
-    static async updateOrderItem(orderItemId, newProductId, newQuantity, newPrice) {
-        return await prisma.order_item.update({
-            where: { id: orderItemId },
-            data: {
-                productId: newProductId,
-                quantity: newQuantity,
-                price: newPrice
-            }
+    static async updateOrderItem(
+        orderItemId,
+        productId,
+        quantity,
+        price,
+        color,
+        width,
+        length,
+        thickness,
+        installOption
+      ) {
+        // 1) update ตัว order_item ก่อน
+        const updatedItem = await prisma.order_item.update({
+          where: { id: orderItemId },
+          data: {
+            productId,
+            quantity,
+            price,
+            color,
+            width,
+            length,
+            thickness,
+            installOption
+          }
         });
-    }
-    
+      
+        // 2) หา orderId ที่ item ตัวนี้สังกัด
+        const orderId = updatedItem.orderId;
+      
+        // 3) คำนวณ new total 
+        //    ดึงทุก item ของ orderId นี้
+        const items = await prisma.order_item.findMany({
+          where: { orderId },
+        });
+      
+        // รวม quantity * price
+        let newTotal = 0;
+        items.forEach((itm) => {
+          const qty = Number(itm.quantity ?? 0);
+          const prc = Number(itm.price ?? 0);
+          newTotal += qty * prc;
+        });
+      
+        // 4) update order.total_amount
+        await prisma.order.update({
+          where: { id: orderId },
+          data: { total_amount: newTotal }
+        });
+      
+        // 5) return updatedItem
+        return updatedItem;
+      }      
+
 }
 
 export default OrderService;
