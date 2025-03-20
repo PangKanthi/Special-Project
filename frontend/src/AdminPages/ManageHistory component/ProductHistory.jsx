@@ -1,22 +1,40 @@
-import React, { useState, useEffect } from "react";
-import { Card } from "primereact/card";
+import React, { useState, useEffect, useRef } from "react";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
+import { Toast } from "primereact/toast";
 import { Tag } from "primereact/tag";
+import { Dropdown } from "primereact/dropdown";
 import axios from "axios";
 
 const ProductHistory = () => {
   const [orders, setOrders] = useState([]);
+  const [filteredOrders, setFilteredOrders] = useState([]);
   const [orderItems, setOrderItems] = useState([]);
   const [visibleItems, setVisibleItems] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [visibleAddress, setVisibleAddress] = useState(false);
+  const [statusFilter, setStatusFilter] = useState(null); // New state for the status filter
+  const [dataLoaded, setDataLoaded] = useState(false); // To track data loading status
+  const toast = useRef(null);
 
   useEffect(() => {
     fetchOrders();
   }, []);
+
+  useEffect(() => {
+    if (dataLoaded) {
+      console.log("Orders fetched:", orders);
+      if (statusFilter === null) {
+        // Show both 'complete' and 'cancel' statuses
+        setFilteredOrders(orders.filter(order => order.status === 'complete' || order.status === 'cancel'));
+      } else {
+        // Filter by selected status ('complete' or 'cancel')
+        setFilteredOrders(orders.filter(order => order.status === statusFilter));
+      }
+    }
+  }, [orders, statusFilter, dataLoaded]);
 
   const fetchOrders = async () => {
     try {
@@ -25,8 +43,13 @@ const ProductHistory = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      console.log("📌 Orders from API:", response.data.data);
-      setOrders(response.data.data.filter(order => order.status === "complete" || order.status === "cancel"));
+      // Filter out only "complete" and "cancel" orders when fetching data
+      const fetchedOrders = response.data.data.filter(
+        (order) => order.status === "complete" || order.status === "cancel"
+      );
+      setOrders(fetchedOrders);
+      setDataLoaded(true); // Mark data as loaded
+      setFilteredOrders(fetchedOrders); // Initially show all orders
     } catch (error) {
       console.error("Error fetching orders:", error);
     }
@@ -39,9 +62,20 @@ const ProductHistory = () => {
       await axios.delete(`${process.env.REACT_APP_API}/api/orders/${orderId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setOrders(prevOrders => prevOrders.filter(order => order.id !== orderId));
+      setOrders((prevOrders) => prevOrders.filter((order) => order.id !== orderId));
+      toast.current.show({
+        severity: "success",
+        summary: "สำเร็จ",
+        detail: "ลบรายการสำเร็จ",
+        life: 3000,
+      });
     } catch (error) {
-      console.error("Error deleting order:", error);
+      toast.current.show({
+        severity: "error",
+        summary: "ข้อผิดพลาด",
+        detail: "ไม่สามารถลบรายการได้",
+        life: 3000,
+      });
     }
   };
 
@@ -50,9 +84,12 @@ const ProductHistory = () => {
       complete: { label: "สำเร็จ", severity: "success" },
       cancel: { label: "ยกเลิก", severity: "danger" },
     };
-  
-    const status = statusMapping[rowData.status] || { label: "ไม่ทราบ", severity: "warning" };
-  
+
+    const status = statusMapping[rowData.status] || {
+      label: "ไม่ทราบ",
+      severity: "warning",
+    };
+
     return <Tag value={status.label} severity={status.severity} />;
   };
 
@@ -74,12 +111,11 @@ const ProductHistory = () => {
     }
   };
 
-  // ฟังก์ชันแสดงรูปภาพสินค้า
   const ImageTemplate = (rowData) => {
     const images = rowData.rowData.product?.images || [];
 
     return (
-      <div style={{ display: 'flex', gap: '5px' }}>
+      <div style={{ display: "flex", gap: "5px" }}>
         {images.length > 0 ? (
           images.map((image, index) => {
             const imageUrl = `${process.env.REACT_APP_API}${image}`;
@@ -90,8 +126,10 @@ const ProductHistory = () => {
                 alt="repair-img"
                 width="50"
                 height="50"
-                style={{ borderRadius: '5px' }}
-                onError={(e) => { e.target.src = "https://via.placeholder.com/50"; }}
+                style={{ borderRadius: "5px" }}
+                onError={(e) => {
+                  e.target.src = "https://via.placeholder.com/50";
+                }}
               />
             );
           })
@@ -102,9 +140,24 @@ const ProductHistory = () => {
     );
   };
 
+  // Status filter options
+  const statusOptions = [
+    { label: "ทั้งหมด", value: null }, // Show both "complete" and "cancel" when "ทั้งหมด" is selected
+    { label: "สำเร็จ", value: "complete" },
+    { label: "ยกเลิก", value: "cancel" },
+  ];
+
   return (
     <div>
-      <DataTable value={orders} dataKey="id" paginator rows={10}>
+      <Toast ref={toast} />
+      <Dropdown
+        value={statusFilter}
+        options={statusOptions}
+        onChange={(e) => setStatusFilter(e.value)}
+        placeholder="เลือกสถานะ"
+        className="p mb-4"
+      />
+      <DataTable value={filteredOrders} dataKey="id" paginator rows={10}>
         <Column header="ID" body={(rowData) => rowData.user?.id || "-"} />
         <Column header="ชื่อ" body={(rowData) => rowData.user?.firstname || "-"} />
         <Column header="นามสกุล" body={(rowData) => rowData.user?.lastname || "-"} />
@@ -131,7 +184,7 @@ const ProductHistory = () => {
             />
           )}
         />
-        <Column field="total_amount" header="ยอดรวมทั้งหมด" />
+        <Column field="total_amount" header="ยอดรวมทั้งหมด (บาท)" />
         <Column header="สถานะ" body={statusTemplate} />
         <Column
           header="ลบ"
@@ -149,14 +202,19 @@ const ProductHistory = () => {
       <Dialog
         header="รายการสินค้า"
         visible={visibleItems}
-        style={{ width: "40vw" }}
+        style={{ width: "80vw" }}
         onHide={() => setVisibleItems(false)}
       >
         <DataTable value={orderItems}>
-          <Column field="product.id" header="Product ID" />
-          <Column header="Image" body={(rowData) => <ImageTemplate rowData={rowData} />} />
-          <Column field="quantity" header="Quantity" />
-          <Column field="price" header="Price" />
+          <Column field="product.name" header="ชื่อสินค้า" />
+          <Column header="รูปสินค้า" body={(rowData) => <ImageTemplate rowData={rowData} />} />
+          <Column field="color" header="สี" />
+          <Column field="width" header="กว้าง (ม.)" />
+          <Column field="length" header="ยาว (ม.)" />
+          <Column field="thickness" header="ความหนา" />
+          <Column field="installOption" header="ตัวเลือกติดตั้ง" />
+          <Column field="quantity" header="จำนวน" />
+          <Column field="price" header="ราคา/ต่อชิ้น (บาท)" />
         </DataTable>
       </Dialog>
 

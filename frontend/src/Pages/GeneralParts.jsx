@@ -6,6 +6,7 @@ import { Paginator } from 'primereact/paginator';
 import { Dropdown } from 'primereact/dropdown';
 import ProductList from './GeneralParts component/ProductList';
 import CategoryMenu from './GeneralParts component/CategoryMenu';
+import Loading from "../Component/Loading";
 
 const GeneralParts = () => {
   const [search, setSearch] = useState('');
@@ -69,7 +70,7 @@ const GeneralParts = () => {
 
   const paginatedProducts = filteredProducts.slice(first, first + rows);
 
-  if (isLoading) return <div className="text-center p-mt-5">Loading...</div>;
+  if (isLoading) return <div className="text-center p-mt-5"><Loading /></div>;
   if (error) return <div className="text-center p-mt-5">Error: {error}</div>;
 
   return (

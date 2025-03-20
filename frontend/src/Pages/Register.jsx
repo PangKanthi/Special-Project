@@ -72,8 +72,6 @@ const Register = () => {
     setErrors(newErrors);
 
     if (!Object.values(newErrors).some((error) => error)) {
-      console.log("Form submitted successfully:", { ...formData, password });
-
       let url = `${process.env.REACT_APP_API}/api/auth/register`;
 
       try {

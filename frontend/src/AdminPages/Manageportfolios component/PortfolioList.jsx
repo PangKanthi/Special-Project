@@ -7,7 +7,6 @@ import { Toast } from "primereact/toast";
 const PortfolioList = ({ portfolios, onDelete, onEdit }) => {
   const toast = useRef(null);
   const onDeleteWorkSample = async (id) => {
-    console.log("Attempting to delete work sample ID:", id);
 
     const token = localStorage.getItem("token");
 

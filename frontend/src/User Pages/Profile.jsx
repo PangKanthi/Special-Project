@@ -71,7 +71,6 @@ const Profile = () => {
     } catch (error) {
       console.error("Error updating profile:", error);
       if (error.response) {
-        console.log("Server Response:", error.response.data); // ดู error message จาก backend
         alert(
           `เกิดข้อผิดพลาด: ${
             error.response.data.error || "ไม่สามารถอัปเดตโปรไฟล์ได้"

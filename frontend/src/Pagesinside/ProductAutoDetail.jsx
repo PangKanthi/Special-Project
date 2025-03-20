@@ -14,6 +14,7 @@ import { Dropdown } from "primereact/dropdown";
 import useLocationData from "../Hooks/useLocationData";
 import { calculateTotalDoorPrice } from "../utils";
 import { fetchDoorConfig } from "../services/doorConfigService";
+import Loading from "../Component/Loading";
 
 import "primeflex/primeflex.css";
 
@@ -124,7 +125,7 @@ const ProductAutoDetail = () => {
   };
 
   if (!product) {
-    return <div className="text-center p-4">Loading...</div>;
+    return <div className="text-center p-4"><Loading /></div>;
   }
 
   const categoryOptions = product.is_part

@@ -52,13 +52,8 @@ const PortfolioDialog = ({
       previewUrl: URL.createObjectURL(file),
     }));
 
-    // console.log(newFiles)
-
-    // setUploadedFiles([...uploadedFiles, ...newFiles]);
     setUploadedFiles(newFiles);
   };
-
-  console.log(uploadedFiles)
 
   const onRemoveFile = (event) => {
     const removedFile = event.file;
@@ -77,10 +72,6 @@ const PortfolioDialog = ({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    console.log(images)
-
-
 
     if (!title.trim() || !description.trim()) {
       alert("กรุณากรอกชื่อผลงานและคำอธิบาย");
@@ -109,14 +100,11 @@ const PortfolioDialog = ({
       return;
     }
 
-    console.log("localPortfolio",localPortfolio)
-
     try {
       let response;
 
 
       if (localPortfolio) {
-        console.log("on edit");
         response = await fetch(`${API_URL}/${localPortfolio.id}`, {
           method: "PUT",
           headers: {
@@ -124,15 +112,12 @@ const PortfolioDialog = ({
           },
           body: formData,
         });
-        console.log(response)
         if (response.status === 200) {
           const data = await response.json();
           onWorkSampleAdded(data)
           handleCloseDialog();
         }
       } else if (localPortfolio === null) {
-        console.log("on upload");
-
         response = await fetch(API_URL, {
           method: "POST",
           headers: {
@@ -140,7 +125,6 @@ const PortfolioDialog = ({
           },
           body: formData,
         });
-        console.log(response)
         if(response.status === 201){
           // const data = await response.json();
           // onWorkSampleAdded(data)

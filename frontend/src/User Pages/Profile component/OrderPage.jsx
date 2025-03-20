@@ -20,7 +20,7 @@ const OrderPage = () => {
         { label: "รอการยืนยัน", value: "pending", icon: "pi pi-clock" },
         { label: "ได้รับการยืนยันแล้ว", value: "confirm", icon: "pi pi-check-circle" },
         { label: "เสร็จแล้ว", value: "complete", icon: "pi pi-check" },
-        { label: "ยกเลิก", value: "cancle", icon: "pi pi-times-circle" },
+        { label: "ยกเลิก", value: "cancel", icon: "pi pi-times-circle" },
     ];
 
     useEffect(() => {
@@ -34,16 +34,15 @@ const OrderPage = () => {
             const response = await axios.get(`${process.env.REACT_APP_API}/api/orders/user`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-    
-            console.log("📌 Orders from API:", response.data.data);
-            setOrders(response.data.data);  // ✅ ดึงเฉพาะออเดอร์ของ user คนนั้น
+            setOrders(response.data.data);
         } catch (error) {
             console.error("Error fetching orders:", error);
         }
     };
 
     const filterOrdersByStatus = (status) => {
-        if (status === "ทั้งหมด") return orders.filter(order => order.status !== "complete" && order.status !== "cancel");
+        if (status === "ทั้งหมด") return orders; // แสดงคำสั่งซื้อทั้งหมด
+        console.log("Filtered Orders: ", orders.filter(order => order.status === "cancel"));
         return orders.filter(order => order.status === status);
     };
 
@@ -51,7 +50,7 @@ const OrderPage = () => {
     const statusTemplate = (rowData) => {
         let severity = "";
         let statusText = "";
-    
+
         switch (rowData.status) {
             case "pending":
                 severity = "warning"; // สีเหลือง
@@ -73,10 +72,10 @@ const OrderPage = () => {
                 severity = "secondary"; // สีเทา
                 statusText = "ไม่ระบุ";
         }
-    
+
         return <Tag value={statusText} severity={severity} />;
     };
-    
+
 
     // ฟังก์ชันแสดงรูปภาพสินค้า
     const ImageTemplate = (rowData) => {
@@ -127,8 +126,8 @@ const OrderPage = () => {
                             {tab.label}
                         </div>
                     }>
-                        <DataTable 
-                        value={filterOrdersByStatus(tab.value)} dataKey="id" paginator rows={10}>
+                        <DataTable
+                            value={filterOrdersByStatus(tab.value)} dataKey="id" paginator rows={10}>
                             <Column header="ID" body={(rowData) => rowData.user?.id || "-"} />
                             <Column header="ชื่อ" body={(rowData) => rowData.user?.firstname || "-"} />
                             <Column header="นามสกุล" body={(rowData) => rowData.user?.lastname || "-"} />
@@ -162,19 +161,23 @@ const OrderPage = () => {
                 ))}
             </TabView>
 
-            {/* Dialog ดูสินค้า */}
             <Dialog
                 header="รายการสินค้า"
                 visible={visibleItems}
                 draggable={false}
-                style={{ width: "40vw" }}
+                style={{ width: "80vw" }}
                 onHide={() => setVisibleItems(false)}
             >
-                <DataTable value={orderItems}>
-                    <Column field="product.id" header="Product ID" />
-                    <Column header="Image" body={(rowData) => <ImageTemplate rowData={rowData} />} />
-                    <Column field="quantity" header="Quantity" />
-                    <Column field="price" header="Price" />
+                <DataTable value={orderItems} responsiveLayout="scroll">
+                    <Column field="product.name" header="ชื่อสินค้า" />
+                    <Column header="รูปสินค้า" body={(rowData) => <ImageTemplate rowData={rowData} />} />
+                    <Column field="color" header="สี" />
+                    <Column field="width" header="กว้าง (ม.)" />
+                    <Column field="length" header="ยาว (ม.)" />
+                    <Column field="thickness" header="ความหนา" />
+                    <Column field="installOption" header="ตัวเลือกติดตั้ง" />
+                    <Column field="quantity" header="จำนวน" />
+                    <Column field="price" header="ราคา/ต่อชิ้น (บาท)" />
                 </DataTable>
             </Dialog>
 

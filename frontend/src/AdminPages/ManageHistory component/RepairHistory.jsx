@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
-import { Dropdown } from "primereact/dropdown";
 import { Button } from "primereact/button";
-import { InputText } from "primereact/inputtext";
+import { Toast } from "primereact/toast";
 import { Tag } from "primereact/tag";
 import moment from "moment";
 
@@ -14,6 +13,7 @@ const RepairHistory = () => {
     const [selectedStatus, setSelectedStatus] = useState(null);
     const [repairRequests, setRepairRequests] = useState([]);
     const [filteredRepairs, setFilteredRepairs] = useState([]);
+    const toast = useRef(null);
 
     useEffect(() => {
         fetchHistoryData();
@@ -82,19 +82,16 @@ const RepairHistory = () => {
             const data = await response.json();
 
             if (response.ok) {
-                // ลบใน state ทุกจุดที่ใช้แสดงผล
                 const newList = historyData.filter(req => req.id !== repairId);
                 setHistoryData(newList);
-                setFilteredHistory(newList);  // ✅ อัปเดตข้อมูลที่ใช้แสดงผล
+                setFilteredHistory(newList);
 
-                // หากใช้ repairRequests ที่อื่นก็อัปเดตด้วย
-                setRepairRequests(newList);
-                setFilteredRepairs(newList);
+                toast.current.show({ severity: 'success', summary: 'สำเร็จ', detail: 'ลบคำขอซ่อมสำเร็จ', life: 3000 }); // Toast on success
             } else {
-                console.error("❌ Failed to delete request:", data.error);
+                toast.current.show({ severity: 'error', summary: 'ข้อผิดพลาด', detail: 'ไม่สามารถลบคำขอซ่อมได้', life: 3000 }); // Toast on error
             }
         } catch (error) {
-            console.error("❌ Error deleting request:", error);
+            toast.current.show({ severity: 'error', summary: 'ข้อผิดพลาด', detail: 'เกิดข้อผิดพลาดในการลบคำขอซ่อม', life: 3000 }); // Toast on exception
         }
     };
 
@@ -132,6 +129,7 @@ const RepairHistory = () => {
 
     return (
         <div>
+            <Toast ref={toast} />
             <DataTable value={filteredHistory} paginator rows={10}>
                 <Column body={(rowData) => rowData.user?.username || "ไม่ระบุ"} header="ชื่อผู้ใช้" />
                 <Column body={imageTemplate} header="รูปภาพ" />

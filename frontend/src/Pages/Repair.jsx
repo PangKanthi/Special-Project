@@ -139,8 +139,6 @@ const Repair = () => {
 
   // ✅ ฟังก์ชันเพิ่มไฟล์ลง state
   const handleImageUpload = (event) => {
-    console.log("uploadHandler is called with:", event.files);
-
     setForm((prevForm) => {
       const newFiles = [];
       event.files.forEach((file) => {
@@ -176,8 +174,6 @@ const Repair = () => {
       navigate("/login");
       return;
     }
-
-    console.log("📤 ข้อมูลที่ถูกส่งไปยัง API:", form);
 
     const formData = new FormData();
     formData.append("problemDescription", form.problemDescription);
@@ -227,7 +223,6 @@ const Repair = () => {
       );
 
       if (response.ok) {
-        console.log("✅ แจ้งซ่อมสำเร็จ");
         toast.current.show({
           severity: "success",
           summary: "สำเร็จ",

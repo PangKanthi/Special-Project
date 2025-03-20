@@ -19,7 +19,6 @@ function ShopCart() {
         if (!response.ok) throw new Error("ไม่สามารถดึงข้อมูลตะกร้าได้");
 
         const data = await response.json();
-        console.log("🛒 ตะกร้าสินค้า:", data.items);
         setCart(data.items || []);
       } catch (error) {
         console.error(error);
@@ -36,8 +35,6 @@ function ShopCart() {
       return;
     }
 
-    console.log("🗑 Removing cartItemId:", cartItemId);
-
     try {
       const response = await fetch(`${process.env.REACT_APP_API}/api/cart/remove`, {
         method: "POST",
@@ -52,8 +49,6 @@ function ShopCart() {
         const result = await response.json();
         throw new Error(result.error || "ลบสินค้าออกจากตะกร้าไม่สำเร็จ");
       }
-
-      console.log("✅ ลบสินค้าออกจากตะกร้าสำเร็จ");
 
       // อัปเดต UI
       setCart(cart.filter((item) => item.id !== cartItemId));
@@ -84,7 +79,6 @@ function ShopCart() {
       }
 
       const data = await response.json();
-      console.log("✅ อัปเดตจำนวนสินค้า:", data);
 
       // ปรับ state ในฝั่ง Front-end
       const updatedCart = cart.map((item) => {

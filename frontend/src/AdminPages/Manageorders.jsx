@@ -21,13 +21,15 @@ const ManageOrders = () => {
   const [visibleAddress, setVisibleAddress] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const [fetchedDoorConfig, setFetchedDoorConfig] = useState(null);
+  const [confirmDialogVisible, setConfirmDialogVisible] = useState(false);
+  const [selectedOrderForStatusUpdate, setSelectedOrderForStatusUpdate] = useState(null);
 
   useEffect(() => {
     const loadDoorConfig = async () => {
       try {
         const data = await fetchDoorConfig();
         setFetchedDoorConfig(data);
-      } catch {}
+      } catch { }
     };
     loadDoorConfig();
     fetchOrders();
@@ -40,7 +42,7 @@ const ManageOrders = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setOrders(response.data.data);
-    } catch {}
+    } catch { }
   };
 
   const recalcPriceWithRowDataAsync = async (rowData) => {
@@ -84,7 +86,7 @@ const ManageOrders = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-    } catch {}
+    } catch { }
   };
 
   const onRowEditComplete = async (e) => {
@@ -100,6 +102,17 @@ const ManageOrders = () => {
     return orders.filter((o) => o.status === status);
   };
 
+  const handleStatusChangeRequest = (order, newStatus) => {
+    // หากสถานะเป็น "เสร็จแล้ว" หรือ "ยกเลิก" จะมีการยืนยัน
+    if (newStatus === "complete" || newStatus === "cancel") {
+      setSelectedOrderForStatusUpdate({ order, newStatus });
+      setConfirmDialogVisible(true);
+    } else {
+      // ถ้าสถานะไม่ใช่ "เสร็จแล้ว" หรือ "ยกเลิก" ก็อัปเดตได้เลย
+      updateStatus(order.id, newStatus);
+    }
+  };
+
   const updateStatus = async (orderId, newStatus) => {
     try {
       const token = localStorage.getItem("token");
@@ -111,7 +124,7 @@ const ManageOrders = () => {
       setOrders((prev) =>
         prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
       );
-    } catch {}
+    } catch { }
   };
 
   const statusTemplate = (rowData) => {
@@ -248,17 +261,81 @@ const ManageOrders = () => {
   };
 
   const quantityEditor = (options) => {
+    const handleDecrease = () => {
+      if (options.value > 0) {
+        options.editorCallback(options.value - 1);
+      }
+    };
+
+    const handleIncrease = () => {
+      if (options.value < 100) {
+        options.editorCallback(options.value + 1);
+      }
+    };
+
     return (
-      <InputNumber
-        value={options.value}
-        onValueChange={(e) => options.editorCallback(e.value)}
-        min={1}
-        showButtons
-        step={1}
-        style={{ width: "100%" }}
-      />
+      <div className="flex items-center gap-2">
+        <Button
+          label="-"
+          className="p-button-secondary"
+          onClick={handleDecrease}
+          style={{
+            width: "35px",
+            height: "35px",
+            backgroundColor: "#ffffff",
+            color: "#000000",
+            fontSize: "20px",
+            fontWeight: "bold",
+            borderRadius: "6px",
+            border: "1px solid #ccc",
+            cursor: "pointer",
+            transition: "all 0.3s ease-in-out",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#f0f0f0")}
+          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "#ffffff")}
+        />
+        <InputText
+          value={options.value}
+          readOnly
+          style={{
+            width: "50px",
+            height: "35px",
+            textAlign: "center",
+            fontSize: "16px",
+            fontWeight: "bold",
+            borderRadius: "6px",
+            border: "1px solid #ccc",
+          }}
+        />
+        <Button
+          label="+"
+          className="p-button-secondary"
+          onClick={handleIncrease}
+          style={{
+            width: "35px",
+            height: "35px",
+            backgroundColor: "#ffffff",
+            color: "#000000",
+            fontSize: "20px",
+            fontWeight: "bold",
+            borderRadius: "6px",
+            border: "1px solid #ccc",
+            cursor: "pointer",
+            transition: "all 0.3s ease-in-out",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#f0f0f0")}
+          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "#ffffff")}
+        />
+      </div>
     );
   };
+
 
   const tabItems = [
     { label: "ทั้งหมด", value: "ทั้งหมด", icon: "pi pi-list" },
@@ -274,10 +351,10 @@ const ManageOrders = () => {
           {tabItems.map((tab, idx) => (
             <TabPanel key={idx} header={<div><i className={tab.icon} style={{ marginRight: "5px" }}></i>{tab.label}</div>}>
               <DataTable value={filterOrdersByStatus(tab.value)} dataKey="id" paginator rows={10}>
-                <Column header="ID" body={(rowData) => rowData.user?.id || "-"}/>
-                <Column header="ชื่อ" body={(rowData) => rowData.user?.firstname || "-"}/>
-                <Column header="นามสกุล" body={(rowData) => rowData.user?.lastname || "-"}/>
-                <Column header="เบอร์โทรศัพท์" body={(rowData) => rowData.user?.phone || "-"}/>
+                <Column header="ID" body={(rowData) => rowData.user?.id || "-"} />
+                <Column header="ชื่อ" body={(rowData) => rowData.user?.firstname || "-"} />
+                <Column header="นามสกุล" body={(rowData) => rowData.user?.lastname || "-"} />
+                <Column header="เบอร์โทรศัพท์" body={(rowData) => rowData.user?.phone || "-"} />
                 <Column header="ที่อยู่" body={(rowData) => (
                   <Button
                     label="ดูที่อยู่"
@@ -285,7 +362,7 @@ const ManageOrders = () => {
                     className="p-button-sm"
                     onClick={() => viewAddressDetails(rowData)}
                   />
-                )}/>
+                )} />
                 <Column header="รายการสินค้า" body={(rowData) => (
                   <Button
                     label="ดูสินค้า"
@@ -293,9 +370,9 @@ const ManageOrders = () => {
                     className="p-button-sm"
                     onClick={() => viewOrderItems(rowData)}
                   />
-                )}/>
-                <Column field="total_amount" header="ยอดรวมทั้งหมด"/>
-                <Column header="สถานะ" body={statusTemplate}/>
+                )} />
+                <Column field="total_amount" header="ยอดรวมทั้งหมด" />
+                <Column header="สถานะ" body={statusTemplate} />
                 <Column header="เปลี่ยนสถานะ" body={(rowData) => (
                   <Dropdown
                     value={rowData.status}
@@ -305,10 +382,10 @@ const ManageOrders = () => {
                       { label: "เสร็จสิ้น", value: "complete" },
                       { label: "ยกเลิก", value: "cancel" },
                     ]}
-                    onChange={(e) => updateStatus(rowData.id, e.value)}
+                    onChange={(e) => handleStatusChangeRequest(rowData, e.value)}
                     style={{ width: "150px" }}
                   />
-                )}/>
+                )} />
               </DataTable>
             </TabPanel>
           ))}
@@ -320,32 +397,58 @@ const ManageOrders = () => {
           editMode="row"
           dataKey="id"
           onRowEditComplete={onRowEditComplete}
-          responsiveLayout="scroll"
         >
-          <Column field="product.name" header="ชื่อสินค้า"/>
-          <Column header="รูปสินค้า" body={(rowData) => <ImageTemplate rowData={rowData}/>}/>
-          <Column field="color" header="สี" editor={colorEditor} body={(rowData) => rowData.color === "default" ? "" : (rowData.color || "-")}/>
-          <Column field="width" header="กว้าง (ม.)" editor={dimensionEditor} body={(rowData) => rowData.color === "default" ? "" : (rowData.width != null ? rowData.width : "-")}/>
-          <Column field="length" header="ยาว (ม.)" editor={dimensionEditor} body={(rowData) => rowData.color === "default" ? "" : (rowData.length != null ? rowData.length : "-")}/>
-          <Column field="thickness" header="ความหนา" editor={thicknessEditor} body={(rowData) => rowData.color === "default" ? "" : (rowData.thickness || "-")}/>
-          <Column field="installOption" header="ตัวเลือกติดตั้ง" editor={installOptionEditor} body={(rowData) => rowData.color === "default" ? "" : (rowData.installOption || "-")}/>
-          <Column field="quantity" header="จำนวน" editor={quantityEditor}/>
-          <Column field="price" header="ราคา/ต่อชิ้น (บาท)"/>
-          <Column rowEditor headerStyle={{ width: "5rem" }} bodyStyle={{ textAlign: "center" }}/>
+          <Column field="product.name" header="ชื่อสินค้า" />
+          <Column header="รูปสินค้า" body={(rowData) => <ImageTemplate rowData={rowData} />} />
+          <Column field="color" header="สี" editor={colorEditor} body={(rowData) => rowData.color === "default" ? "" : (rowData.color || "-")} />
+          <Column field="width" header="กว้าง (ม.)" editor={dimensionEditor} body={(rowData) => rowData.color === "default" ? "" : (rowData.width != null ? rowData.width : "-")} />
+          <Column field="length" header="ยาว (ม.)" editor={dimensionEditor} body={(rowData) => rowData.color === "default" ? "" : (rowData.length != null ? rowData.length : "-")} />
+          <Column field="thickness" header="ความหนา" editor={thicknessEditor} body={(rowData) => rowData.color === "default" ? "" : (rowData.thickness || "-")} />
+          <Column field="installOption" header="ตัวเลือกติดตั้ง" editor={installOptionEditor} body={(rowData) => rowData.color === "default" ? "" : (rowData.installOption || "-")} />
+          <Column field="quantity" header="จำนวน" editor={quantityEditor} />
+          <Column field="price" header="ราคา/ต่อชิ้น (บาท)" />
+          <Column rowEditor headerStyle={{ width: "5rem" }} bodyStyle={{ textAlign: "center" }} />
         </DataTable>
       </Dialog>
       <Dialog header="รายละเอียดที่อยู่" visible={visibleAddress} style={{ width: "50vw" }} onHide={() => setVisibleAddress(false)}>
         {selectedAddress ? (
           <DataTable value={[selectedAddress]}>
-            <Column field="addressLine" header="ที่อยู่"/>
-            <Column field="subdistrict" header="ตำบล/แขวง"/>
-            <Column field="district" header="อำเภอ/เขต"/>
-            <Column field="province" header="จังหวัด"/>
-            <Column field="postalCode" header="รหัสไปรษณีย์"/>
+            <Column field="addressLine" header="ที่อยู่" />
+            <Column field="subdistrict" header="ตำบล/แขวง" />
+            <Column field="district" header="อำเภอ/เขต" />
+            <Column field="province" header="จังหวัด" />
+            <Column field="postalCode" header="รหัสไปรษณีย์" />
           </DataTable>
         ) : (
           <p>ไม่มีข้อมูลที่อยู่</p>
         )}
+      </Dialog>
+      <Dialog
+        header="ยืนยันการเปลี่ยนสถานะ"
+        visible={confirmDialogVisible}
+        onHide={() => setConfirmDialogVisible(false)}
+        footer={
+          <div>
+            <Button
+              label="ยกเลิก"
+              className="p-button-text"
+              onClick={() => setConfirmDialogVisible(false)}
+            />
+            <Button
+              label="ยืนยัน"
+              className="p-button-primary"
+              onClick={() => {
+                if (selectedOrderForStatusUpdate) {
+                  const { order, newStatus } = selectedOrderForStatusUpdate;
+                  updateStatus(order.id, newStatus);
+                  setConfirmDialogVisible(false);
+                }
+              }}
+            />
+          </div>
+        }
+      >
+        <p>คุณแน่ใจว่าต้องการเปลี่ยนสถานะเป็น "{selectedOrderForStatusUpdate?.newStatus === "complete" ? "เสร็จแล้ว" : "ยกเลิก"}" หรือไม่?</p>
       </Dialog>
     </div>
   );

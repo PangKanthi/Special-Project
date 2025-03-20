@@ -150,7 +150,6 @@ const UserTable = ({ users, onEdit, onDelete }) => {
       }
 
       if (response.status === 200 || response.status === 201) {
-        console.log("✅ Address saved successfully!");
       } else {
         console.error("❌ API response error:", response);
       }

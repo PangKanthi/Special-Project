@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import ShopOrderHeader from "./ShopOrder Component/ShopOrderHeader";
 import CartItem from "./ShopOrder Component/CartItem";
 import SummaryCard from "./ShopOrder Component/SummaryCard";
 import { Card } from "primereact/card";
+import { Toast } from "primereact/toast";
 
 function ShopOrder() {
   const location = useLocation();
@@ -14,6 +15,7 @@ function ShopOrder() {
   const [form, setForm] = useState({ images: [] });
   const [user, setUser] = useState(null);
   const [cart, setCart] = useState([]);
+  const toast = useRef(null);
 
   useEffect(() => {
     const fetchCart = async () => {
@@ -60,28 +62,33 @@ function ShopOrder() {
   const handleOrderConfirmation = async () => {
     // ตรวจสอบ address
     if (!selectedAddress) {
-      alert("กรุณาเลือกที่อยู่");
+      toast.current.show({
+        severity: "warn",
+        summary: "Warning",
+        detail: "กรุณาเลือกที่อยู่",
+        life: 3000,
+      });
       return;
     }
-  
+
     try {
       const orderItems = cart.map((item) => ({
         productId: item.product?.id,
         quantity: item.quantity,
         price: item.price,
-        color: item.color,         // หรือ item.color || "default"
+        color: item.color,
         width: item.width,
         length: item.length,
         thickness: item.thickness,
         installOption: item.installOption
       }));
-  
+
       const payload = {
         addressId: selectedAddress.id,
         orderItems,
-        totalAmount: grandTotal  // หรือจะคำนวณใหม่ก็ได้
+        totalAmount: grandTotal
       };
-  
+
       const res = await fetch(`${process.env.REACT_APP_API}/api/orders`, {
         method: "POST",
         headers: {
@@ -90,11 +97,11 @@ function ShopOrder() {
         },
         body: JSON.stringify(payload)
       });
-  
+
       if (!res.ok) {
         throw new Error("ไม่สามารถสร้างออเดอร์ได้");
       }
-  
+
       // ถ้าอยากเคลียร์ตะกร้าด้วย
       await fetch(`${process.env.REACT_APP_API}/api/cart/clear`, {
         method: "POST",
@@ -102,15 +109,26 @@ function ShopOrder() {
           Authorization: `Bearer ${localStorage.getItem("token")}`
         }
       });
-  
-      alert("สั่งซื้อสำเร็จ!");
-      navigate("/shop-order-info");
+      toast.current.show({
+        severity: "success",
+        summary: "Success",
+        detail: "สั่งซื้อสำเร็จ!",
+        life: 3000,
+      });
+      setTimeout(() => {
+        navigate("/shop-order-info");
+      }, 1500);
     } catch (err) {
       console.error("Error:", err);
-      alert("เกิดข้อผิดพลาดในการสั่งซื้อ");
+      toast.current.show({
+        severity: "error",
+        summary: "Error",
+        detail: "เกิดข้อผิดพลาดในการสั่งซื้อ",
+        life: 3000,
+      });
     }
   };
-  
+
 
   const totalProductPrice = cart.reduce((sum, item) => {
     const price = Number(item.price ?? item.product?.price ?? 0);
@@ -124,6 +142,7 @@ function ShopOrder() {
 
   return (
     <div className="lg:flex justify-content-center pt-6">
+      <Toast ref={toast} />
       <div className="px-4 sm:px-6 md:px-8 lg:mr-8">
         <ShopOrderHeader
           addresses={addresses}
@@ -139,11 +158,11 @@ function ShopOrder() {
         </div>
       </div>
       <div className="pl-5 pr-5 lg:pt-7">
-          <SummaryCard
-            totalProductPrice={totalProductPrice}
-            grandTotal={grandTotal}
-            onConfirmOrder={handleOrderConfirmation}
-          />
+        <SummaryCard
+          totalProductPrice={totalProductPrice}
+          grandTotal={grandTotal}
+          onConfirmOrder={handleOrderConfirmation}
+        />
       </div>
     </div>
   );

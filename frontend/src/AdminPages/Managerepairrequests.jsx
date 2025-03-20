@@ -29,6 +29,8 @@ const Managerepairrequests = ({ setNotifications }) => {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [partsDialogVisible, setPartsDialogVisible] = useState(false);
   const [addressDialogVisible, setAddressDialogVisible] = useState(false);
+  const [confirmDialogVisible, setConfirmDialogVisible] = useState(false);
+  const [selectedStatusRequest, setSelectedStatusRequest] = useState(null);
 
   // (A) <-- เพิ่ม state สำหรับ Search
   const [search, setSearch] = useState("");
@@ -114,7 +116,7 @@ const Managerepairrequests = ({ setNotifications }) => {
     { label: "ได้รับการยืนยัน", value: "confirm" },
     { label: "เสร็จแล้ว", value: "complete" },
     { label: "ยกเลิก", value: "cancle" },
-];
+  ];
 
   useEffect(() => {
     fetchRepairRequests();
@@ -201,7 +203,7 @@ const Managerepairrequests = ({ setNotifications }) => {
     setRowsPerPage(event.rows);
   };
 
-  const updateRepairStatus = async (repairId, newStatus) => {
+  const performStatusUpdate = async (repairId, newStatus) => {
     try {
       const response = await fetch(`${API_URL}/repair-requests/${repairId}`, {
         method: "PUT",
@@ -223,6 +225,17 @@ const Managerepairrequests = ({ setNotifications }) => {
       }
     } catch (err) {
       console.error("Update error:", err);
+    }
+  };
+
+  const updateRepairStatus = (repairId, newStatus) => {
+    // Show confirmation dialog if status is 'complete' or 'cancel'
+    if (newStatus === "complete" || newStatus === "cancle") {
+      setSelectedStatusRequest({ repairId, newStatus });
+      setConfirmDialogVisible(true);
+    } else {
+      // Update directly if status is not 'complete' or 'cancle'
+      performStatusUpdate(repairId, newStatus);
     }
   };
 
@@ -252,29 +265,29 @@ const Managerepairrequests = ({ setNotifications }) => {
     let statusText = "";
 
     switch (rowData.status) {
-        case "pending":
-            severity = "warning"; // สีเหลือง
-            statusText = "รอการยืนยัน";
-            break;
-        case "confirm":
-            severity = "info"; // สีฟ้า
-            statusText = "ได้รับการยืนยันแล้ว";
-            break;
-        case "complete":
-            severity = "success"; // สีเขียว
-            statusText = "เสร็จแล้ว";
-            break;
-        case "cancel":
-            severity = "danger"; // สีแดง
-            statusText = "ยกเลิก";
-            break;
-        default:
-            severity = "secondary"; // สีเทา
-            statusText = "ไม่ระบุ";
+      case "pending":
+        severity = "warning"; // สีเหลือง
+        statusText = "รอการยืนยัน";
+        break;
+      case "confirm":
+        severity = "info"; // สีฟ้า
+        statusText = "ได้รับการยืนยันแล้ว";
+        break;
+      case "complete":
+        severity = "success"; // สีเขียว
+        statusText = "เสร็จแล้ว";
+        break;
+      case "cancel":
+        severity = "danger"; // สีแดง
+        statusText = "ยกเลิก";
+        break;
+      default:
+        severity = "secondary"; // สีเทา
+        statusText = "ไม่ระบุ";
     }
 
     return <Tag value={statusText} severity={severity} />;
-};
+  };
 
 
   const statusEditor = (rowData) => {
@@ -431,8 +444,7 @@ const Managerepairrequests = ({ setNotifications }) => {
           <Column
             header="สต็อกที่มี"
             body={(rowData) =>
-              `${rowData.stock_quantity.toLocaleString()} ${
-                unitMap[rowData.category] || "ชุด"
+              `${rowData.stock_quantity.toLocaleString()} ${unitMap[rowData.category] || "ชุด"
               }`
             }
           />
@@ -474,6 +486,33 @@ const Managerepairrequests = ({ setNotifications }) => {
             style={{ marginLeft: "10px" }}
           />
         </div>
+      </Dialog>
+      <Dialog
+        header="ยืนยันการเปลี่ยนสถานะ"
+        visible={confirmDialogVisible}
+        onHide={() => setConfirmDialogVisible(false)}
+        footer={
+          <div>
+            <Button
+              label="ยกเลิก"
+              className="p-button-text"
+              onClick={() => setConfirmDialogVisible(false)}
+            />
+            <Button
+              label="ยืนยัน"
+              className="p-button-primary"
+              onClick={() => {
+                performStatusUpdate(
+                  selectedStatusRequest.repairId,
+                  selectedStatusRequest.newStatus
+                );
+                setConfirmDialogVisible(false);
+              }}
+            />
+          </div>
+        }
+      >
+        <p>คุณแน่ใจว่าต้องการเปลี่ยนสถานะเป็น "{selectedStatusRequest?.newStatus === 'complete' ? 'เสร็จแล้ว' : 'ยกเลิก'}" หรือไม่?</p>
       </Dialog>
     </div>
   );

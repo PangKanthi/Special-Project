@@ -6,6 +6,7 @@ import { Paginator } from 'primereact/paginator';
 import { Dropdown } from 'primereact/dropdown';
 import ProductList from './Automatic component/ProductList';
 import CategoryMenu from './Automatic component/CategoryMenu';
+import Loading from "../Component/Loading";
 
 const Automatic = () => {
   const [search, setSearch] = useState('');
@@ -14,16 +15,14 @@ const Automatic = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Pagination
   const [first, setFirst] = useState(0);
   const [rows, setRows] = useState(6);
 
   const onPageChange = (event) => {
     setFirst(event.first);
     setRows(event.rows);
-};
+  };
 
-  // ดึงสินค้าจาก backend
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -47,7 +46,6 @@ const Automatic = () => {
     fetchProducts();
   }, []);
 
-  // เมนูกรองตามค่า category ใน DB
   const menuOptions = [
     { label: 'ทั้งหมด', value: null },
     { label: 'ประตูม้วนแบบไฟฟ้า', value: 'electric_rolling_shutter' },
@@ -55,12 +53,7 @@ const Automatic = () => {
     { label: 'ประตูม้วนแบบมือดึง', value: 'manual_rolling_shutter' },
   ];
 
-  // กรองฝั่ง Frontend
   let filteredProducts = products.filter((product) => {
-    // เงื่อนไขหลักๆ:
-    // 1) ต้อง is_part === false
-    // 2) ค้นหาจาก search ใน name
-    // 3) ถ้า selectedMenu != null ต้อง product.category === selectedMenu
     const matchPart = product.is_part === false;
     const matchStatus = product.status === false;
     const matchSearch = product.name
@@ -71,10 +64,9 @@ const Automatic = () => {
     return matchPart && matchSearch && matchMenu && matchStatus;
   });
 
-  // Pagination
   const paginatedProducts = filteredProducts.slice(first, first + rows);
 
-  if (isLoading) return <div className="text-center p-mt-5">Loading...</div>;
+  if (isLoading) return <div className="text-center p-mt-5"><Loading /></div>;
   if (error) return <div className="text-center p-mt-5">Error: {error}</div>;
 
   return (
@@ -139,7 +131,7 @@ const Automatic = () => {
           selectedMenu={selectedMenu}
           setSelectedMenu={setSelectedMenu}
         />
-        
+
         <ProductList products={paginatedProducts} />
       </div>
 

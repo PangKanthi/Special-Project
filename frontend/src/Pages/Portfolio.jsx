@@ -5,6 +5,7 @@ import { Paginator } from 'primereact/paginator';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
+import Loading from "../Component/Loading";
 
 const Portfolio = () => {
   const [search, setSearch] = useState('');
@@ -60,7 +61,7 @@ const Portfolio = () => {
   };
 
   if (isLoading) {
-    return <div className="text-center p-mt-5">Loading...</div>;
+    return <div className="text-center p-mt-5"><Loading /></div>;
   }
 
   if (error) {

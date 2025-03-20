@@ -13,8 +13,6 @@ const UserMenu = () => {
         const token = localStorage.getItem('token');
         if (token) {
             const storedUser = JSON.parse(localStorage.getItem('Profile')) || {};
-            console.log("Loaded user:", storedUser);
-
             // ใช้ username ถ้าไม่มีใช้ name แทน
             setUser({
                 username: storedUser.username || storedUser.name || "Profile"
