@@ -20,7 +20,7 @@ const OrderPage = () => {
         { label: "รอการยืนยัน", value: "pending", icon: "pi pi-clock" },
         { label: "ได้รับการยืนยันแล้ว", value: "confirm", icon: "pi pi-check-circle" },
         { label: "เสร็จแล้ว", value: "complete", icon: "pi pi-check" },
-        { label: "ยกเลิก", value: "cancel", icon: "pi pi-times-circle" },
+        { label: "ยกเลิก", value: "cancle", icon: "pi pi-times-circle" },
     ];
 
     useEffect(() => {
@@ -42,7 +42,7 @@ const OrderPage = () => {
 
     const filterOrdersByStatus = (status) => {
         if (status === "ทั้งหมด") return orders; // แสดงคำสั่งซื้อทั้งหมด
-        console.log("Filtered Orders: ", orders.filter(order => order.status === "cancel"));
+        console.log("Filtered Orders: ", orders.filter(order => order.status === "cancle"));
         return orders.filter(order => order.status === status);
     };
 
@@ -64,7 +64,7 @@ const OrderPage = () => {
                 severity = "success"; // สีเขียว
                 statusText = "เสร็จแล้ว";
                 break;
-            case "cancel":
+            case "cancle":
                 severity = "danger"; // สีแดง
                 statusText = "ยกเลิก";
                 break;

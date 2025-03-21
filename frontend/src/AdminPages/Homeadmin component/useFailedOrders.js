@@ -16,7 +16,7 @@ const useFailedOrders = (selectedMonth) => {
             });
 
             // ✅ กรองเฉพาะคำสั่งซื้อที่มีสถานะเป็น "complete"
-            const completed = response.data.data.filter(order => order.status === "cancel");
+            const completed = response.data.data.filter(order => order.status === "cancle");
             setCompletedOrders(completed);
         } catch (error) {
             console.error("❌ Error fetching completed orders:", error);

@@ -584,7 +584,7 @@ const ProductAutoDetail = () => {
       </div>
       <div className="flex justify-content-center">
         <div style={{ maxWidth: "1000px", width: "100%" }}>
-          <CustomerReviews />
+        <CustomerReviews productId={id} />
         </div>
       </div>
     </div>

@@ -29,7 +29,7 @@ const PortfolioList = ({ portfolios, onDelete, onEdit }) => {
       header: "Confirm Delete",
       icon: "pi pi-exclamation-triangle",
       acceptLabel: "Yes, Delete",
-      rejectLabel: "Cancel",
+      rejectLabel: "cancle",
       acceptClassName: "p-button-danger",
       accept: () => onDeleteWorkSample(id),
     });

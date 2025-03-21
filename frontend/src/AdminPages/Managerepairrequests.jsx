@@ -229,12 +229,10 @@ const Managerepairrequests = ({ setNotifications }) => {
   };
 
   const updateRepairStatus = (repairId, newStatus) => {
-    // Show confirmation dialog if status is 'complete' or 'cancel'
     if (newStatus === "complete" || newStatus === "cancle") {
       setSelectedStatusRequest({ repairId, newStatus });
       setConfirmDialogVisible(true);
     } else {
-      // Update directly if status is not 'complete' or 'cancle'
       performStatusUpdate(repairId, newStatus);
     }
   };
@@ -277,7 +275,7 @@ const Managerepairrequests = ({ setNotifications }) => {
         severity = "success"; // สีเขียว
         statusText = "เสร็จแล้ว";
         break;
-      case "cancel":
+      case "cancle":
         severity = "danger"; // สีแดง
         statusText = "ยกเลิก";
         break;

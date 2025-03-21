@@ -97,14 +97,14 @@ const ManageOrders = () => {
 
   const filterOrdersByStatus = (status) => {
     if (status === "ทั้งหมด") {
-      return orders.filter((o) => o.status !== "complete" && o.status !== "cancel");
+      return orders.filter((o) => o.status !== "complete" && o.status !== "cancle");
     }
     return orders.filter((o) => o.status === status);
   };
 
   const handleStatusChangeRequest = (order, newStatus) => {
     // หากสถานะเป็น "เสร็จแล้ว" หรือ "ยกเลิก" จะมีการยืนยัน
-    if (newStatus === "complete" || newStatus === "cancel") {
+    if (newStatus === "complete" || newStatus === "cancle") {
       setSelectedOrderForStatusUpdate({ order, newStatus });
       setConfirmDialogVisible(true);
     } else {
@@ -143,7 +143,7 @@ const ManageOrders = () => {
         severity = "success";
         statusText = "เสร็จแล้ว";
         break;
-      case "cancel":
+      case "cancle":
         severity = "danger";
         statusText = "ยกเลิก";
         break;
@@ -380,7 +380,7 @@ const ManageOrders = () => {
                       { label: "รอการยืนยัน", value: "pending" },
                       { label: "ได้รับการยืนยัน", value: "confirm" },
                       { label: "เสร็จสิ้น", value: "complete" },
-                      { label: "ยกเลิก", value: "cancel" },
+                      { label: "ยกเลิก", value: "cancle" },
                     ]}
                     onChange={(e) => handleStatusChangeRequest(rowData, e.value)}
                     style={{ width: "150px" }}

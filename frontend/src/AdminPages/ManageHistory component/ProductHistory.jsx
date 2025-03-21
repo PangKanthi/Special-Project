@@ -27,10 +27,8 @@ const ProductHistory = () => {
     if (dataLoaded) {
       console.log("Orders fetched:", orders);
       if (statusFilter === null) {
-        // Show both 'complete' and 'cancel' statuses
-        setFilteredOrders(orders.filter(order => order.status === 'complete' || order.status === 'cancel'));
+        setFilteredOrders(orders.filter(order => order.status === 'complete' || order.status === 'cancle'));
       } else {
-        // Filter by selected status ('complete' or 'cancel')
         setFilteredOrders(orders.filter(order => order.status === statusFilter));
       }
     }
@@ -43,9 +41,8 @@ const ProductHistory = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      // Filter out only "complete" and "cancel" orders when fetching data
       const fetchedOrders = response.data.data.filter(
-        (order) => order.status === "complete" || order.status === "cancel"
+        (order) => order.status === "complete" || order.status === "cancle"
       );
       setOrders(fetchedOrders);
       setDataLoaded(true); // Mark data as loaded
@@ -82,7 +79,7 @@ const ProductHistory = () => {
   const statusTemplate = (rowData) => {
     const statusMapping = {
       complete: { label: "สำเร็จ", severity: "success" },
-      cancel: { label: "ยกเลิก", severity: "danger" },
+      cancle: { label: "ยกเลิก", severity: "danger" },
     };
 
     const status = statusMapping[rowData.status] || {
@@ -142,9 +139,9 @@ const ProductHistory = () => {
 
   // Status filter options
   const statusOptions = [
-    { label: "ทั้งหมด", value: null }, // Show both "complete" and "cancel" when "ทั้งหมด" is selected
+    { label: "ทั้งหมด", value: null },
     { label: "สำเร็จ", value: "complete" },
-    { label: "ยกเลิก", value: "cancel" },
+    { label: "ยกเลิก", value: "cancle" },
   ];
 
   return (

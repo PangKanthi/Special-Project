@@ -1,4 +1,5 @@
 import OrderService from '../services/orderService.js';
+import prisma from '../config/db.js';
 
 export const createOrder = async (req, res, next) => {
     try {
@@ -174,6 +175,31 @@ export const updateOrderItem = async (req, res, next) => {
             message: "อัปเดตรายการสินค้าในออเดอร์สำเร็จ",
             data: updatedOrderItem
         });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// เพิ่มฟังก์ชัน checkPurchased
+export const checkPurchased = async (req, res, next) => {
+    try {
+        const productId = Number(req.params.productId);
+
+        // findFirst ดูว่า userId == req.user.id
+        // และ productId == productId หรือเปล่า
+        const purchased = await prisma.order_item.findFirst({
+            where: {
+                productId,
+                order: {
+                    userId: req.user.id,
+                },
+            },
+        });
+
+        // ถ้า purchased เจอ (ไม่เป็น null/undefined) แสดงว่าเคยซื้อ
+        const hasPurchased = !!purchased;
+
+        return res.json({ hasPurchased });
     } catch (error) {
         next(error);
     }
