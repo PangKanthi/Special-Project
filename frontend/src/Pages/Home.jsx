@@ -33,7 +33,7 @@ const Home = () => {
     return (
       <img
         src={item.image}
-        alt={item.title}
+        alt={item.title}  
         style={{
           width: "100%",
           height: "100%",
@@ -55,13 +55,16 @@ const Home = () => {
       <div style={{ width: "90%", maxWidth: "1400px", margin: "auto" }}>
         <Galleria
           value={slideshowImages}
-          numVisible={4}
+          numVisible={1}
+          autoPlay
+          transitionInterval={3000}
           circular
           showItemNavigators
           showItemNavigatorsOnHover
           showIndicators
           showThumbnails={false}
           item={itemTemplate}
+          style={{ borderRadius: "10px", overflow: "hidden" }}  // ลื่นไหลขึ้น
         />
 
         <h2>บริการของเรา</h2>
@@ -127,7 +130,7 @@ const Home = () => {
                   <span style={{ color: "red", fontWeight: "bold" }}>
                     {product.price
                       ? `${Number(product.price).toLocaleString()} บาท`
-                      : "ไม่มีข้อมูลราคา"}
+                      : "ราคาขึ้นอยู่กับขนาด"}
                   </span>
                 }
                 onMouseOver={(e) =>

@@ -1,7 +1,8 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import AddressForm from "../User Pages/Profile component/AddressPage component/AddressForm";
 import useAddressForm from "../User Pages/Profile component/AddressPage component/useAddressForm";
 import { useLocation, useNavigate } from "react-router-dom";
+import { Toast } from "primereact/toast";
 import axios from "axios";
 
 const AddAddress = () => {
@@ -25,22 +26,32 @@ const AddAddress = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const userId = location.state?.userId; // 📌 รับ userId มาจากหน้า Register
+    const toastRef = useRef(null); // ✅ สร้าง toastRef
 
     useEffect(() => {
-        // ✅ ตรวจสอบว่ามี userId หรือไม่
         if (!userId) {
-            console.error("❌ ไม่พบ userId! กลับไปหน้า Login");
+            toastRef.current?.show({
+                severity: "error",
+                summary: "ไม่พบผู้ใช้",
+                detail: "กรุณาเข้าสู่ระบบอีกครั้ง",
+                life: 3000,
+            });
             navigate("/login");
         }
     }, [userId, navigate]);
+
 
     const saveAddress = async () => {
         if (!validateForm()) return;
 
         const token = localStorage.getItem("token");
         if (!token) {
-            console.error("❌ Token หายไป! กรุณาเข้าสู่ระบบใหม่");
-            alert("Session หมดอายุ กรุณาเข้าสู่ระบบใหม่");
+            toastRef.current?.show({
+                severity: "warn",
+                summary: "หมดเวลาใช้งาน",
+                detail: "กรุณาเข้าสู่ระบบใหม่",
+                life: 3000,
+            });
             navigate("/login");
             return;
         }
@@ -61,16 +72,31 @@ const AddAddress = () => {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
-            alert("✅ ที่อยู่ถูกบันทึกเรียบร้อยแล้ว!");
-            navigate("/home");
+            toastRef.current?.show({
+                severity: "success",
+                summary: "บันทึกสำเร็จ",
+                detail: "ที่อยู่ถูกบันทึกเรียบร้อยแล้ว",
+                life: 3000,
+            });
+
+            setTimeout(() => {
+                navigate("/home");
+            }, 1000); // รอแป๊บนึงให้ toast แสดงก่อนเปลี่ยนหน้า
+
         } catch (error) {
             console.error("❌ ไม่สามารถบันทึกที่อยู่ได้:", error.response?.data || error.message);
-            alert("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
+            toastRef.current?.show({
+                severity: "error",
+                summary: "เกิดข้อผิดพลาด",
+                detail: "กรุณาลองใหม่อีกครั้ง",
+                life: 3000,
+            });
         }
     };
 
     return (
         <div className="flex justify-content-center align-items-center" style={{ height: "100vh" }}>
+            <Toast ref={toastRef} /> {/* ✅ Toast Component */}
             <div className="surface-card p-6 shadow-2 border-round-lg" style={{ width: "100%", maxWidth: "600px" }}>
                 <h2 className="text-center mb-4 text-blue-600">เพิ่มที่อยู่</h2>
                 <AddressForm

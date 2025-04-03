@@ -71,8 +71,16 @@ const Navbar = () => {
   };
 
   const start = (
-    <img alt="logo" src="../assets/logo.png" height="60" className="mx-8 pr-8 " onClick={() => navigate("/home")} />
-  );
+    <div className='lg:mr-8 lg:ml-8'>
+    <img
+      alt="logo"
+      src="../assets/logo.png"
+      height="60"
+      className="mx-2 pr-2 transition-all transition-duration-300 cursor-pointer hover:scale-110 hover:opacity-80"
+      onClick={() => navigate("/home")}
+    />
+    </div>
+  );  
 
   const end = (
     <div className="flex">
