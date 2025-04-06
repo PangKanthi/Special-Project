@@ -22,14 +22,16 @@ const ManageOrders = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [fetchedDoorConfig, setFetchedDoorConfig] = useState(null);
   const [confirmDialogVisible, setConfirmDialogVisible] = useState(false);
-  const [selectedOrderForStatusUpdate, setSelectedOrderForStatusUpdate] = useState(null);
+  const [search, setSearch] = useState("");
+  const [selectedOrderForStatusUpdate, setSelectedOrderForStatusUpdate] =
+    useState(null);
 
   useEffect(() => {
     const loadDoorConfig = async () => {
       try {
         const data = await fetchDoorConfig();
         setFetchedDoorConfig(data);
-      } catch { }
+      } catch {}
     };
     loadDoorConfig();
     fetchOrders();
@@ -38,11 +40,14 @@ const ManageOrders = () => {
   const fetchOrders = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(`${process.env.REACT_APP_API}/api/orders`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        `${process.env.REACT_APP_API}/api/orders`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setOrders(response.data.data);
-    } catch { }
+    } catch {}
   };
 
   const recalcPriceWithRowDataAsync = async (rowData) => {
@@ -86,7 +91,7 @@ const ManageOrders = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-    } catch { }
+    } catch {}
   };
 
   const onRowEditComplete = async (e) => {
@@ -96,10 +101,33 @@ const ManageOrders = () => {
   };
 
   const filterOrdersByStatus = (status) => {
+    let filtered = [];
+
     if (status === "ทั้งหมด") {
-      return orders.filter((o) => o.status !== "complete" && o.status !== "cancle");
+      filtered = orders.filter(
+        (o) => o.status !== "complete" && o.status !== "cancle"
+      );
+    } else {
+      filtered = orders.filter((o) => o.status === status);
     }
-    return orders.filter((o) => o.status === status);
+
+    if (search.trim() !== "") {
+      const lowerSearch = search.toLowerCase();
+      filtered = filtered.filter((o) => {
+        const firstname = o.user?.firstname?.toLowerCase() || "";
+        const lastname = o.user?.lastname?.toLowerCase() || "";
+        const phone = o.user?.phone?.toLowerCase() || "";
+        const orderId = o.id?.toString() || "";
+        return (
+          firstname.includes(lowerSearch) ||
+          lastname.includes(lowerSearch) ||
+          phone.includes(lowerSearch) ||
+          orderId.includes(lowerSearch)
+        );
+      });
+    }
+
+    return filtered;
   };
 
   const handleStatusChangeRequest = (order, newStatus) => {
@@ -124,7 +152,7 @@ const ManageOrders = () => {
       setOrders((prev) =>
         prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
       );
-    } catch { }
+    } catch {}
   };
 
   const statusTemplate = (rowData) => {
@@ -169,7 +197,9 @@ const ManageOrders = () => {
                 width="50"
                 height="50"
                 style={{ borderRadius: "5px" }}
-                onError={(e) => (e.target.src = "https://via.placeholder.com/50")}
+                onError={(e) =>
+                  (e.target.src = "https://via.placeholder.com/50")
+                }
               />
             );
           })
@@ -294,8 +324,12 @@ const ManageOrders = () => {
             alignItems: "center",
             justifyContent: "center",
           }}
-          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#f0f0f0")}
-          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "#ffffff")}
+          onMouseOver={(e) =>
+            (e.currentTarget.style.backgroundColor = "#f0f0f0")
+          }
+          onMouseOut={(e) =>
+            (e.currentTarget.style.backgroundColor = "#ffffff")
+          }
         />
         <InputText
           value={options.value}
@@ -329,13 +363,16 @@ const ManageOrders = () => {
             alignItems: "center",
             justifyContent: "center",
           }}
-          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#f0f0f0")}
-          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "#ffffff")}
+          onMouseOver={(e) =>
+            (e.currentTarget.style.backgroundColor = "#f0f0f0")
+          }
+          onMouseOut={(e) =>
+            (e.currentTarget.style.backgroundColor = "#ffffff")
+          }
         />
       </div>
     );
   };
-
 
   const tabItems = [
     { label: "ทั้งหมด", value: "ทั้งหมด", icon: "pi pi-list" },
@@ -345,53 +382,116 @@ const ManageOrders = () => {
 
   return (
     <div className="p-5">
-      <h2 className="text-2xl font-bold mb-4">Order List</h2>
+      <div className="flex items-center mb-4">
+        <h1 className="text-2xl font-bold">การจัดการคำสั่งซื้อ</h1>
+
+        {/* (A) Search Box ตำแหน่งชิดขวา */}
+        <div className="ml-auto w-72 pt-3">
+          <span className="p-input-icon-left w-72">
+            <i className="pi pi-search pl-3 text-gray-500" />
+            <InputText
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="ค้นหาข้อมูลคำสั่งซื้อ"
+              className="w-full pl-8"
+            />
+          </span>
+        </div>
+      </div>
       <Card>
-        <TabView activeIndex={activeIndex} onTabChange={(e) => setActiveIndex(e.index)}>
+        <TabView
+          activeIndex={activeIndex}
+          onTabChange={(e) => setActiveIndex(e.index)}
+        >
           {tabItems.map((tab, idx) => (
-            <TabPanel key={idx} header={<div><i className={tab.icon} style={{ marginRight: "5px" }}></i>{tab.label}</div>}>
-              <DataTable value={filterOrdersByStatus(tab.value)} dataKey="id" paginator rows={10}>
-                <Column header="ID" body={(rowData) => rowData.user?.id || "-"} />
-                <Column header="ชื่อ" body={(rowData) => rowData.user?.firstname || "-"} />
-                <Column header="นามสกุล" body={(rowData) => rowData.user?.lastname || "-"} />
-                <Column header="เบอร์โทรศัพท์" body={(rowData) => rowData.user?.phone || "-"} />
-                <Column header="ที่อยู่" body={(rowData) => (
-                  <Button
-                    label="ดูที่อยู่"
-                    icon="pi pi-map-marker"
-                    className="p-button-sm"
-                    onClick={() => viewAddressDetails(rowData)}
-                  />
-                )} />
-                <Column header="รายการสินค้า" body={(rowData) => (
-                  <Button
-                    label="ดูสินค้า"
-                    icon="pi pi-eye"
-                    className="p-button-sm"
-                    onClick={() => viewOrderItems(rowData)}
-                  />
-                )} />
-                <Column field="total_amount" header="ยอดรวมทั้งหมด" />
-                <Column header="สถานะ" body={statusTemplate} />
-                <Column header="เปลี่ยนสถานะ" body={(rowData) => (
-                  <Dropdown
-                    value={rowData.status}
-                    options={[
-                      { label: "รอการยืนยัน", value: "pending" },
-                      { label: "ได้รับการยืนยัน", value: "confirm" },
-                      { label: "เสร็จสิ้น", value: "complete" },
-                      { label: "ยกเลิก", value: "cancle" },
-                    ]}
-                    onChange={(e) => handleStatusChangeRequest(rowData, e.value)}
-                    style={{ width: "150px" }}
-                  />
-                )} />
+            <TabPanel
+              key={idx}
+              header={
+                <div>
+                  <i className={tab.icon} style={{ marginRight: "5px" }}></i>
+                  {tab.label}
+                </div>
+              }
+            >
+              <DataTable
+                value={filterOrdersByStatus(tab.value)}
+                dataKey="id"
+                paginator
+                rows={10}
+                sortField="id"
+                sortOrder={-1}
+              >
+                <Column field="id" header="หมายเลขคำสั่งซื้อ" sortable />
+                <Column
+                  header="ชื่อ"
+                  body={(rowData) => rowData.user?.firstname || "-"}
+                />
+                <Column
+                  header="นามสกุล"
+                  body={(rowData) => rowData.user?.lastname || "-"}
+                />
+                <Column
+                  header="เบอร์โทรศัพท์"
+                  body={(rowData) => rowData.user?.phone || "-"}
+                />
+                <Column
+                  header="ที่อยู่"
+                  body={(rowData) => (
+                    <Button
+                      label="ดูที่อยู่"
+                      icon="pi pi-map-marker"
+                      className="p-button-sm"
+                      onClick={() => viewAddressDetails(rowData)}
+                    />
+                  )}
+                />
+                <Column
+                  header="รายการสินค้า"
+                  body={(rowData) => (
+                    <Button
+                      label="ดูสินค้า"
+                      icon="pi pi-eye"
+                      className="p-button-sm"
+                      onClick={() => viewOrderItems(rowData)}
+                    />
+                  )}
+                />
+                <Column field="total_amount" header="ยอดรวมทั้งหมด" sortable />
+                <Column
+                  field="status"
+                  header="สถานะ"
+                  body={statusTemplate}
+                  sortable
+                />
+                <Column
+                  header="เปลี่ยนสถานะ"
+                  body={(rowData) => (
+                    <Dropdown
+                      value={rowData.status}
+                      options={[
+                        { label: "รอการยืนยัน", value: "pending" },
+                        { label: "ได้รับการยืนยัน", value: "confirm" },
+                        { label: "เสร็จสิ้น", value: "complete" },
+                        { label: "ยกเลิก", value: "cancle" },
+                      ]}
+                      onChange={(e) =>
+                        handleStatusChangeRequest(rowData, e.value)
+                      }
+                      style={{ width: "150px" }}
+                    />
+                  )}
+                />
               </DataTable>
             </TabPanel>
           ))}
         </TabView>
       </Card>
-      <Dialog header="รายการสินค้า" visible={visibleItems} style={{ width: "80vw" }} onHide={() => setVisibleItems(false)}>
+      <Dialog
+        header="รายการสินค้า"
+        visible={visibleItems}
+        style={{ width: "80vw" }}
+        onHide={() => setVisibleItems(false)}
+      >
         <DataTable
           value={orderItems}
           editMode="row"
@@ -399,18 +499,73 @@ const ManageOrders = () => {
           onRowEditComplete={onRowEditComplete}
         >
           <Column field="product.name" header="ชื่อสินค้า" />
-          <Column header="รูปสินค้า" body={(rowData) => <ImageTemplate rowData={rowData} />} />
-          <Column field="color" header="สี" editor={colorEditor} body={(rowData) => rowData.color === "default" ? "" : (rowData.color || "-")} />
-          <Column field="width" header="กว้าง (ม.)" editor={dimensionEditor} body={(rowData) => rowData.color === "default" ? "" : (rowData.width != null ? rowData.width : "-")} />
-          <Column field="length" header="ยาว (ม.)" editor={dimensionEditor} body={(rowData) => rowData.color === "default" ? "" : (rowData.length != null ? rowData.length : "-")} />
-          <Column field="thickness" header="ความหนา" editor={thicknessEditor} body={(rowData) => rowData.color === "default" ? "" : (rowData.thickness || "-")} />
-          <Column field="installOption" header="ตัวเลือกติดตั้ง" editor={installOptionEditor} body={(rowData) => rowData.color === "default" ? "" : (rowData.installOption || "-")} />
+          <Column
+            header="รูปสินค้า"
+            body={(rowData) => <ImageTemplate rowData={rowData} />}
+          />
+          <Column
+            field="color"
+            header="สี"
+            editor={colorEditor}
+            body={(rowData) =>
+              rowData.color === "default" ? "" : rowData.color || "-"
+            }
+          />
+          <Column
+            field="width"
+            header="กว้าง (ม.)"
+            editor={dimensionEditor}
+            body={(rowData) =>
+              rowData.color === "default"
+                ? ""
+                : rowData.width != null
+                ? rowData.width
+                : "-"
+            }
+          />
+          <Column
+            field="length"
+            header="ยาว (ม.)"
+            editor={dimensionEditor}
+            body={(rowData) =>
+              rowData.color === "default"
+                ? ""
+                : rowData.length != null
+                ? rowData.length
+                : "-"
+            }
+          />
+          <Column
+            field="thickness"
+            header="ความหนา"
+            editor={thicknessEditor}
+            body={(rowData) =>
+              rowData.color === "default" ? "" : rowData.thickness || "-"
+            }
+          />
+          <Column
+            field="installOption"
+            header="ตัวเลือกติดตั้ง"
+            editor={installOptionEditor}
+            body={(rowData) =>
+              rowData.color === "default" ? "" : rowData.installOption || "-"
+            }
+          />
           <Column field="quantity" header="จำนวน" editor={quantityEditor} />
           <Column field="price" header="ราคา/ต่อชิ้น (บาท)" />
-          <Column rowEditor headerStyle={{ width: "5rem" }} bodyStyle={{ textAlign: "center" }} />
+          <Column
+            rowEditor
+            headerStyle={{ width: "5rem" }}
+            bodyStyle={{ textAlign: "center" }}
+          />
         </DataTable>
       </Dialog>
-      <Dialog header="รายละเอียดที่อยู่" visible={visibleAddress} style={{ width: "50vw" }} onHide={() => setVisibleAddress(false)}>
+      <Dialog
+        header="รายละเอียดที่อยู่"
+        visible={visibleAddress}
+        style={{ width: "50vw" }}
+        onHide={() => setVisibleAddress(false)}
+      >
         {selectedAddress ? (
           <DataTable value={[selectedAddress]}>
             <Column field="addressLine" header="ที่อยู่" />
@@ -448,7 +603,13 @@ const ManageOrders = () => {
           </div>
         }
       >
-        <p>คุณแน่ใจว่าต้องการเปลี่ยนสถานะเป็น "{selectedOrderForStatusUpdate?.newStatus === "complete" ? "เสร็จแล้ว" : "ยกเลิก"}" หรือไม่?</p>
+        <p>
+          คุณแน่ใจว่าต้องการเปลี่ยนสถานะเป็น "
+          {selectedOrderForStatusUpdate?.newStatus === "complete"
+            ? "เสร็จแล้ว"
+            : "ยกเลิก"}
+          " หรือไม่?
+        </p>
       </Dialog>
     </div>
   );

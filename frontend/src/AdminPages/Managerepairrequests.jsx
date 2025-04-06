@@ -287,7 +287,6 @@ const Managerepairrequests = ({ setNotifications }) => {
     return <Tag value={statusText} severity={severity} />;
   };
 
-
   const statusEditor = (rowData) => {
     return (
       <Dropdown
@@ -314,7 +313,7 @@ const Managerepairrequests = ({ setNotifications }) => {
             <InputText
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="ค้นหาข้อมูลผู้ใช้"
+              placeholder="ค้นหาข้อมูลส่งซ่อม"
               className="w-full pl-8"
             />
           </span>
@@ -343,6 +342,8 @@ const Managerepairrequests = ({ setNotifications }) => {
           first={first}
           onPage={onPageChange}
           style={{ marginTop: "1rem" }}
+          sortField="request_date"
+          sortOrder={-1}
         >
           <Column
             body={(rowData) => rowData.user?.firstname || "ไม่ระบุ"}
@@ -358,7 +359,12 @@ const Managerepairrequests = ({ setNotifications }) => {
           />
           <Column field="service_type" header="ประเภทการซ่อม" />
           <Column field="problem_description" header="รายละเอียด" />
-          <Column body={dateTemplate} header="วันที่แจ้งซ่อม" />
+          <Column
+            field="request_date"
+            header="วันที่แจ้งซ่อม"
+            body={dateTemplate}
+            sortable
+          />
           <Column
             header="ที่อยู่"
             body={(rowData) => (
@@ -380,7 +386,12 @@ const Managerepairrequests = ({ setNotifications }) => {
               />
             )}
           />
-          <Column body={statusTemplate} field="status" header="สถานะ" />
+          <Column
+            field="status"
+            body={statusTemplate}
+            header="สถานะ"
+            sortable
+          />
           <Column body={statusEditor} header="เปลี่ยนสถานะ" />
         </DataTable>
       </Card>
@@ -442,7 +453,8 @@ const Managerepairrequests = ({ setNotifications }) => {
           <Column
             header="สต็อกที่มี"
             body={(rowData) =>
-              `${rowData.stock_quantity.toLocaleString()} ${unitMap[rowData.category] || "ชุด"
+              `${rowData.stock_quantity.toLocaleString()} ${
+                unitMap[rowData.category] || "ชุด"
               }`
             }
           />
@@ -510,7 +522,13 @@ const Managerepairrequests = ({ setNotifications }) => {
           </div>
         }
       >
-        <p>คุณแน่ใจว่าต้องการเปลี่ยนสถานะเป็น "{selectedStatusRequest?.newStatus === 'complete' ? 'เสร็จแล้ว' : 'ยกเลิก'}" หรือไม่?</p>
+        <p>
+          คุณแน่ใจว่าต้องการเปลี่ยนสถานะเป็น "
+          {selectedStatusRequest?.newStatus === "complete"
+            ? "เสร็จแล้ว"
+            : "ยกเลิก"}
+          " หรือไม่?
+        </p>
       </Dialog>
     </div>
   );

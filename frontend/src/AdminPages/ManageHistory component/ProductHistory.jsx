@@ -137,25 +137,11 @@ const ProductHistory = () => {
     );
   };
 
-  // Status filter options
-  const statusOptions = [
-    { label: "ทั้งหมด", value: null },
-    { label: "สำเร็จ", value: "complete" },
-    { label: "ยกเลิก", value: "cancle" },
-  ];
-
   return (
     <div>
       <Toast ref={toast} />
-      <Dropdown
-        value={statusFilter}
-        options={statusOptions}
-        onChange={(e) => setStatusFilter(e.value)}
-        placeholder="เลือกสถานะ"
-        className="p mb-4"
-      />
-      <DataTable value={filteredOrders} dataKey="id" paginator rows={10}>
-        <Column header="ID" body={(rowData) => rowData.user?.id || "-"} />
+      <DataTable value={filteredOrders} dataKey="id" paginator rows={10} sortField="user.id" sortOrder={1}>
+        <Column header="ID" body={(rowData) => rowData.user?.id || "-"} sortable/>
         <Column header="ชื่อ" body={(rowData) => rowData.user?.firstname || "-"} />
         <Column header="นามสกุล" body={(rowData) => rowData.user?.lastname || "-"} />
         <Column header="เบอร์โทรศัพท์" body={(rowData) => rowData.user?.phone || "-"} />
@@ -181,8 +167,8 @@ const ProductHistory = () => {
             />
           )}
         />
-        <Column field="total_amount" header="ยอดรวมทั้งหมด (บาท)" />
-        <Column header="สถานะ" body={statusTemplate} />
+        <Column field="total_amount" header="ยอดรวมทั้งหมด (บาท)" sortable/>
+        <Column header="สถานะ" body={statusTemplate} sortable/>
         <Column
           header="ลบ"
           body={(rowData) => (

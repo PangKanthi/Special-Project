@@ -6,11 +6,7 @@ import { Tag } from "primereact/tag";
 import { Avatar } from "primereact/avatar";
 import { TabMenu } from "primereact/tabmenu";
 
-const ProductTable = ({
-  products,
-  handleEdit,
-  categoryOptions,
-}) => {
+const ProductTable = ({ products, handleEdit, categoryOptions }) => {
   const [activeTab, setActiveTab] = useState("ทั้งหมด");
   const [activeIndex, setActiveIndex] = useState(0);
   const [filteredProducts, setFilteredProducts] = useState(products);
@@ -74,7 +70,7 @@ const ProductTable = ({
           filterProducts(e.value.value);
         }}
       />
-      <DataTable value={filteredProducts} paginator rows={10}>
+      <DataTable value={filteredProducts} paginator rows={10} sortField="stock_quantity" sortOrder={1}>
         <Column
           header="รูปภาพ"
           body={(rowData) =>
@@ -89,18 +85,18 @@ const ProductTable = ({
             )
           }
         />
-        <Column field="name" header="ชื่อสินค้า" />
+        <Column field="name" header="ชื่อสินค้า" sortable />
         <Column
           field="category"
           header="หมวดหมู่"
+          sortable
           body={(rowData) => {
             const categoryMap = {
-              // 🔹 หมวดหมู่ประตูม้วน
+              // ประตูม้วน
               electric_rolling_shutter: "ประตูม้วนแบบไฟฟ้า",
               chain_electric_shutter: "ประตูม้วนแบบรอกโซ่",
               manual_rolling_shutter: "ประตูม้วนแบบมือดึง",
-
-              // 🔹 หมวดหมู่อะไหล่ประตูม้วน
+              // อะไหล่
               แผ่นประตูม้วน: "แผ่นประตูม้วน",
               เสารางประตูม้วน: "เสารางประตูม้วน",
               แกนเพลาประตูม้วน: "แกนเพลาประตูม้วน",
@@ -114,13 +110,13 @@ const ProductTable = ({
               ชุดมอเตอร์ประตูม้วน: "ชุดมอเตอร์ประตูม้วน",
               สวิตช์กดควบคุม: "สวิตช์กดควบคุม",
             };
-
             return categoryMap[rowData.category] || "ไม่ระบุ";
           }}
         />
         <Column
           field="price"
           header="ราคา"
+          sortable
           body={(rowData) =>
             rowData.price
               ? `${rowData.price.toLocaleString()} บาท/${
@@ -132,6 +128,7 @@ const ProductTable = ({
         <Column
           field="stock_quantity"
           header="จำนวนคงเหลือ"
+          sortable
           body={(rowData) =>
             rowData.stock_quantity !== undefined &&
             rowData.stock_quantity !== null
@@ -173,7 +170,9 @@ const ProductTable = ({
           )}
         />
         <Column
-          header="การจัดการ"
+          field="status"
+          header="สถานะวางขาย"
+          sortable
           body={(rowData) => (
             <Button
               label={rowData.status ? "ยกเลิกชั่วคราว" : "กำลังวางขาย"}

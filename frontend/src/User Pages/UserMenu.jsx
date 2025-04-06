@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from "axios";
 
 const UserMenu = () => {
     const navigate = useNavigate();
@@ -8,21 +9,35 @@ const UserMenu = () => {
     const [isVisible, setIsVisible] = useState(false); // ✅ ควบคุม Animation
     const dropdownRef = useRef(null);
 
-    // ✅ โหลดข้อมูลผู้ใช้จาก localStorage และเปิดแอนิเมชัน
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            const storedUser = JSON.parse(localStorage.getItem('Profile')) || {};
-            // ใช้ username ถ้าไม่มีใช้ name แทน
-            setUser({
-                username: storedUser.username || storedUser.name || "Profile"
-            });
-
-            setTimeout(() => setIsVisible(true), 300);
-        } else {
-            setUser(null);
-            setIsVisible(false);
-        }
+        const fetchUser = async () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                setUser(null);
+                setIsVisible(false);
+                return;
+            }
+    
+            try {
+                const response = await axios.get(`${process.env.REACT_APP_API}/api/users/me`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+    
+                const data = response.data;
+    
+                setUser({
+                    username: `${data.firstname} ${data.lastname}`,
+                });
+    
+                setTimeout(() => setIsVisible(true), 300);
+            } catch (error) {
+                console.error("❌ Failed to fetch user:", error);
+                setUser(null);
+                setIsVisible(false);
+            }
+        };
+    
+        fetchUser();
     }, []);
 
     const handleLogout = () => {

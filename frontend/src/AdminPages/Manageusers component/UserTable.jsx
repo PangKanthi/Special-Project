@@ -36,9 +36,12 @@ const UserTable = ({ users, onEdit, onDelete }) => {
   const fetchUserAddresses = async (userId) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(`${API_ADDRESSES_URL}?userId=${userId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        `${API_ADDRESSES_URL}?userId=${userId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       const userAddresses =
         response.data.data?.filter((addr) => addr.userId === userId) || [];
       setAddresses(userAddresses);
@@ -178,13 +181,20 @@ const UserTable = ({ users, onEdit, onDelete }) => {
   // ➐ แสดงตาราง users ที่ส่งมาจาก ManageUsers (กรองแล้ว)
   return (
     <div className="bg-white shadow-md rounded-lg p-4">
-      <DataTable value={users} paginator rows={5} emptyMessage="ไม่พบผู้ใช้">
-        <Column field="id" header="ไอดีผู้ใช้" />
-        <Column field="username" header="ชื่อผู้ใช้" />
-        <Column field="firstname" header="ชื่อจริง" />
-        <Column field="lastname" header="นามสกุล" />
-        <Column field="email" header="อีเมล" />
-        <Column field="phone" header="เบอร์โทรศัพท์" />
+      <DataTable
+        value={users}
+        paginator
+        rows={5}
+        emptyMessage="ไม่พบผู้ใช้"
+        sortField="id"
+        sortOrder={1}
+      >
+        <Column field="id" header="ไอดีผู้ใช้" sortable />
+        <Column field="username" header="ชื่อผู้ใช้" sortable />
+        <Column field="firstname" header="ชื่อจริง" sortable />
+        <Column field="lastname" header="นามสกุล" sortable />
+        <Column field="email" header="อีเมล" sortable />
+        <Column field="phone" header="เบอร์โทรศัพท์" sortable />
 
         <Column
           header="ที่อยู่"
@@ -199,6 +209,7 @@ const UserTable = ({ users, onEdit, onDelete }) => {
         <Column
           field="role"
           header="บทบาท"
+          sortable
           body={(rowData) => (
             <Tag
               value={rowData.role === "A" ? "Admin" : "User"}

@@ -130,18 +130,18 @@ const RepairHistory = () => {
     return (
         <div>
             <Toast ref={toast} />
-            <DataTable value={filteredHistory} paginator rows={10}>
+            <DataTable value={filteredHistory} paginator rows={10}  sortField="request_date" sortOrder={-1}>
                 <Column body={(rowData) => rowData.user?.username || "ไม่ระบุ"} header="ชื่อผู้ใช้" />
                 <Column body={imageTemplate} header="รูปภาพ" />
                 <Column field="service_type" header="ประเภทการซ่อม" />
                 <Column field="problem_description" header="รายละเอียด" />
-                <Column body={dateTemplate} header="วันที่แจ้งซ่อม" />
+                <Column field="request_date" body={dateTemplate} header="วันที่แจ้งซ่อม" sortable />
                 <Column body={(rowData) => rowData.address?.addressLine || "ไม่ระบุ"} header="ที่อยู่" />
                 <Column body={(rowData) => rowData.address?.province || "ไม่ระบุ"} header="จังหวัด" />
                 <Column body={(rowData) => rowData.address?.district || "ไม่ระบุ"} header="เขต/อำเภอ" />
                 <Column body={(rowData) => rowData.address?.subdistrict || "ไม่ระบุ"} header="ตำบล" />
                 <Column body={(rowData) => rowData.address?.postalCode || "ไม่ระบุ"} header="รหัสไปรษณีย์" />
-                <Column body={statusTemplate} field="status" header="สถานะ" />
+                <Column body={statusTemplate} field="status" header="สถานะ" sortable/>
                 <Column
                     body={deleteButton}
                     header="ลบ"
