@@ -178,6 +178,8 @@ const Repair = () => {
     const formData = new FormData();
     formData.append("problemDescription", form.problemDescription);
     formData.append("serviceType", form.serviceType);
+    formData.append("firstname", user?.firstname || "");
+    formData.append("lastname", user?.lastname || "");
 
     form.images.forEach((img) => {
       formData.append("images", img.file);

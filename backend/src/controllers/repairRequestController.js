@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 
 export const createRepairRequest = async (req, res, next) => {
     try {
-        const { problemDescription, serviceType } = req.body;
+        const { problemDescription, serviceType ,firstname,lastname } = req.body;
         const userId = req.user.id;
         let addressData = req.body.address ? JSON.parse(req.body.address) : null; // 👈 ต้องแปลงจาก JSON string
         let finalAddressId = req.body.addressId || null;
@@ -41,6 +41,12 @@ export const createRepairRequest = async (req, res, next) => {
                 service_type: serviceType,
                 status: 'pending',
                 images: imagePaths // 📌 PostgreSQL รองรับ `String[]`
+            }
+        });
+        await prisma.notification.create({
+            data: {
+                userId,
+                message: `🛠 มีคำขอซ่อมใหม่จากผู้ใช้ ${firstname} ${lastname}`
             }
         });
 

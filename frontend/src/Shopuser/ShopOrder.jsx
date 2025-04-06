@@ -93,7 +93,9 @@ function ShopOrder() {
       const payload = {
         addressId: selectedAddress.id,
         orderItems,
-        totalAmount: grandTotal
+        totalAmount: grandTotal,
+        firstname: user?.firstname,
+        lastname: user?.lastname
       };
 
       const res = await fetch(`${process.env.REACT_APP_API}/api/orders`, {

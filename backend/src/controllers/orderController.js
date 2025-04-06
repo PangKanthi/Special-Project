@@ -3,7 +3,8 @@ import prisma from '../config/db.js';
 
 export const createOrder = async (req, res, next) => {
     try {
-        const { addressId, orderItems, totalAmount } = req.body;
+        const { addressId, orderItems, totalAmount, firstname, lastname} = req.body;
+        const userId = req.user.id;
 
         // Validation เบื้องต้น
         if (!addressId || !orderItems || orderItems.length === 0) {
@@ -17,6 +18,13 @@ export const createOrder = async (req, res, next) => {
             orderItems,  // <-- array ของ { productId, quantity, price, color, width, ... }
             totalAmount
         );
+
+        await prisma.notification.create({
+            data: {
+                userId,
+                message: `📦 มีคำสั่งซื้อใหม่จากผู้ใช้ ${firstname} ${lastname} มูลค่า ${totalAmount}`
+            }
+        });
 
         res.status(201).json({
             message: "สั่งซื้อสำเร็จ",

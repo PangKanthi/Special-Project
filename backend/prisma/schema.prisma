@@ -37,7 +37,6 @@ model product {
   repair_part repair_part[]
 }
 
-
 model user {
   id                   Int       @id @default(autoincrement())
   username             String    @unique @db.VarChar(20)
@@ -55,6 +54,7 @@ model user {
   reviews        review[]
   repair_request repair_request[]
   cart           cart?
+  notification   notification[]
 }
 
 model Address {
@@ -109,7 +109,6 @@ model order_item {
 
   @@map("order_items")
 }
-
 
 model payment_slip {
   id         Int      @id @default(autoincrement())
@@ -213,16 +212,16 @@ model bom_item {
 
 // สร้าง Model สำหรับเก็บประเภทประตู
 model door_config {
-  id           Int      @id @default(autoincrement())
-  category     String   @unique
-  display_name String?          
+  id           Int     @id @default(autoincrement())
+  category     String  @unique
+  display_name String?
   description  String?
   warranty     String?
 
-  created_at   DateTime @default(now())
-  updated_at   DateTime @updatedAt
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
-  price_tiers  door_config_price_tiers[]
+  price_tiers door_config_price_tiers[]
 }
 
 model door_config_price_tiers {
@@ -234,4 +233,14 @@ model door_config_price_tiers {
   door_config door_config @relation(fields: [doorConfigId], references: [id], onDelete: Cascade)
 
   @@map("door_config_price_tiers")
+}
+
+model notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  message   String   @db.Text
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user user @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
