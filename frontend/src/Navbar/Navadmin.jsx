@@ -1,5 +1,4 @@
 import { Menubar } from "primereact/menubar";
-import { Avatar } from "primereact/avatar";
 import { Menu } from "primereact/menu";
 import { useRef, useState } from "react";
 import { PrimeIcons } from "primereact/api";
@@ -84,6 +83,12 @@ export default function Navbar() {
       icon: PrimeIcons.BRIEFCASE,
       action: () => navigate("/manageportfolios"),
       className: pathname === "/manageportfolios" ? "font-bold text-black" : "",
+    },
+    {
+      label: "จัดการราคาประตูม้วน",
+      icon: PrimeIcons.MONEY_BILL,
+      action: () => navigate("/managedoorprice"),
+      className: pathname === "/managedoorprice" ? "font-bold text-black" : "",
     },
     {
       label: "ประวัติ",

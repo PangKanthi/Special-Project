@@ -210,31 +210,6 @@ model bom_item {
   @@map("bom_items")
 }
 
-// สร้าง Model สำหรับเก็บประเภทประตู
-model door_config {
-  id           Int     @id @default(autoincrement())
-  category     String  @unique
-  display_name String?
-  description  String?
-  warranty     String?
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  price_tiers door_config_price_tiers[]
-}
-
-model door_config_price_tiers {
-  id            Int     @id @default(autoincrement())
-  doorConfigId  Int
-  thickness     String
-  price_per_sqm Decimal
-
-  door_config door_config @relation(fields: [doorConfigId], references: [id], onDelete: Cascade)
-
-  @@map("door_config_price_tiers")
-}
-
 model notification {
   id        Int      @id @default(autoincrement())
   userId    Int
@@ -243,4 +218,13 @@ model notification {
   createdAt DateTime @default(now())
 
   user user @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model door_price {
+  id         Int      @id @default(autoincrement())
+  door_type  String   @db.VarChar(100)   // ประเภทประตู เช่น "ประตูม้วนแบบมือดึง"
+  thickness  String   @db.VarChar(50)    // ความหนา เช่น "0.4 mm (เบอร์ 23)"
+  price      Decimal  @db.Decimal(10, 2) // ราคา/ตร.ม.
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 }
