@@ -10,16 +10,19 @@ const CustomerReviews = ({ productId }) => {
   const [reviews, setReviews] = useState([]);
   const [newReview, setNewReview] = useState({ rating: 0, comment: "" });
   const [errorMessage, setErrorMessage] = useState("");
-  
+  const [userId, setUserId] = useState(null);
+
   // ▼▼ เพิ่ม 2 state สำหรับเช็ค login และ purchased ▼▼
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [hasPurchased, setHasPurchased] = useState(false);
 
-  // ตรวจสอบ token เพื่อบอกว่า login ไหม
+  // ดึง userId จาก token (สมมุติว่า decode ได้จาก JWT)
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
       setIsLoggedIn(true);
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      setUserId(payload.id);
     } else {
       setIsLoggedIn(false);
     }
@@ -97,6 +100,20 @@ const CustomerReviews = ({ productId }) => {
     }
   };
 
+  const handleDeleteReview = async (reviewId) => {
+    const token = localStorage.getItem("token");
+    try {
+      await axios.delete(`${process.env.REACT_APP_API}/api/reviews/${reviewId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      // ลบแล้วรีโหลดรีวิวใหม่
+      const resp = await axios.get(`${process.env.REACT_APP_API}/api/reviews/product/${productId}`);
+      setReviews(resp.data.data);
+    } catch (err) {
+      console.error("Error deleting review:", err);
+    }
+  };
+
   return (
     <div className="p-4">
       <h3 className="text-xl font-bold mb-3">คะแนนรีวิวสินค้า</h3>
@@ -136,7 +153,7 @@ const CustomerReviews = ({ productId }) => {
       ) : (
         // กรณีไม่เคยซื้อ หรือไม่ได้ล็อกอิน -> อาจจะโชว์ข้อความ หรือปล่อยว่างก็ได้
         <p style={{ color: "gray" }}>
-          
+
         </p>
       )}
 
@@ -145,9 +162,22 @@ const CustomerReviews = ({ productId }) => {
         <div key={index} className="pt-2 border-b pb-2">
           <div className="flex items-center gap-2">
             <Rating value={r.rating} readOnly cancel={false} />
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-gray-600 mt-2">
               {r.user ? r.user.firstname : "ไม่ทราบชื่อ"}
             </span>
+            {userId === r.userId && (
+              <Button
+                icon="pi pi-trash"
+                severity="danger"
+                rounded
+                text
+                aria-label="ลบรีวิว"
+                onClick={() => handleDeleteReview(r.id)}
+                className="p-button-sm"
+                tooltip="ลบรีวิว"
+                tooltipOptions={{ position: "top" }}
+              />
+            )}
           </div>
           <p className="mt-2 text-gray-800">{r.content}</p>
           <Divider className="my-4 w-16 border-blue-500 mx-auto" />

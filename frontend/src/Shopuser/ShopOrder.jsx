@@ -59,6 +59,13 @@ function ShopOrder() {
     fetchUser();
   }, []);
 
+  useEffect(() => {
+    if (addresses.length === 1 && !selectedAddress) {
+      setSelectedAddress(addresses[0]);
+      setSelectedAddressIndex(0);
+    }
+  }, [addresses, selectedAddress]);
+
   const handleOrderConfirmation = async () => {
     // ตรวจสอบ address
     if (!selectedAddress) {
