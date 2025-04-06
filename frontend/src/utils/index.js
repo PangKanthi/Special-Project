@@ -1,44 +1,46 @@
 import { fetchDoorConfig } from "../services/doorConfigService";
 
-export const calculateTotalDoorPrice = async (category, width, height, thickStr) => {
-    let errorMessage = null;
-    let result = null;
+/**
+ * @param {string} category   key ของประเภทประตู (manual_rolling_shutter ฯลฯ)
+ * @param {number} width      ความกว้าง (เมตร)
+ * @param {number} height     ความสูง (เมตร)
+ * @param {string} thickStr   ความหนาที่เลือก (เช่น "0.6-0.7 mm (เบอร์ 22)")
+ */
+export const calculateTotalDoorPrice = async (
+  category,
+  width,
+  height,
+  thickStr
+) => {
+  let errorMessage = null;
+  let result = null;
 
-    const doorConfig = await fetchDoorConfig();
-    const doorDataType = doorConfig[category];
+  // 1) ดึงข้อมูลจาก backend
+  const doorConfig = await fetchDoorConfig();
+  const doorData = doorConfig[category];
 
-    if (!doorDataType || !doorDataType["priceTiers"]) {
-        return { result, errorMessage: "ไม่พบข้อมูลประเภทประตู" };
-    }
+  if (!doorData || !doorData.priceTiers) {
+    return { result, errorMessage: "ไม่พบข้อมูลประเภทประตู" };
+  }
 
-    const allThicknessPrice = doorDataType["priceTiers"];
-    const area = width * height;
+  const area = width * height;
 
-    const selectedThickness = allThicknessPrice.find(item => item.thickness === thickStr);
+  /* 2) ในโครงสร้างใหม่ ทุกช่วงราคาอยู่ในตาราง DoorPriceTier เลย
+        เลือกแถวที่ตรง thickness และช่วงพื้นที่ */
+  const matchedTier = doorData.priceTiers.find(
+    (t) =>
+      t.thickness === thickStr &&
+      area >= t.min_area &&
+      area <= t.max_area
+  );
 
-    if (!selectedThickness) {
-        return { result, errorMessage: "ความหนาที่เลือกไม่มีในระบบ" };
-    }
+  if (!matchedTier) {
+    return {
+      result,
+      errorMessage: "ไม่พบราคาที่ตรงกับความหนาหรือขนาดพื้นที่นี้",
+    };
+  }
 
-    if (selectedThickness.pricePerSqm) {
-        if (area >= selectedThickness.minArea && area <= selectedThickness.maxArea) {
-            result = selectedThickness.pricePerSqm * area;
-        } else {
-            errorMessage = "ขนาดไม่อยู่ในช่วงที่กำหนด";
-        }
-    }
-
-    if (selectedThickness.priceRanges) {
-        const matchedRange = selectedThickness.priceRanges.find(range => 
-            area >= range.minArea && area <= range.maxArea
-        );
-
-        if (matchedRange) {
-            result = matchedRange.pricePerSqm * area;
-        } else {
-            errorMessage = "ขนาดไม่อยู่ในช่วงที่กำหนด";
-        }
-    }
-
-    return { result, errorMessage };
+  result = matchedTier.price_per_sqm * area;
+  return { result, errorMessage };
 };

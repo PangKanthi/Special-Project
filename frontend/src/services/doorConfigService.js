@@ -1,9 +1,13 @@
-import axios from 'axios';
+
+import axios from "axios";
+
+const apiClient = axios.create({
+  baseURL: process.env.REACT_APP_API ,
+});
+
 export const fetchDoorConfig = async () => {
-    try {
-        const response = await axios.get("/mockData/doorConfig.json");
-        return response.data;
-    } catch (error) {
-        throw error;
-    }
-}
+  const { data } = await apiClient.get("/api/door-config");
+  const map = {};
+  data.forEach((cfg) => (map[cfg.key] = cfg));
+  return map;
+};
