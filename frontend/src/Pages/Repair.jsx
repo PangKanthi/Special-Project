@@ -185,9 +185,8 @@ const Repair = () => {
       formData.append("images", img.file);
     });
 
-    // ⬇️ เช็คว่ามี selectedAddress หรือไม่
     if (selectedAddress) {
-      // ถ้า user เลือกที่อยู่ใน Dropdown
+      formData.append("addressId", parseInt(selectedAddress.id, 10));
       formData.append(
         "address",
         JSON.stringify({

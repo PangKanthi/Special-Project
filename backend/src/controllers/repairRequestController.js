@@ -9,7 +9,7 @@ export const createRepairRequest = async (req, res, next) => {
         const { problemDescription, serviceType ,firstname,lastname } = req.body;
         const userId = req.user.id;
         let addressData = req.body.address ? JSON.parse(req.body.address) : null; // 👈 ต้องแปลงจาก JSON string
-        let finalAddressId = req.body.addressId || null;
+        let finalAddressId = req.body.addressId ? parseInt(req.body.addressId, 10) : null;
 
         // 📌 PostgreSQL รองรับ String[] ดังนั้นเก็บ URL ของรูปภาพเป็น Array
         const imagePaths = req.files ? req.files.map(file => `/uploads/repair_requests/${file.filename}`) : [];
