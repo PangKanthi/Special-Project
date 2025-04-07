@@ -25,7 +25,6 @@ const normalCategoryOptions = [
   { label: "ประตูม้วนแบบมือดึง", value: "manual_rolling_shutter" },
 ];
 
-
 const partCategoryOptions = [
   { label: "ทั้งหมด", value: null },
   { label: "แผ่นประตูม้วน", value: "แผ่นประตูม้วน" },
@@ -125,7 +124,11 @@ const ProductAutoDetail = () => {
   };
 
   if (!product) {
-    return <div className="text-center p-4"><Loading /></div>;
+    return (
+      <div className="text-center p-4">
+        <Loading />
+      </div>
+    );
   }
 
   const categoryOptions = product.is_part
@@ -219,8 +222,8 @@ const ProductAutoDetail = () => {
     const finalThickness = isPart
       ? ""
       : thickness
-        ? parseFloat(thickness)
-        : selectedThickness;
+      ? parseFloat(thickness)
+      : selectedThickness;
 
     if (
       !isPart &&
@@ -327,16 +330,19 @@ const ProductAutoDetail = () => {
                           height: "20px",
                           borderRadius: "50%",
                           backgroundColor: color,
-                          border: selectedColor === color
-                            ? "3px solid #ffffff"
-                            : "2px solid rgb(255, 255, 255)",
-                          boxShadow: selectedColor === color
-                            ? "0 4px 8px rgba(0,0,0,0.3)"
-                            : "0 2px 4px rgba(0,0,0,0.1)",
+                          border:
+                            selectedColor === color
+                              ? "3px solid #ffffff"
+                              : "2px solid rgb(255, 255, 255)",
+                          boxShadow:
+                            selectedColor === color
+                              ? "0 4px 8px rgba(0,0,0,0.3)"
+                              : "0 2px 4px rgba(0,0,0,0.1)",
                           cursor: "pointer",
                           position: "relative",
                           transition: "all 0.3s ease-in-out",
-                          transform: selectedColor === color ? "scale(1.1)" : "scale(1)",
+                          transform:
+                            selectedColor === color ? "scale(1.1)" : "scale(1)",
                         }}
                       >
                         {selectedColor === color && (
@@ -350,13 +356,11 @@ const ProductAutoDetail = () => {
                               fontSize: "12px",
                               fontWeight: "bold",
                             }}
-                          >
-                          </span>
+                          ></span>
                         )}
                       </div>
                     ))}
                   </div>
-
                 )}
 
               {!product.is_part && (
@@ -387,9 +391,24 @@ const ProductAutoDetail = () => {
                   </div>
                 </div>
               )}
+
+              {/* ส่วนแสดงข้อความขนาดสูงสุดของประตูม้วน */}
               {!product.is_part && (
                 <div>
                   <h4>กรุณากรอกขนาด กว้าง ยาว หน่วยเป็น เมตร และ เลือกความหนา</h4>
+                  {/* เพิ่มข้อความระบุขนาดสูงสุดตามประเภทประตูม้วน */}
+                  {(product.category === "electric_rolling_shutter" ||
+                    product.category === "chain_electric_shutter") && (
+                    <p style={{ color: "red" }}>
+                      * ประตูม้วนแบบไฟฟ้า หรือ ประตูม้วนแบบรอกโซ่ สูงสุด 36 ตารางเมตร 
+                    </p>
+                  )}
+                  {product.category === "manual_rolling_shutter" && (
+                    <p style={{ color: "red" }}>
+                      * ประตูม้วนแบบมือดึง สูงสุด 14 ตารางเมตร
+                    </p>
+                  )}
+
                   <div className="flex gap-2">
                     <input
                       type="text"
@@ -399,7 +418,6 @@ const ProductAutoDetail = () => {
                       className="p-inputtext p-component"
                       style={{ width: "100px", height: "55px" }}
                     />
-
                     <input
                       type="text"
                       value={length}
@@ -437,6 +455,7 @@ const ProductAutoDetail = () => {
                   </div>
                 </div>
               )}
+
               <div className="flex-auto">
                 <label
                   htmlFor="minmax-buttons"
@@ -464,8 +483,12 @@ const ProductAutoDetail = () => {
                       alignItems: "center",
                       justifyContent: "center",
                     }}
-                    onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#f0f0f0")}
-                    onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "#ffffff")}
+                    onMouseOver={(e) =>
+                      (e.currentTarget.style.backgroundColor = "#f0f0f0")
+                    }
+                    onMouseOut={(e) =>
+                      (e.currentTarget.style.backgroundColor = "#ffffff")
+                    }
                   />
                   <InputText
                     value={quantity}
@@ -499,11 +522,14 @@ const ProductAutoDetail = () => {
                       alignItems: "center",
                       justifyContent: "center",
                     }}
-                    onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#f0f0f0")}
-                    onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "#ffffff")}
+                    onMouseOver={(e) =>
+                      (e.currentTarget.style.backgroundColor = "#f0f0f0")
+                    }
+                    onMouseOut={(e) =>
+                      (e.currentTarget.style.backgroundColor = "#ffffff")
+                    }
                   />
                 </div>
-
               </div>
               <p
                 onClick={() => setShowDialog(true)}
@@ -584,7 +610,7 @@ const ProductAutoDetail = () => {
       </div>
       <div className="flex justify-content-center">
         <div style={{ maxWidth: "1000px", width: "100%" }}>
-        <CustomerReviews productId={id} />
+          <CustomerReviews productId={id} />
         </div>
       </div>
     </div>

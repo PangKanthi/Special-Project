@@ -12,12 +12,12 @@ const menuItems = (navigate) => [
     command: () => navigate("/home"),
   },
   {
-    label: <span className="text-lg text-gray-900">ประตูบานเลื่อน</span>,
+    label: <span className="text-lg text-gray-900">ประตูม้วน</span>,
     command: () => navigate("/automatic"),
     icon: 'pi pi-fw pi-list text-gray-900',
   },
   {
-    label: <span className="text-lg text-gray-900">อะไหล่ประตูบานเลื่อน</span>,
+    label: <span className="text-lg text-gray-900">อะไหล่ประตูม้วน</span>,
     command: () => navigate("/generalparts"),
     icon: 'pi pi-fw pi-cog text-gray-900',
   },
