@@ -50,7 +50,7 @@ const App = () => {
     location.pathname.startsWith("/manageusers") ||
     location.pathname.startsWith("/managerepairrequests") ||
     location.pathname.startsWith("/manageportfolios") ||
-    location.pathname.startsWith("/managedoorprice")
+    location.pathname.startsWith("/managedoorprice") ||
     location.pathname.startsWith("/history");
 
   const showFooter = !["/productAuto/", "/productGeneral/"].some((path) =>

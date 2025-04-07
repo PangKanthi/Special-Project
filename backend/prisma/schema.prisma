@@ -220,16 +220,16 @@ model notification {
   user user @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-model DoorConfig {
+model doorConfig {
   id           Int               @id @default(autoincrement())
   key          String            @unique
   display_name String
   description  String?
   warranty     String?
-  priceTiers   DoorPriceTier[]
+  priceTiers   doorPriceTier[]
 }
 
-model DoorPriceTier {
+model doorPriceTier {
   id            Int              @id @default(autoincrement())
   doorConfigId  Int
   thickness     String
@@ -237,6 +237,6 @@ model DoorPriceTier {
   max_area      Float?
   price_per_sqm Float?
 
-  doorConfig    DoorConfig       @relation(fields: [doorConfigId], references: [id], onDelete: Cascade)
+  doorConfig    doorConfig       @relation(fields: [doorConfigId], references: [id], onDelete: Cascade)
 }
 
