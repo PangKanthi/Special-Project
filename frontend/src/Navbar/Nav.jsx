@@ -5,6 +5,23 @@ import { Button } from 'primereact/button';
 import UserMenu from '../User Pages/UserMenu';
 import 'primeflex/primeflex.css';
 
+function parseJwt(token) {
+  try {
+    const base64Payload = token.split('.')[1];
+    const jsonPayload = decodeURIComponent(
+      window
+        .atob(base64Payload)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(jsonPayload);
+  } catch (error) {
+    console.error('Error parsing token:', error);
+    return null;
+  }
+}
+
 const menuItems = (navigate) => [
   {
     label: <span className="text-lg text-gray-900">หน้าแรก</span>,
@@ -50,18 +67,29 @@ const Navbar = () => {
 
   useEffect(() => {
     const checkLoginStatus = () => {
-      if (localStorage.getItem('token')) {
-        setIsLoggedIn(true);
+      const token = localStorage.getItem('token');
+      if (token) {
+        const decoded = parseJwt(token);
+        if (decoded && decoded.exp) {
+          if (decoded.exp * 1000 < Date.now()) {
+            localStorage.removeItem('token');
+            setIsLoggedIn(false);
+          } else {
+            setIsLoggedIn(true);
+          }
+        } else {
+          localStorage.removeItem('token');
+          setIsLoggedIn(false);
+        }
       } else {
         setIsLoggedIn(false);
       }
     };
 
-    checkLoginStatus(); // Check login status when the component mounts
+    checkLoginStatus();
 
-    const intervalId = setInterval(checkLoginStatus, 1000); // Check every second for updates
-
-    return () => clearInterval(intervalId); // Cleanup the interval on component unmount
+    const intervalId = setInterval(checkLoginStatus, 1000);
+    return () => clearInterval(intervalId);
   }, []);
 
   const handleLogout = () => {

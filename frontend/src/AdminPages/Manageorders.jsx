@@ -423,7 +423,7 @@ const ManageOrders = () => {
               >
                 <Column field="id" header="หมายเลขคำสั่งซื้อ" sortable />
                 <Column
-                  header="ชื่อ"
+                  header="ชื่อจริง"
                   body={(rowData) => rowData.user?.firstname || "-"}
                 />
                 <Column
@@ -456,7 +456,14 @@ const ManageOrders = () => {
                     />
                   )}
                 />
-                <Column field="total_amount" header="ยอดรวมทั้งหมด" sortable />
+                <Column
+                  field="total_amount"
+                  header="ยอดรวมทั้งหมด"
+                  sortable
+                  body={(rowData) =>
+                    `${Number(rowData.total_amount).toLocaleString()} บาท`
+                  }
+                />
                 <Column
                   field="status"
                   header="สถานะ"

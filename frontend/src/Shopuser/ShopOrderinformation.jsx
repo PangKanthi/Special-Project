@@ -18,6 +18,31 @@ function ShopOrderInformation() {
         <p className="text-gray-600">
         ได้รับข้อมูลการสั่งซื้อเรียบร้อยแล้ว เราจะเร่งดำเนินการติดต่อกลับโดยเร็ว
         </p>
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            gap: "1rem",      // เว้นระยะห่างระหว่างรูปสองรูป
+            margin: "1rem 0", // เว้นขอบบน/ล่าง
+          }}
+        >
+          <img
+            src="/assets/images/line1.jpg"
+            alt="line1"
+            style={{ maxWidth: "120px" }} // ปรับขนาดตามต้องการ
+          />
+          <img
+            src="/assets/images/line2.jpg"
+            alt="line2"
+            style={{ maxWidth: "120px" }} // ปรับขนาดตามต้องการ
+          />
+        </div>
+        <p className="text-gray-600">
+        กรุณาแสกนเพื่อเพิ่มบัญชีไลน์ของทางร้านและแจ้งชื่อ-นามสกุลของตน เพื่อให้ทางเจ้าหน้าที่สามารถตรวจสอบคำสั่งซื้อได้อย่างรวดเร็ว
+        </p>
+
         <Button
           label="กลับไปหน้าหลัก"
           className="p-button-primary w-full mt-3"

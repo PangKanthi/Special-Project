@@ -18,6 +18,24 @@ import Loading from "../Component/Loading";
 
 import "primeflex/primeflex.css";
 
+const unitMap = {
+  แผ่นประตูม้วน: "แผ่น",
+  เสารางประตูม้วน: "เส้น",
+  แกนเพลาประตูม้วน: "แท่ง",
+  กล่องเก็บม้วนประตู: "กล่อง",
+  ตัวล็อกประตูม้วน: "ตัว",
+  กุญแจประตูม้วน: "ชุด",
+  รอกโซ่ประตูม้วน: "ชุด",
+  ชุดเฟืองโซ่ประตูม้วน: "ชุด",
+  โซ่ประตูม้วน: "เมตร",
+  ตัวล็อคโซ่สาว: "ตัว",
+  ชุดมอเตอร์ประตูม้วน: "ชุด",
+  สวิตช์กดควบคุม: "ชุด",
+  manual_rolling_shutter: "ชุด",
+  chain_electric_shutter: "ชุด",
+  electric_rolling_shutter: "ชุด",
+};
+
 const normalCategoryOptions = [
   { label: "ทั้งหมด", value: null },
   { label: "ประตูม้วนแบบไฟฟ้า", value: "electric_rolling_shutter" },
@@ -67,7 +85,9 @@ const ProductAutoDetail = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await fetch(`${process.env.REACT_APP_API}/api/products/${id}`);
+        const res = await fetch(
+          `${process.env.REACT_APP_API}/api/products/${id}`
+        );
         const data = await res.json();
         setProduct(data);
       } catch (error) {
@@ -239,23 +259,26 @@ const ProductAutoDetail = () => {
     }
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_API}/api/cart/add`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({
-          productId: product.id,
-          quantity,
-          price: isPart ? product.price : totalPrice,
-          color: finalColor,
-          width: finalWidth,
-          length: finalLength,
-          thickness: finalThickness,
-          installOption: finalInstallOption,
-        }),
-      });
+      const response = await fetch(
+        `${process.env.REACT_APP_API}/api/cart/add`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({
+            productId: product.id,
+            quantity,
+            price: isPart ? product.price : totalPrice,
+            color: finalColor,
+            width: finalWidth,
+            length: finalLength,
+            thickness: finalThickness,
+            installOption: finalInstallOption,
+          }),
+        }
+      );
 
       const result = await response.json();
       if (!response.ok)
@@ -392,15 +415,29 @@ const ProductAutoDetail = () => {
                 </div>
               )}
 
-              {/* ส่วนแสดงข้อความขนาดสูงสุดของประตูม้วน */}
-              {!product.is_part && (
+              {product.is_part ? (
+                <div className="pt-3">
+                  <p className="text-xl font-bold">
+                    ราคา: {parseFloat(product.price).toLocaleString()} บาท /{" "}
+                    {unitMap[product.category] || "ชุด"}
+                  </p>
+                  <p className="text-xl font-bold">
+                    ราคารวม:{" "}
+                    {(parseFloat(product.price) * quantity).toLocaleString()}{" "}
+                    บาท
+                  </p>
+                </div>
+              ) : (
                 <div>
-                  <h4>กรุณากรอกขนาด กว้าง ยาว หน่วยเป็น เมตร และ เลือกความหนา</h4>
+                  <h4>
+                    กรุณากรอกขนาด กว้าง ยาว หน่วยเป็น เมตร และ เลือกความหนา
+                  </h4>
                   {/* เพิ่มข้อความระบุขนาดสูงสุดตามประเภทประตูม้วน */}
                   {(product.category === "electric_rolling_shutter" ||
                     product.category === "chain_electric_shutter") && (
                     <p style={{ color: "red" }}>
-                      * ประตูม้วนแบบไฟฟ้า หรือ ประตูม้วนแบบรอกโซ่ สูงสุด 36 ตารางเมตร 
+                      * ประตูม้วนแบบไฟฟ้า หรือ ประตูม้วนแบบรอกโซ่ สูงสุด 36
+                      ตารางเมตร
                     </p>
                   )}
                   {product.category === "manual_rolling_shutter" && (

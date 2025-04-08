@@ -59,6 +59,11 @@ const ProductTable = ({ products, handleEdit, categoryOptions }) => {
     { label: "อะไหล่ประตูม้วน", value: "shutter_parts", icon: "pi pi-cog" },
   ];
 
+  const formatter = new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
+
   return (
     <div className="shadow-md p-4 rounded-lg bg-white">
       <TabMenu
@@ -70,7 +75,13 @@ const ProductTable = ({ products, handleEdit, categoryOptions }) => {
           filterProducts(e.value.value);
         }}
       />
-      <DataTable value={filteredProducts} paginator rows={10} sortField="stock_quantity" sortOrder={1}>
+      <DataTable
+        value={filteredProducts}
+        paginator
+        rows={10}
+        sortField="stock_quantity"
+        sortOrder={1}
+      >
         <Column
           header="รูปภาพ"
           body={(rowData) =>
@@ -119,7 +130,7 @@ const ProductTable = ({ products, handleEdit, categoryOptions }) => {
           sortable
           body={(rowData) =>
             rowData.price
-              ? `${rowData.price.toLocaleString()} บาท/${
+              ? `${formatter.format(Number(rowData.price))} บาท/${
                   unitMap[rowData.category] || "ชุด"
                 }`
               : "ราคาตามขนาด"

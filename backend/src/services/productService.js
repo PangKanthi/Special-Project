@@ -93,12 +93,13 @@ class ProductService {
   }
 
   static async getRandomProducts(count) {
-    return await prisma.$queryRawUnsafe(`
-      SELECT * FROM "product"
-      ORDER BY RANDOM()
-      LIMIT ${parseInt(count, 10)};
-    `);
+    return await prisma.product.findMany({
+      where: { status: false },
+      orderBy: { id: 'asc' },
+      take: parseInt(count, 10)
+    });
   }
+  
 
   static async getAllParts() {
     return await prisma.product.findMany({
