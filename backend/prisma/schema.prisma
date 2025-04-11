@@ -32,9 +32,10 @@ model product {
   cart_item      cart_item[]
   status         Boolean      @default(false)
 
-  bom_items   bom_item[]    @relation("ProductToParts")
-  used_in     bom_item[]    @relation("PartsToProduct")
-  repair_part repair_part[]
+  bom_items        bom_item[]         @relation("ProductToParts")
+  used_in          bom_item[]         @relation("PartsToProduct")
+  repair_part      repair_part[]
+  productPriceTier productPriceTier[]
 }
 
 model user {
@@ -220,23 +221,13 @@ model notification {
   user user @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-model doorConfig {
-  id           Int               @id @default(autoincrement())
-  key          String            @unique
-  display_name String
-  description  String?
-  warranty     String?
-  priceTiers   doorPriceTier[]
-}
-
-model doorPriceTier {
-  id            Int              @id @default(autoincrement())
-  doorConfigId  Int
+model productPriceTier {
+  id            Int    @id @default(autoincrement())
+  productId     Int
   thickness     String
-  min_area      Float?
-  max_area      Float?
-  price_per_sqm Float?
+  min_area      Float
+  max_area      Float
+  price_per_sqm Float
 
-  doorConfig    doorConfig       @relation(fields: [doorConfigId], references: [id], onDelete: Cascade)
+  product product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
-

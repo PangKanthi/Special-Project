@@ -81,6 +81,7 @@ const ProductAutoDetail = () => {
 
   const [thicknessOptions, setThicknessOptions] = useState([]);
   const [selectedThickness, setSelectedThickness] = useState("");
+  const [priceTiers, setPriceTiers] = useState([]);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -122,21 +123,53 @@ const ProductAutoDetail = () => {
     loadConfig();
   }, [product?.category]);
 
-  const handleCalculate = async () => {
-    if (!product || !width || !length || !selectedThickness) {
-      setErrorMessage("กรุณากรอกข้อมูลให้ครบ");
+  useEffect(() => {
+    const fetchTiers = async () => {
+      const res = await fetch(
+        `${process.env.REACT_APP_API}/api/products/${id}/price-tiers`
+      );
+      const data = await res.json();
+      setPriceTiers(data);
+    };
+    fetchTiers();
+  }, [id]);
+
+  useEffect(() => {
+    const loadThicknessOptions = async () => {
+      try {
+        if (!product?.id) return;
+
+        const res = await fetch(
+          `${process.env.REACT_APP_API}/api/products/${product.id}/price-tiers`
+        );
+        const tiers = await res.json();
+
+        const thicknessSet = new Set(tiers.map((t) => t.thickness));
+        setThicknessOptions([...thicknessSet]);
+      } catch (error) {
+        console.error("Error loading product tiers:", error);
+      }
+    };
+
+    loadThicknessOptions();
+  }, [product?.id]);
+
+  const handleCalculate = () => {
+    const area = parseFloat(width) * parseFloat(length);
+    const matched = priceTiers.find(
+      (t) =>
+        t.thickness === selectedThickness &&
+        area >= t.min_area &&
+        area <= t.max_area
+    );
+
+    if (!matched) {
+      setErrorMessage("ไม่มีช่วงราคาที่รองรับสำหรับขนาดและความหนาที่เลือก");
       return;
     }
 
-    const { result, errorMessage } = await calculateTotalDoorPrice(
-      product.category,
-      parseFloat(width),
-      parseFloat(length),
-      selectedThickness
-    );
-
-    setTotalPrice(result);
-    setErrorMessage(errorMessage);
+    setTotalPrice(area * matched.price_per_sqm);
+    setErrorMessage(null);
   };
 
   const handleIncrease = () => {
@@ -467,7 +500,6 @@ const ProductAutoDetail = () => {
                       value={selectedThickness}
                       onChange={(e) => setSelectedThickness(e.value)}
                       options={thicknessOptions}
-                      optionLabel="name"
                       placeholder="เลือกความหนา"
                       className="p-inputtext p-component"
                       style={{ width: "250px" }}

@@ -103,3 +103,39 @@ export const getAllParts = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getPriceTiers = async (req, res, next) => {
+  try {
+    const tiers = await ProductService.getPriceTiers(req.params.id);
+    res.json(tiers);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const addPriceTier = async (req, res, next) => {
+  try {
+    const tier = await ProductService.addPriceTier(req.params.id, req.body);
+    res.status(201).json(tier);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const updatePriceTier = async (req, res, next) => {
+  try {
+    const updated = await ProductService.updatePriceTier(req.params.id, req.body);
+    res.json(updated);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const deletePriceTier = async (req, res, next) => {
+  try {
+    await ProductService.deletePriceTier(req.params.id);
+    res.json({ message: "deleted" });
+  } catch (err) {
+    next(err);
+  }
+};

@@ -99,11 +99,39 @@ class ProductService {
       take: parseInt(count, 10)
     });
   }
-  
 
   static async getAllParts() {
     return await prisma.product.findMany({
       where: { is_part: true },
+    });
+  }
+  
+  static async getPriceTiers(productId) {
+    return prisma.productPriceTier.findMany({
+      where: { productId: Number(productId) },
+      orderBy: { min_area: 'asc' }
+    });
+  }
+
+  static async addPriceTier(productId, tier) {
+    return prisma.productPriceTier.create({
+      data: {
+        productId: Number(productId),
+        ...tier,
+      },
+    });
+  }
+
+  static async updatePriceTier(id, data) {
+    return prisma.productPriceTier.update({
+      where: { id: Number(id) },
+      data,
+    });
+  }
+
+  static async deletePriceTier(id) {
+    return prisma.productPriceTier.delete({
+      where: { id: Number(id) },
     });
   }
 }

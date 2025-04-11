@@ -87,8 +87,8 @@ export default function Navbar() {
     {
       label: "จัดการราคาประตูม้วน",
       icon: PrimeIcons.MONEY_BILL,
-      action: () => navigate("/managedoorprice"),
-      className: pathname === "/managedoorprice" ? "font-bold text-black" : "",
+      action: () => navigate("/manageproductpricetier"),
+      className: pathname === "/manageproductpricetier" ? "font-bold text-black" : "",
     },
     {
       label: "ประวัติ",
