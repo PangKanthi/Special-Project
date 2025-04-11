@@ -15,7 +15,6 @@ const useCompletedOrders = (selectedMonth) => {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
-            // ✅ กรองเฉพาะคำสั่งซื้อที่มีสถานะเป็น "complete"
             const completed = response.data.data.filter(order => order.status === "complete");
             setCompletedOrders(completed);
         } catch (error) {
