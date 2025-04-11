@@ -25,8 +25,6 @@ class OrderService {
                         productId: item.productId,
                         quantity: item.quantity,
                         price: item.price,
-
-                        // เพิ่มคอลัมน์ที่ใหม่
                         color: item.color || null,
                         width: item.width,
                         length: item.length,
@@ -35,70 +33,13 @@ class OrderService {
                     }))
                 });
             }
-            for (const item of orderItems) {
-                const product = await tx.product.findUnique({
-                    where: { id: item.productId }
-                });
 
-                if (["manual_rolling_shutter", "chain_electric_shutter", "electric_rolling_shutter"]
-                    .includes(product.category)) {
+            // ไม่ต้องลดจำนวนอะไหล่ในขั้นตอน createOrder
 
-                    const bomData = doorConfig[product.category]?.bom;
-                    if (!bomData) {
-                        console.log(`❌ ไม่เจอ bom ใน doorConfig ของ category = ${product.category}`);
-                        continue;
-                    }
-
-                    for (const bomItem of bomData) {
-
-                        const qtyBom = parseInt(bomItem.quantity, 10);
-                        const qtyOrder = parseInt(item.quantity, 10);
-
-                        if (isNaN(qtyBom) || isNaN(qtyOrder)) {
-                            console.log(`❌ quantity (${bomItem.quantity}) หรือ item.quantity (${item.quantity}) ไม่เป็นตัวเลข`);
-                            continue;
-                        }
-
-                        const totalUsed = qtyBom * qtyOrder;
-
-                        const partProduct = await tx.product.findFirst({
-                            where: {
-                                category: bomItem.part,
-                                is_part: true
-                            }
-                        });
-
-                        if (!partProduct) {
-                            console.log(`❌ ไม่พบอะไหล่ชื่อ ${bomItem.part} ใน DB`);
-                            continue;
-                        }
-
-                        await tx.product.update({
-                            where: { id: partProduct.id },
-                            data: {
-                                stock_quantity: {
-                                    decrement: totalUsed
-                                }
-                            }
-                        });
-
-                        console.log(`✅ ลดสต็อก ${bomItem.part} จำนวน ${totalUsed} หน่วย`);
-                    }
-
-                } else if (product.is_part) {
-                    await tx.product.update({
-                        where: { id: product.id },
-                        data: {
-                            stock_quantity: {
-                                decrement: item.quantity
-                            }
-                        }
-                    });
-                }
-            }
             return order;
         });
     }
+
 
     static async getAllOrders() {
         const orders = await prisma.order.findMany({
@@ -131,9 +72,59 @@ class OrderService {
     }
 
     static async updateOrderStatus(orderId, status) {
-        return await prisma.order.update({
-            where: { id: orderId },
-            data: { status }
+        return await prisma.$transaction(async (tx) => {
+            // ดึง order พร้อม order_items และข้อมูล product ของแต่ละ order item
+            const order = await tx.order.findUnique({
+                where: { id: orderId },
+                include: { order_items: { include: { product: true } } }
+            });
+
+            if (!order) throw new Error("Order not found");
+
+            // อัปเดตสถานะ order
+            const updatedOrder = await tx.order.update({
+                where: { id: orderId },
+                data: { status }
+            });
+
+            // ลดสต็อกอะไหล่เฉพาะเมื่อลูกค้าสั่งซื้อเสร็จสมบูรณ์ (complete)
+            if (status === "complete") {
+                for (const item of order.order_items) {
+                    const product = item.product;
+                    // ถ้า order item เป็นอะไหล่เอง
+                    if (product.is_part) {
+                        await tx.product.update({
+                            where: { id: product.id },
+                            data: {
+                                stock_quantity: {
+                                    decrement: item.quantity
+                                }
+                            }
+                        });
+                    } else {
+                        // สำหรับสินค้าที่ไม่ใช่อะไหล่ (มี BOM) ให้ดึง bom_items ของสินค้านั้น
+                        const bomItems = await tx.bom_item.findMany({
+                            where: { productId: product.id },
+                            include: { part: true } // ดึงข้อมูล part เพื่อใช้ส่วนชื่อและสต็อก
+                        });
+                        for (const bom of bomItems) {
+                            // คำนวณจำนวนที่ใช้ = order item quantity * bom_item.quantity
+                            const requiredQty = item.quantity * bom.quantity;
+                            if (bom.part) {
+                                await tx.product.update({
+                                    where: { id: bom.part.id },
+                                    data: {
+                                        stock_quantity: {
+                                            decrement: requiredQty
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            return updatedOrder;
         });
     }
 
@@ -276,48 +267,48 @@ class OrderService {
         length,
         thickness,
         installOption
-      ) {
+    ) {
         // 1) update ตัว order_item ก่อน
         const updatedItem = await prisma.order_item.update({
-          where: { id: orderItemId },
-          data: {
-            productId,
-            quantity,
-            price,
-            color,
-            width,
-            length,
-            thickness,
-            installOption
-          }
+            where: { id: orderItemId },
+            data: {
+                productId,
+                quantity,
+                price,
+                color,
+                width,
+                length,
+                thickness,
+                installOption
+            }
         });
-      
+
         // 2) หา orderId ที่ item ตัวนี้สังกัด
         const orderId = updatedItem.orderId;
-      
+
         // 3) คำนวณ new total 
         //    ดึงทุก item ของ orderId นี้
         const items = await prisma.order_item.findMany({
-          where: { orderId },
+            where: { orderId },
         });
-      
+
         // รวม quantity * price
         let newTotal = 0;
         items.forEach((itm) => {
-          const qty = Number(itm.quantity ?? 0);
-          const prc = Number(itm.price ?? 0);
-          newTotal += qty * prc;
+            const qty = Number(itm.quantity ?? 0);
+            const prc = Number(itm.price ?? 0);
+            newTotal += qty * prc;
         });
-      
+
         // 4) update order.total_amount
         await prisma.order.update({
-          where: { id: orderId },
-          data: { total_amount: newTotal }
+            where: { id: orderId },
+            data: { total_amount: newTotal }
         });
-      
+
         // 5) return updatedItem
         return updatedItem;
-      }      
+    }
 
 }
 

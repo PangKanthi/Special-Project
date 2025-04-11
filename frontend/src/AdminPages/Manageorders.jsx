@@ -46,7 +46,9 @@ const ManageOrders = () => {
       await Promise.all(
         Array.from(productIds).map(async (productId) => {
           try {
-            const response = await axios.get(`${process.env.REACT_APP_API}/api/products/${productId}/price-tiers`);
+            const response = await axios.get(
+              `${process.env.REACT_APP_API}/api/products/${productId}/price-tiers`
+            );
             tiersByProduct[productId] = response.data;
           } catch (error) {
             console.error("Error fetching price tiers for product", productId, error);
@@ -64,9 +66,12 @@ const ManageOrders = () => {
   const fetchOrders = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(`${process.env.REACT_APP_API}/api/orders`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        `${process.env.REACT_APP_API}/api/orders`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setOrders(response.data.data);
     } catch (error) {
       console.error("Error fetching orders:", error);
@@ -208,6 +213,7 @@ const ManageOrders = () => {
     return <Tag value={statusText} severity={severity} />;
   };
 
+  // แสดงรูปสินค้าใน DataTable ของ order item
   const ImageTemplate = (rowData) => {
     const images = rowData.rowData.product?.images || [];
     return (
@@ -223,7 +229,9 @@ const ManageOrders = () => {
                 width="50"
                 height="50"
                 style={{ borderRadius: "5px" }}
-                onError={(e) => (e.target.src = "https://via.placeholder.com/50")}
+                onError={(e) =>
+                  (e.target.src = "https://via.placeholder.com/50")
+                }
               />
             );
           })
@@ -274,7 +282,7 @@ const ManageOrders = () => {
     );
   };
 
-  // Editor for thickness using product tier options.
+  // Editor สำหรับความหนา โดยใช้ข้อมูลจาก productPriceTier
   const thicknessEditor = (options) => {
     const productId = options.rowData.product?.id;
     const tiers = productTierOptions[productId];
@@ -397,7 +405,7 @@ const ManageOrders = () => {
     );
   };
 
-  // แสดงปุ่ม "ตรวจเช็ครายการอะไหล่" เฉพาะสำหรับสินค้า (order item) ที่ไม่ใช่อะไหล่
+  // แสดงปุ่ม "ตรวจเช็ครายการอะไหล่" เฉพาะสำหรับ order item ที่ไม่ใช่อะไหล่
   const bomButtonTemplate = (rowData) => {
     if (rowData.product && !rowData.product.is_part) {
       return (
@@ -411,20 +419,22 @@ const ManageOrders = () => {
     return null;
   };
 
-  // ฟังก์ชันดึงข้อมูล BOM items โดยใช้ endpoint
-  // สมมุติว่า backend ได้จัดทำ endpoint นี้ไว้แล้ว
+  // ฟังก์ชันดึงข้อมูล BOM items จาก endpoint /api/products/{productId}/bom
+  // Mapping ข้อมูล: นำ bom.part ออกมาแสดงชื่อ, รูป, จำนวนที่ใช้ (orderItem.quantity * bom.quantity), จำนวนคงเหลือ, และหน่วย
   const handleCheckBOM = async (orderItem) => {
     if (!orderItem.product || orderItem.product.is_part) return;
     try {
-      // เรียก endpoint สำหรับ BOM ของสินค้าตาม model bom_item
       const response = await axios.get(
         `${process.env.REACT_APP_API}/api/products/${orderItem.product.id}/bom`
       );
-      // response.data ควรจะเป็น array ของ bom_item objects
       const bomItems = response.data;
       const bomDetails = bomItems.map((bom) => ({
-        // ตรวจสอบว่า bom.part ถูกแนบมาด้วยหรือไม่
         partName: bom.part ? bom.part.name : "N/A",
+        // เพิ่มการดึงรูปอะไหล่จาก bom.part.images[0] ถ้ามี
+        partImage:
+          bom.part && bom.part.images && bom.part.images.length > 0
+            ? `${process.env.REACT_APP_API}${bom.part.images[0]}`
+            : "https://via.placeholder.com/50",
         requiredQty: orderItem.quantity * bom.quantity,
         remainingQty: bom.part ? bom.part.stock_quantity || 0 : 0,
         unit: bom.unit,
@@ -628,6 +638,18 @@ const ManageOrders = () => {
       </Dialog>
       <Dialog header="รายการอะไหล่ที่ใช้" visible={visibleBOMDialog} style={{ width: "60vw" }} onHide={() => setVisibleBOMDialog(false)}>
         <DataTable value={currentBOM} dataKey="partName">
+          {/* คอลัมน์ใหม่สำหรับแสดงรูปอะไหล่ */}
+          <Column
+            header="รูปอะไหล่"
+            body={(data) => (
+              <img
+                src={data.partImage}
+                alt={data.partName}
+                style={{ width: "80px", height: "80px", objectFit: "cover" }}
+              />
+            )}
+            style={{ width: "100px", textAlign: "center" }}
+          />
           <Column field="partName" header="ชื่ออะไหล่" />
           <Column field="requiredQty" header="จำนวนที่ใช้" />
           <Column field="remainingQty" header="จำนวนคงเหลือ" />

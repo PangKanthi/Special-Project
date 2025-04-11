@@ -7,6 +7,8 @@ import { Toast } from "primereact/toast";
 import { Button } from "primereact/button";
 import { Checkbox } from "primereact/checkbox";
 import { InputNumber } from "primereact/inputnumber";
+import { Dropdown } from "primereact/dropdown";
+import { InputText } from "primereact/inputtext";
 import "primeflex/primeflex.css";
 
 const unitMap = {
@@ -28,10 +30,10 @@ const unitMap = {
 };
 
 const categoryMapping = {
-    manual_rolling_shutter: "ประตูม้วนแบบมือดึง",
-    chain_electric_shutter: "ประตูม้วนแบบรอกโซ่",
-    electric_rolling_shutter: "ประตูม้วนแบบไฟฟ้า"
-  };
+  manual_rolling_shutter: "ประตูม้วนแบบมือดึง",
+  chain_electric_shutter: "ประตูม้วนแบบรอกโซ่",
+  electric_rolling_shutter: "ประตูม้วนแบบไฟฟ้า",
+};
 
 const api = axios.create({ baseURL: process.env.REACT_APP_API });
 api.interceptors.request.use((config) => {
@@ -41,21 +43,25 @@ api.interceptors.request.use((config) => {
 });
 
 export default function Managedoorpart() {
-  const [nonPartProducts, setNonPartProducts] = useState([]); // สินค้าที่ไม่ใช่อะไหล่
-  const [availableParts, setAvailableParts] = useState([]);     // รายการอะไหล่ (is_part === true)
-  const [selectedParts, setSelectedParts] = useState([]);       // รายการอะไหล่ที่เลือกใน BOM (pre-populated)
-  const [activeProduct, setActiveProduct] = useState(null);     // สินค้าที่จะจัดการอะไหล่
+  // States
+  const [nonPartProducts, setNonPartProducts] = useState([]);
+  const [availableParts, setAvailableParts] = useState([]);
+  const [selectedParts, setSelectedParts] = useState([]);
+  const [activeProduct, setActiveProduct] = useState(null);
   const [showDialog, setShowDialog] = useState(false);
   const toast = useRef(null);
 
-  // Pagination สำหรับตารางหลัก
+  // Pagination (main & dialog)
   const [firstMain, setFirstMain] = useState(0);
   const [rowsMain, setRowsMain] = useState(10);
-  // Pagination สำหรับตารางใน Dialog
   const [firstDialog, setFirstDialog] = useState(0);
   const [rowsDialog, setRowsDialog] = useState(10);
 
-  // ดึงสินค้าที่ไม่ใช่อะไหล่จาก API
+  // Dropdown + Realtime search
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedProduct, setSelectedProduct] = useState("all");
+
+  // โหลดรายการสินค้า (ไม่ใช่อะไหล่)
   useEffect(() => {
     api.get("/api/products")
       .then((res) => {
@@ -67,7 +73,7 @@ export default function Managedoorpart() {
       });
   }, []);
 
-  // ดึงรายการอะไหล่จาก API
+  // โหลดรายการอะไหล่
   useEffect(() => {
     api.get("/api/products/parts")
       .then((res) => {
@@ -78,7 +84,23 @@ export default function Managedoorpart() {
       });
   }, []);
 
-  // เปิด Dialog เพื่อจัดการ BOM ของสินค้าที่เลือก พร้อมดึงข้อมูล BOM ที่เคยเลือกไว้ (pre-populate)
+  // สร้างตัวเลือกใน Dropdown: "ทั้งหมด" + ชื่อสินค้า (ไม่ซ้ำ)
+  const productDropdownOptions = [
+    { label: "ทั้งหมด", value: "all" },
+    ...Array.from(new Set(nonPartProducts.map((p) => p.name))).map((name) => ({
+      label: name,
+      value: name,
+    })),
+  ];
+
+  // ฟิลเตอร์สินค้าตาม dropdown + search
+  const filteredProducts = nonPartProducts.filter((product) => {
+    const matchesDropdown = selectedProduct === "all" || product.name === selectedProduct;
+    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesDropdown && matchesSearch;
+  });
+
+  // เปิด Dialog และโหลด BOM เก่า
   const openDialog = async (product) => {
     setActiveProduct(product);
     try {
@@ -90,13 +112,14 @@ export default function Managedoorpart() {
     setShowDialog(true);
   };
 
+  // ปิด Dialog
   const closeDialog = () => {
     setShowDialog(false);
     setActiveProduct(null);
     setSelectedParts([]);
   };
 
-  // เมื่อติ๊ก checkbox ของอะไหล่ในตาราง (Dialog)
+  // เลือก/ยกเลิกเลือกอะไหล่
   const handleCheckboxChange = (part, event) => {
     const checked = event.target.checked;
     if (checked) {
@@ -111,30 +134,23 @@ export default function Managedoorpart() {
         },
       ]);
     } else {
-      setSelectedParts((prev) =>
-        prev.filter((item) => item.partId !== part.id)
-      );
+      setSelectedParts((prev) => prev.filter((item) => item.partId !== part.id));
     }
   };
 
-  // เปลี่ยนแปลงจำนวนของอะไหล่ที่เลือก (Dialog)
+  // เปลี่ยนจำนวนอะไหล่
   const handleQuantityChange = (partId, e) => {
     const value = e.value;
     setSelectedParts((prev) =>
-      prev.map((item) =>
-        item.partId === partId ? { ...item, quantity: value } : item
-      )
+      prev.map((item) => (item.partId === partId ? { ...item, quantity: value } : item))
     );
   };
 
-  // บันทึก BOM สำหรับ activeProduct ไปยัง API
+  // บันทึก BOM
   const saveBOM = async () => {
     if (!activeProduct) return;
     try {
-      await api.post(
-        `/api/products/${activeProduct.id}/bom`,
-        { bomItems: selectedParts }
-      );
+      await api.post(`/api/products/${activeProduct.id}/bom`, { bomItems: selectedParts });
       toast.current.show({
         severity: "success",
         summary: "บันทึก BOM สำเร็จ",
@@ -148,7 +164,7 @@ export default function Managedoorpart() {
     }
   };
 
-  // Body template สำหรับตารางหลัก: รูปสินค้า
+  // Template: ตารางหลัก
   const mainImageBodyTemplate = (rowData) => {
     return rowData.images && rowData.images.length > 0 ? (
       <img
@@ -160,13 +176,9 @@ export default function Managedoorpart() {
       <span>No Image</span>
     );
   };
-
-  // Body template สำหรับตารางหลัก: ประเภท (แสดงภาษาไทย)
   const categoryBodyTemplate = (rowData) => {
     return categoryMapping[rowData.category] || rowData.category;
   };
-
-  // รูปแบบการแสดงปุ่ม "จัดการอะไหล่" ในตารางหลัก
   const actionBodyTemplate = (rowData) => {
     return (
       <Button
@@ -178,28 +190,26 @@ export default function Managedoorpart() {
     );
   };
 
-  // Header ของ Dialog แสดงรูปและชื่อของ activeProduct
+  // Template: Dialog Header
   const dialogHeader = (
     <div className="p-d-flex p-ai-center">
-      {activeProduct &&
-        activeProduct.images &&
-        activeProduct.images.length > 0 && (
-          <img
-            src={`${process.env.REACT_APP_API}${activeProduct.images[0]}`}
-            alt={activeProduct.name}
-            style={{
-              width: "80px",
-              height: "80px",
-              objectFit: "cover",
-              marginRight: "1rem",
-            }}
-          />
-        )}
+      {activeProduct?.images?.length > 0 && (
+        <img
+          src={`${process.env.REACT_APP_API}${activeProduct.images[0]}`}
+          alt={activeProduct.name}
+          style={{
+            width: "80px",
+            height: "80px",
+            objectFit: "cover",
+            marginRight: "1rem",
+          }}
+        />
+      )}
       <span className="text-xl font-bold">{activeProduct?.name}</span>
     </div>
   );
 
-  // Body template สำหรับคอลัมน์ใน DataTable ของ Dialog
+  // Template: ตารางใน Dialog
   const imageBodyTemplate = (rowData) => {
     return rowData.images && rowData.images.length > 0 ? (
       <img
@@ -211,18 +221,9 @@ export default function Managedoorpart() {
       <span>No Image</span>
     );
   };
-
   const nameBodyTemplate = (rowData) => rowData.name;
-  // แสดงคอลัมน์ "ประเภท" ใน Dialog
-  const dialogCategoryBodyTemplate = (rowData) => {
-    return rowData.category || "-";
-  };
-  // แสดงคอลัมน์ "หน่วย" โดยใช้ unitMap ตามประเภท
-  const dialogUnitBodyTemplate = (rowData) => {
-    return unitMap[rowData.category] || "-";
-  };
-
-  // คอลัมน์ "เลือก" ใน Dialog (Checkbox)
+  const dialogCategoryBodyTemplate = (rowData) => rowData.category || "-";
+  const dialogUnitBodyTemplate = (rowData) => unitMap[rowData.category] || "-";
   const selectBodyTemplate = (rowData) => {
     const isSelected = selectedParts.some((item) => item.partId === rowData.id);
     return (
@@ -234,8 +235,6 @@ export default function Managedoorpart() {
       />
     );
   };
-
-  // คอลัมน์ "จำนวน" ใน Dialog (InputNumber)
   const quantityBodyTemplate = (rowData) => {
     const isSelected = selectedParts.some((item) => item.partId === rowData.id);
     if (!isSelected) return "-";
@@ -251,10 +250,10 @@ export default function Managedoorpart() {
     );
   };
 
-  // ตารางหลัก (non-part products) ใช้ DataTable พร้อม Pagination
+  // DataTable: สินค้าไม่ใช่อะไหล่ (ใช้ filteredProducts)
   const mainTable = (
     <DataTable
-      value={nonPartProducts}
+      value={filteredProducts}
       dataKey="id"
       responsiveLayout="stack"
       paginator
@@ -263,7 +262,11 @@ export default function Managedoorpart() {
       onPage={(e) => setFirstMain(e.first)}
       className="p-mb-4"
     >
-      <Column header="รูปสินค้า" body={mainImageBodyTemplate} style={{ textAlign: "center", width: "100px" }} />
+      <Column
+        header="รูปสินค้า"
+        body={mainImageBodyTemplate}
+        style={{ textAlign: "center", width: "100px" }}
+      />
       <Column field="name" header="ชื่อสินค้า" sortable />
       <Column header="ประเภท" body={categoryBodyTemplate} sortable />
       <Column field="description" header="รายละเอียด" />
@@ -271,6 +274,7 @@ export default function Managedoorpart() {
     </DataTable>
   );
 
+  // DataTable: อะไหล่ (ใน Dialog)
   const dialogTable = (
     <DataTable
       value={availableParts}
@@ -283,10 +287,26 @@ export default function Managedoorpart() {
     >
       <Column header="รูปสินค้า" body={imageBodyTemplate} style={{ width: "100px" }} />
       <Column field="name" header="ชื่อสินค้า" body={nameBodyTemplate} />
-      <Column header="ประเภท" body={dialogCategoryBodyTemplate} style={{ width: "150px" }} />
-      <Column header="เลือก" body={selectBodyTemplate} style={{ width: "100px", textAlign: "center" }} />
-      <Column header="จำนวน" body={quantityBodyTemplate} style={{ width: "150px" }} />
-      <Column header="หน่วย" body={dialogUnitBodyTemplate} style={{ width: "100px", textAlign: "center" }} />
+      <Column
+        header="ประเภท"
+        body={dialogCategoryBodyTemplate}
+        style={{ width: "150px" }}
+      />
+      <Column
+        header="เลือก"
+        body={selectBodyTemplate}
+        style={{ width: "100px", textAlign: "center" }}
+      />
+      <Column
+        header="จำนวน"
+        body={quantityBodyTemplate}
+        style={{ width: "150px" }}
+      />
+      <Column
+        header="หน่วย"
+        body={dialogUnitBodyTemplate}
+        style={{ width: "100px", textAlign: "center" }}
+      />
     </DataTable>
   );
 
@@ -296,6 +316,28 @@ export default function Managedoorpart() {
       <h1 className="text-2xl font-bold mb-4">
         จัดการอะไหล่ของแต่ละประตูม้วน
       </h1>
+
+      {/* สองคอมโพเนนต์เรียงแนวนอน: Dropdown และ InputText */}
+      <div className="flex gap-2 mb-4">
+        <div style={{ width: "300px" }}>
+          <Dropdown
+            value={selectedProduct}
+            options={productDropdownOptions}
+            onChange={(e) => setSelectedProduct(e.value)}
+            placeholder="กรองสินค้าตามชื่อ"
+            className="w-full"
+          />
+        </div>
+        <div style={{ width: "300px" }}>
+          <InputText
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="ค้นหาด้วยชื่อสินค้า"
+            className="w-full"
+          />
+        </div>
+      </div>
+
       {mainTable}
 
       <Dialog
@@ -305,8 +347,18 @@ export default function Managedoorpart() {
         modal
         footer={
           <div className="p-d-flex p-jc-end">
-            <Button label="ยกเลิก" icon="pi pi-times" className="p-button-text" onClick={closeDialog} />
-            <Button label="บันทึก BOM" icon="pi pi-check" className="p-button-success p-ml-2" onClick={saveBOM} />
+            <Button
+              label="ยกเลิก"
+              icon="pi pi-times"
+              className="p-button-text"
+              onClick={closeDialog}
+            />
+            <Button
+              label="บันทึก BOM"
+              icon="pi pi-check"
+              className="p-button-success p-ml-2"
+              onClick={saveBOM}
+            />
           </div>
         }
         onHide={closeDialog}
