@@ -23,9 +23,22 @@ export default function ManageProductPriceTier() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [editing, setEditing] = useState({});
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [newTier, setNewTier] = useState({ thickness: "", min_area: 0, max_area: 0, price_per_sqm: 0, productId: null });
+  const [newTier, setNewTier] = useState({
+    thickness: "",
+    min_area: 0,
+    max_area: 0,
+    price_per_sqm: 0,
+    productId: null,
+  });
   const toast = useRef(null);
   const [filterProductId, setFilterProductId] = useState(null);
+  const [searchText, setSearchText] = useState("");
+  const [first, setFirst] = useState(0);
+  const [rows, setRows] = useState(10);
+  const onPage = (e) => {
+    setFirst(e.first);
+    setRows(e.rows);
+  };
 
   useEffect(() => {
     loadProductsAndTiers();
@@ -40,7 +53,11 @@ export default function ManageProductPriceTier() {
       const allTiers = [];
       for (const p of filtered) {
         const resTier = await api.get(`/api/products/${p.id}/price-tiers`);
-        const tiersWithProduct = resTier.data.map(t => ({ ...t, productId: p.id, productName: p.name }));
+        const tiersWithProduct = resTier.data.map((t) => ({
+          ...t,
+          productId: p.id,
+          productName: p.name,
+        }));
         allTiers.push(...tiersWithProduct);
       }
       setTiers(allTiers);
@@ -82,7 +99,13 @@ export default function ManageProductPriceTier() {
   const onSaveRow = async ({ data }) => {
     const upd = editing[data.id];
     try {
-      await api.patch(`/api/products/price-tiers/${data.id}`, upd);
+      const { thickness, min_area, max_area, price_per_sqm } = upd;
+      await api.patch(`/api/products/price-tiers/${data.id}`, {
+        thickness,
+        min_area,
+        max_area,
+        price_per_sqm,
+      });
       setEditing((p) => {
         const c = { ...p };
         delete c[data.id];
@@ -110,31 +133,64 @@ export default function ManageProductPriceTier() {
     try {
       await api.post(`/api/products/${newTier.productId}/price-tiers`, newTier);
       setShowAddDialog(false);
-      setNewTier({ thickness: "", min_area: 0, max_area: 0, price_per_sqm: 0, productId: null });
+      setNewTier({
+        thickness: "",
+        min_area: 0,
+        max_area: 0,
+        price_per_sqm: 0,
+        productId: null,
+      });
       loadProductsAndTiers();
-      toast.current.show({ severity: "success", summary: "เพิ่มช่วงราคาสำเร็จ" });
+      toast.current.show({
+        severity: "success",
+        summary: "เพิ่มช่วงราคาสำเร็จ",
+      });
     } catch (err) {
       toast.current.show({ severity: "error", summary: err.message });
     }
   };
 
-  const filteredTiers = filterProductId ? tiers.filter(t => t.productId === filterProductId) : tiers;
+  const filteredTiers = tiers.filter((tier) => {
+    const matchesProduct =
+      !filterProductId || tier.productId === filterProductId;
+    const matchesSearch = tier.productName
+      .toLowerCase()
+      .includes(searchText.toLowerCase());
+    return matchesProduct && matchesSearch;
+  });
+
+  const formatPrice = (rowData) => {
+    return rowData.price_per_sqm?.toLocaleString("th-TH") + " บาท";
+  };
 
   return (
     <div className="p-6">
       <Toast ref={toast} />
       <h2 className="text-xl font-bold mb-3">จัดการราคาต่อ ตร.ม. รายสินค้า</h2>
 
-      <div className="flex gap-3 mb-4">
-        <Dropdown
-          value={filterProductId}
-          options={products.map(p => ({ label: p.name, value: p.id }))}
-          onChange={(e) => setFilterProductId(e.value)}
-          placeholder="กรองสินค้าตามชื่อ"
-          className="w-64"
-          showClear
-        />
-        <Button label="เพิ่มช่วงราคา" onClick={() => setShowAddDialog(true)} />
+      <div className="flex flex-wrap justify-between items-center gap-3 mb-4">
+        <div className="flex gap-2 items-center">
+          <Dropdown
+            value={filterProductId}
+            options={products.map((p) => ({ label: p.name, value: p.id }))}
+            onChange={(e) => setFilterProductId(e.value)}
+            placeholder="กรองสินค้าตามชื่อ"
+            className="w-64"
+            showClear
+          />
+          <InputText
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            placeholder="ค้นหาด้วยคำในชื่อสินค้า"
+            className="w-72"
+          />
+          <Button
+            label="เพิ่มช่วงราคา"
+            icon="pi pi-plus"
+            className="ml-4"
+            onClick={() => setShowAddDialog(true)}
+          />
+        </div>
       </div>
 
       <DataTable
@@ -152,27 +208,66 @@ export default function ManageProductPriceTier() {
         onRowEditSave={onSaveRow}
         scrollable
         scrollHeight="500px"
+        sortMode="multiple"
+        paginator
+        rows={rows}
+        first={first}
+        onPage={onPage}
+        rowsPerPageOptions={[5, 10, 20, 50]}
       >
-        <Column field="productName" header="สินค้า" />
-        <Column field="thickness" header="ความหนา" editor={(opts) => textEditor(opts, "thickness")} />
-        <Column field="min_area" header="พื้นที่ต่ำสุด" editor={(opts) => priceEditor(opts, "min_area")} />
-        <Column field="max_area" header="พื้นที่สูงสุด" editor={(opts) => priceEditor(opts, "max_area")} />
-        <Column field="price_per_sqm" header="ราคา/ตร.ม." editor={(opts) => priceEditor(opts, "price_per_sqm")} />
-        <Column rowEditor headerStyle={{ width: "7rem" }} bodyStyle={{ textAlign: "center" }} />
+        <Column field="productName" header="สินค้า" sortable />
+        <Column
+          field="thickness"
+          header="ความหนา"
+          editor={(opts) => textEditor(opts, "thickness")}
+          sortable
+        />
+        <Column
+          field="min_area"
+          header="พื้นที่ต่ำสุด"
+          editor={(opts) => priceEditor(opts, "min_area")}
+          sortable
+        />
+        <Column
+          field="max_area"
+          header="พื้นที่สูงสุด"
+          editor={(opts) => priceEditor(opts, "max_area")}
+          sortable
+        />
+        <Column
+          field="price_per_sqm"
+          header="ราคา/ตร.ม."
+          body={formatPrice}
+          editor={(opts) => priceEditor(opts, "price_per_sqm")}
+          sortable
+        />
+        <Column
+          rowEditor
+          headerStyle={{ width: "7rem" }}
+          bodyStyle={{ textAlign: "center" }}
+        />
         <Column
           header="ลบ"
           body={(row) => (
-            <Button icon="pi pi-trash" className="p-button-text p-button-danger" onClick={() => onDelete(row)} />
+            <Button
+              icon="pi pi-trash"
+              className="p-button-text p-button-danger"
+              onClick={() => onDelete(row)}
+            />
           )}
         />
       </DataTable>
 
-      <Dialog header="เพิ่มช่วงราคาใหม่" visible={showAddDialog} onHide={() => setShowAddDialog(false)}>
+      <Dialog
+        header="เพิ่มช่วงราคาใหม่"
+        visible={showAddDialog}
+        onHide={() => setShowAddDialog(false)}
+      >
         <div className="field">
           <label>สินค้า</label>
           <Dropdown
             value={newTier.productId}
-            options={products.map(p => ({ label: p.name, value: p.id }))}
+            options={products.map((p) => ({ label: p.name, value: p.id }))}
             onChange={(e) => setNewTier((p) => ({ ...p, productId: e.value }))}
             placeholder="เลือกสินค้า"
             className="w-full mb-3"
@@ -180,24 +275,56 @@ export default function ManageProductPriceTier() {
         </div>
         <div className="field">
           <label>ความหนา</label>
-          <InputText value={newTier.thickness} onChange={(e) => setNewTier((p) => ({ ...p, thickness: e.target.value }))} className="w-full" />
+          <InputText
+            value={newTier.thickness}
+            onChange={(e) =>
+              setNewTier((p) => ({ ...p, thickness: e.target.value }))
+            }
+            className="w-full"
+          />
         </div>
         <div className="grid formgrid">
           <div className="col-6">
             <label>พื้นที่ต่ำสุด</label>
-            <InputNumber value={newTier.min_area} onValueChange={(e) => setNewTier((p) => ({ ...p, min_area: e.value }))} className="w-full" />
+            <InputNumber
+              value={newTier.min_area}
+              onValueChange={(e) =>
+                setNewTier((p) => ({ ...p, min_area: e.value }))
+              }
+              className="w-full"
+            />
           </div>
           <div className="col-6">
             <label>พื้นที่สูงสุด</label>
-            <InputNumber value={newTier.max_area} onValueChange={(e) => setNewTier((p) => ({ ...p, max_area: e.value }))} className="w-full" />
+            <InputNumber
+              value={newTier.max_area}
+              onValueChange={(e) =>
+                setNewTier((p) => ({ ...p, max_area: e.value }))
+              }
+              className="w-full"
+            />
           </div>
         </div>
         <div className="field">
           <label>ราคา/ตร.ม.</label>
-          <InputNumber value={newTier.price_per_sqm} onValueChange={(e) => setNewTier((p) => ({ ...p, price_per_sqm: e.value }))} mode="currency" currency="THB" locale="th-TH" className="w-full" />
+          <InputNumber
+            value={newTier.price_per_sqm}
+            onValueChange={(e) =>
+              setNewTier((p) => ({ ...p, price_per_sqm: e.value }))
+            }
+            mode="currency"
+            currency="THB"
+            locale="th-TH"
+            className="w-full"
+          />
         </div>
         <div className="mt-3">
-          <Button label="บันทึก" icon="pi pi-check" onClick={addTier} disabled={!newTier.productId} />
+          <Button
+            label="บันทึก"
+            icon="pi pi-check"
+            onClick={addTier}
+            disabled={!newTier.productId}
+          />
         </div>
       </Dialog>
     </div>
