@@ -61,7 +61,6 @@ const Login = () => {
         <div className="flex justify-content-center align-items-center mt-2" style={{ minHeight: '50vh', padding: '1rem' }}>
             <div className="surface-card p-6 shadow-2 border-round-lg" style={{ width: '100%', maxWidth: '600px' }}>
                 <h2 className="text-center mb-4 text-blue-600">เข้าสู่ระบบ</h2>
-                <div className="pages-detail text-center mb-2">กรุณาเข้าสู่ระบบก่อนทำการสั่งซื้อ</div>
                 <form className="p-fluid" onSubmit={handleSubmit}>
                     <div className="p-field mb-4">
                         <label htmlFor="username" className="block mb-2 font-semibold pi pi-user"> ชื่อผู้ใช้</label>

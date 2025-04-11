@@ -19,6 +19,7 @@ import useFailedRepairs from "./Homeadmin component/useFailedRepairs";
 import useUserCount from "./Homeadmin component/useUserCount";
 import useInventoryData from "./Homeadmin component/useInventoryData";
 import NotificationButton from "./Homeadmin component/NotificationButton";
+import useUserSummaryData from "./Homeadmin component/useUserSummaryData";
 
 const unitMap = {
   แผ่นประตูม้วน: "แผ่น",
@@ -62,6 +63,10 @@ export default function Homeadmin() {
   const [chartMode, setChartMode] = useState("year"); // "year" | "month"
   const [chartData, setChartData] = useState({ labels: [], datasets: [] });
   const [selectedMonth, setSelectedMonth] = useState(null);
+  const { summaryData, loadSummary, loading } = useUserSummaryData();
+  const [selectedUserId, setSelectedUserId] = useState(null);
+  const [userChartMode, setUserChartMode] = useState("daily");
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
   // ============== Dialog ตัวอย่าง: แสดงรายการรายเดือน ==============
   const [showMonthDialog, setShowMonthDialog] = useState(false);
@@ -72,6 +77,10 @@ export default function Homeadmin() {
       // หลังโหลดเสร็จ -> sync กับ chartData
       updateChartData("year");
     });
+  }, []);
+
+  useEffect(() => {
+    loadSummary();
   }, []);
 
   // เมื่อ chartMode เปลี่ยน -> รีเฟรชข้อมูล + update chart
@@ -140,6 +149,33 @@ export default function Homeadmin() {
       updateChartData("month");
     });
   }
+
+  const selectedUser = summaryData.find((u) => u.userId === selectedUserId);
+
+  const rawChartData =
+    userChartMode === "daily"
+      ? selectedUser?.dailyChart
+      : selectedUser?.monthlyChart;
+
+  const chartUserData = rawChartData
+    ? {
+      labels: rawChartData.labels.filter((label) =>
+        label.startsWith(String(selectedYear))
+      ),
+      datasets: rawChartData.datasets.map((ds) => ({
+        ...ds,
+        data: rawChartData.labels
+          .map((label, idx) =>
+            label.startsWith(String(selectedYear)) ? ds.data[idx] : null
+          )
+          .filter((v) => v !== null),
+      })),
+    }
+    : null;
+
+  const availableYears = rawChartData
+    ? Array.from(new Set(rawChartData.labels.map((label) => label.substring(0, 4)))).sort()
+    : [];
 
   return (
     <div className="p-5">
@@ -301,7 +337,7 @@ export default function Homeadmin() {
               >
                 <DataTable value={productStock} paginator rows={5}>
                   <Column field="id" header="รหัสสินค้า" />
-                  <Column field="name" header="ชื่อสินค้า"/>
+                  <Column field="name" header="ชื่อสินค้า" />
                   <Column field="category" header="ประเภทสินค้า" />
                   <Column
                     field="stock"
@@ -313,8 +349,8 @@ export default function Homeadmin() {
                             rowData.stock === 0
                               ? "red"
                               : rowData.stock < 10
-                              ? "orange"
-                              : "black",
+                                ? "orange"
+                                : "black",
                           fontWeight: rowData.stock === 0 ? "bold" : "normal",
                         }}
                       >
@@ -346,6 +382,70 @@ export default function Homeadmin() {
           </DataTable>
         </Dialog>
       </Card>
+
+      <Card title="สถิติตามผู้ใช้" className="mt-5 p-3">
+        <div className="mb-3 grid grid-cols-1 md:grid-cols-3 gap-3">
+          <Dropdown
+            value={selectedUserId}
+            options={summaryData.map((u) => ({
+              label: `${u.firstname} ${u.lastname}`,
+              value: u.userId,
+            }))}
+            onChange={(e) => setSelectedUserId(e.value)}
+            placeholder="เลือกผู้ใช้"
+            filter
+          />
+
+          <Dropdown
+            value={userChartMode}
+            options={[
+              { label: "กราฟรายวัน", value: "daily" },
+              { label: "กราฟรายเดือน", value: "monthly" }
+            ]}
+            onChange={(e) => setUserChartMode(e.value)}
+            placeholder="เลือกโหมดกราฟ"
+          />
+
+          <Dropdown
+            value={selectedYear}
+            options={availableYears.map((y) => ({ label: `ปี ${y}`, value: Number(y) }))}
+            onChange={(e) => setSelectedYear(e.value)}
+            placeholder="เลือกปี"
+          />
+        </div>
+
+        {loading ? (
+          <p>กำลังโหลดข้อมูล...</p>
+        ) : chartUserData ? (
+          <Chart
+            type="bar"
+            data={chartUserData}
+            options={{
+              maintainAspectRatio: false,
+              plugins: { legend: { display: true } },
+              scales: {
+                x: {
+                  title: {
+                    display: true,
+                    text: userChartMode === "daily" ? "วันที่" : "เดือน",
+                  },
+                  ticks: { maxRotation: 45, minRotation: 0 },
+                },
+                y: {
+                  beginAtZero: true,
+                  title: { display: true, text: "จำนวนรายการ" },
+                },
+              },
+            }}
+            style={{ height: "400px" }}
+          />
+        ) : selectedUserId ? (
+          <p className="text-gray-500">ไม่พบข้อมูลของผู้ใช้นี้</p>
+        ) : (
+          <p className="text-gray-500">กรุณาเลือกผู้ใช้</p>
+        )}
+      </Card>
+
     </div>
   );
 }
