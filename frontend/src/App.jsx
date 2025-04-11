@@ -35,6 +35,7 @@ import ProductAutoDetail from "./Pagesinside/ProductAutoDetail";
 import ResetPassword from "./Pages/PasswordReset/ResetPassword";
 import RequestReset from "./Pages/PasswordReset/RequestReset";
 import AddAddress from "./Pages/AddAddress";
+import Managedoorpart from "./AdminPages/Managedoorpart";
 import "primeflex/primeflex.css";
 import "primereact/resources/themes/saga-blue/theme.css";
 import "primereact/resources/primereact.min.css";
@@ -51,6 +52,7 @@ const App = () => {
     location.pathname.startsWith("/managerepairrequests") ||
     location.pathname.startsWith("/manageportfolios") ||
     location.pathname.startsWith("/manageproductpricetier") ||
+    location.pathname.startsWith("/managedoorpart") ||
     location.pathname.startsWith("/history");
 
   const showFooter = !["/productAuto/", "/productGeneral/"].some((path) =>
@@ -148,6 +150,14 @@ const App = () => {
             element={
               <ProtectedRoute requiredRole="A">
                 <ManageProductPriceTier/>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/managedoorpart"
+            element={
+              <ProtectedRoute requiredRole="A">
+                <Managedoorpart />
               </ProtectedRoute>
             }
           />

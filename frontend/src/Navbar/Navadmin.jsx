@@ -91,6 +91,12 @@ export default function Navbar() {
       className: pathname === "/manageproductpricetier" ? "font-bold text-black" : "",
     },
     {
+      label: "จัดการอะไหล่ประตูม้วน",
+      icon: PrimeIcons.COG,
+      action: () => navigate("/managedoorpart"),
+      className: pathname === "/managedoorpart" ? "font-bold text-black" : "",
+    },
+    {
       label: "ประวัติ",
       icon: PrimeIcons.BOOK,
       action: () => navigate("/history"),
