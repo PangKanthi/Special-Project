@@ -134,6 +134,22 @@ class ProductService {
       where: { id: Number(id) },
     });
   }
+
+  static async setBomItems(productId, bomItems) {
+    await prisma.bom_item.deleteMany({
+      where: { productId: Number(productId) }
+    });
+
+    const createdItems = await prisma.bom_item.createMany({
+      data: bomItems.map(item => ({
+        productId: Number(productId),
+        partId: Number(item.partId),
+        quantity: Number(item.quantity),
+        unit: item.unit,
+      }))
+    });
+    return createdItems;
+  }
 }
 
 export default ProductService;

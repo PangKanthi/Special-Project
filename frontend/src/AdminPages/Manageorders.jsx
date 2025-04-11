@@ -10,8 +10,6 @@ import { InputNumber } from "primereact/inputnumber";
 import { InputText } from "primereact/inputtext";
 import { TabView, TabPanel } from "primereact/tabview";
 import axios from "axios";
-import { fetchDoorConfig } from "../services/doorConfigService";
-import { calculateTotalDoorPrice } from "../utils/index";
 
 const ManageOrders = () => {
   const [orders, setOrders] = useState([]);
@@ -20,50 +18,81 @@ const ManageOrders = () => {
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [visibleAddress, setVisibleAddress] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [fetchedDoorConfig, setFetchedDoorConfig] = useState(null);
   const [confirmDialogVisible, setConfirmDialogVisible] = useState(false);
   const [search, setSearch] = useState("");
-  const [selectedOrderForStatusUpdate, setSelectedOrderForStatusUpdate] =
-    useState(null);
+  const [selectedOrderForStatusUpdate, setSelectedOrderForStatusUpdate] = useState(null);
+  // เก็บ mapping ของ price tiers (จาก productPriceTier) โดยใช้ product id
+  const [productTierOptions, setProductTierOptions] = useState({});
+  // State สำหรับ Dialog แสดงข้อมูล BOM (อะไหล่ที่ใช้)
+  const [visibleBOMDialog, setVisibleBOMDialog] = useState(false);
+  const [currentBOM, setCurrentBOM] = useState([]);
 
   useEffect(() => {
-    const loadDoorConfig = async () => {
-      try {
-        const data = await fetchDoorConfig();
-        setFetchedDoorConfig(data);
-      } catch {}
-    };
-    loadDoorConfig();
     fetchOrders();
   }, []);
+
+  // หลังจาก orders โหลดเสร็จ ดึงข้อมูล price tiers สำหรับสินค้าทั้งหมดที่อยู่ใน orders
+  useEffect(() => {
+    const fetchAllPriceTiers = async () => {
+      const tiersByProduct = {};
+      const productIds = new Set();
+      orders.forEach((order) => {
+        order.order_items.forEach((item) => {
+          if (item.product?.id) {
+            productIds.add(item.product.id);
+          }
+        });
+      });
+      await Promise.all(
+        Array.from(productIds).map(async (productId) => {
+          try {
+            const response = await axios.get(`${process.env.REACT_APP_API}/api/products/${productId}/price-tiers`);
+            tiersByProduct[productId] = response.data;
+          } catch (error) {
+            console.error("Error fetching price tiers for product", productId, error);
+          }
+        })
+      );
+      setProductTierOptions(tiersByProduct);
+    };
+
+    if (orders.length > 0) {
+      fetchAllPriceTiers();
+    }
+  }, [orders]);
 
   const fetchOrders = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(
-        `${process.env.REACT_APP_API}/api/orders`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const response = await axios.get(`${process.env.REACT_APP_API}/api/orders`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setOrders(response.data.data);
-    } catch {}
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+    }
   };
 
+  // คำนวณราคาใหม่โดยใช้ข้อมูลจาก productPriceTier (คำนวณจากพื้นที่และราคา per square meter)
   const recalcPriceWithRowDataAsync = async (rowData) => {
-    const cat = rowData.product?.category || "";
-    if (rowData.color === "default") return rowData.price;
+    const productId = rowData.product?.id;
+    if (rowData.color === "default" || !productId) return rowData.price;
     const widthNum = parseFloat(rowData.width) || 0;
-    const heightNum = parseFloat(rowData.length) || 0;
-    const thickStr = rowData.thickness || "";
-    const { result, errorMessage } = await calculateTotalDoorPrice(
-      cat,
-      widthNum,
-      heightNum,
-      thickStr
+    const lengthNum = parseFloat(rowData.length) || 0;
+    if (widthNum === 0 || lengthNum === 0) return rowData.price;
+    const area = widthNum * lengthNum;
+
+    const tiers = productTierOptions[productId];
+    if (!tiers || tiers.length === 0) return rowData.price;
+
+    const matchedTier = tiers.find(
+      (tier) =>
+        tier.thickness === rowData.thickness &&
+        area >= tier.min_area &&
+        area <= tier.max_area
     );
-    if (errorMessage) return rowData.price;
-    return result != null ? result : rowData.price;
+    if (!matchedTier) return rowData.price;
+    return area * matchedTier.price_per_sqm;
   };
 
   const saveRowEdit = async (newData, index) => {
@@ -87,11 +116,11 @@ const ManageOrders = () => {
           thickness: updatedData.thickness || "",
           installOption: updatedData.installOption || "",
         },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-    } catch {}
+    } catch (error) {
+      console.error("Error saving row edit:", error);
+    }
   };
 
   const onRowEditComplete = async (e) => {
@@ -102,7 +131,6 @@ const ManageOrders = () => {
 
   const filterOrdersByStatus = (status) => {
     let filtered = [];
-
     if (status === "ทั้งหมด") {
       filtered = orders.filter(
         (o) => o.status !== "complete" && o.status !== "cancle"
@@ -110,7 +138,6 @@ const ManageOrders = () => {
     } else {
       filtered = orders.filter((o) => o.status === status);
     }
-
     if (search.trim() !== "") {
       const lowerSearch = search.toLowerCase();
       filtered = filtered.filter((o) => {
@@ -126,17 +153,14 @@ const ManageOrders = () => {
         );
       });
     }
-
     return filtered;
   };
 
   const handleStatusChangeRequest = (order, newStatus) => {
-    // หากสถานะเป็น "เสร็จแล้ว" หรือ "ยกเลิก" จะมีการยืนยัน
     if (newStatus === "complete" || newStatus === "cancle") {
       setSelectedOrderForStatusUpdate({ order, newStatus });
       setConfirmDialogVisible(true);
     } else {
-      // ถ้าสถานะไม่ใช่ "เสร็จแล้ว" หรือ "ยกเลิก" ก็อัปเดตได้เลย
       updateStatus(order.id, newStatus);
     }
   };
@@ -152,7 +176,9 @@ const ManageOrders = () => {
       setOrders((prev) =>
         prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
       );
-    } catch {}
+    } catch (error) {
+      console.error("Error updating order status:", error);
+    }
   };
 
   const statusTemplate = (rowData) => {
@@ -197,9 +223,7 @@ const ManageOrders = () => {
                 width="50"
                 height="50"
                 style={{ borderRadius: "5px" }}
-                onError={(e) =>
-                  (e.target.src = "https://via.placeholder.com/50")
-                }
+                onError={(e) => (e.target.src = "https://via.placeholder.com/50")}
               />
             );
           })
@@ -250,10 +274,11 @@ const ManageOrders = () => {
     );
   };
 
+  // Editor for thickness using product tier options.
   const thicknessEditor = (options) => {
-    if (options.rowData.color === "default") return null;
-    const category = options.rowData.product?.category;
-    if (!fetchedDoorConfig || !fetchedDoorConfig[category]) {
+    const productId = options.rowData.product?.id;
+    const tiers = productTierOptions[productId];
+    if (!tiers || tiers.length === 0) {
       return (
         <InputText
           value={options.value || ""}
@@ -261,11 +286,9 @@ const ManageOrders = () => {
         />
       );
     }
-    const priceTiers = fetchedDoorConfig[category].priceTiers || [];
-    const thicknessOptions = priceTiers.map((tier) => ({
-      label: tier.thickness,
-      value: tier.thickness,
-    }));
+    const thicknessOptions = Array.from(new Set(tiers.map((tier) => tier.thickness))).map(
+      (thk) => ({ label: thk, value: thk })
+    );
     return (
       <Dropdown
         value={options.value}
@@ -374,6 +397,45 @@ const ManageOrders = () => {
     );
   };
 
+  // แสดงปุ่ม "ตรวจเช็ครายการอะไหล่" เฉพาะสำหรับสินค้า (order item) ที่ไม่ใช่อะไหล่
+  const bomButtonTemplate = (rowData) => {
+    if (rowData.product && !rowData.product.is_part) {
+      return (
+        <Button
+          label="ตรวจเช็ครายการอะไหล่"
+          className="p-button-info p-button-sm"
+          onClick={() => handleCheckBOM(rowData)}
+        />
+      );
+    }
+    return null;
+  };
+
+  // ฟังก์ชันดึงข้อมูล BOM items โดยใช้ endpoint
+  // สมมุติว่า backend ได้จัดทำ endpoint นี้ไว้แล้ว
+  const handleCheckBOM = async (orderItem) => {
+    if (!orderItem.product || orderItem.product.is_part) return;
+    try {
+      // เรียก endpoint สำหรับ BOM ของสินค้าตาม model bom_item
+      const response = await axios.get(
+        `${process.env.REACT_APP_API}/api/products/${orderItem.product.id}/bom`
+      );
+      // response.data ควรจะเป็น array ของ bom_item objects
+      const bomItems = response.data;
+      const bomDetails = bomItems.map((bom) => ({
+        // ตรวจสอบว่า bom.part ถูกแนบมาด้วยหรือไม่
+        partName: bom.part ? bom.part.name : "N/A",
+        requiredQty: orderItem.quantity * bom.quantity,
+        remainingQty: bom.part ? bom.part.stock_quantity || 0 : 0,
+        unit: bom.unit,
+      }));
+      setCurrentBOM(bomDetails);
+      setVisibleBOMDialog(true);
+    } catch (error) {
+      console.error("Error fetching BOM items:", error);
+    }
+  };
+
   const tabItems = [
     { label: "ทั้งหมด", value: "ทั้งหมด", icon: "pi pi-list" },
     { label: "รอการยืนยัน", value: "pending", icon: "pi pi-clock" },
@@ -384,8 +446,6 @@ const ManageOrders = () => {
     <div className="p-5">
       <div className="flex items-center mb-4">
         <h1 className="text-2xl font-bold">การจัดการคำสั่งซื้อ</h1>
-
-        {/* (A) Search Box ตำแหน่งชิดขวา */}
         <div className="ml-auto w-72 pt-3">
           <span className="p-input-icon-left w-72">
             <i className="pi pi-search pl-3 text-gray-500" />
@@ -399,10 +459,7 @@ const ManageOrders = () => {
         </div>
       </div>
       <Card>
-        <TabView
-          activeIndex={activeIndex}
-          onTabChange={(e) => setActiveIndex(e.index)}
-        >
+        <TabView activeIndex={activeIndex} onTabChange={(e) => setActiveIndex(e.index)}>
           {tabItems.map((tab, idx) => (
             <TabPanel
               key={idx}
@@ -422,18 +479,9 @@ const ManageOrders = () => {
                 sortOrder={-1}
               >
                 <Column field="id" header="หมายเลขคำสั่งซื้อ" sortable />
-                <Column
-                  header="ชื่อจริง"
-                  body={(rowData) => rowData.user?.firstname || "-"}
-                />
-                <Column
-                  header="นามสกุล"
-                  body={(rowData) => rowData.user?.lastname || "-"}
-                />
-                <Column
-                  header="เบอร์โทรศัพท์"
-                  body={(rowData) => rowData.user?.phone || "-"}
-                />
+                <Column header="ชื่อจริง" body={(rowData) => rowData.user?.firstname || "-"} />
+                <Column header="นามสกุล" body={(rowData) => rowData.user?.lastname || "-"} />
+                <Column header="เบอร์โทรศัพท์" body={(rowData) => rowData.user?.phone || "-"} />
                 <Column
                   header="ที่อยู่"
                   body={(rowData) => (
@@ -464,12 +512,7 @@ const ManageOrders = () => {
                     `${Number(rowData.total_amount).toLocaleString()} บาท`
                   }
                 />
-                <Column
-                  field="status"
-                  header="สถานะ"
-                  body={statusTemplate}
-                  sortable
-                />
+                <Column field="status" header="สถานะ" body={statusTemplate} sortable />
                 <Column
                   header="เปลี่ยนสถานะ"
                   body={(rowData) => (
@@ -481,9 +524,7 @@ const ManageOrders = () => {
                         { label: "เสร็จสิ้น", value: "complete" },
                         { label: "ยกเลิก", value: "cancle" },
                       ]}
-                      onChange={(e) =>
-                        handleStatusChangeRequest(rowData, e.value)
-                      }
+                      onChange={(e) => handleStatusChangeRequest(rowData, e.value)}
                       style={{ width: "150px" }}
                     />
                   )}
@@ -493,30 +534,15 @@ const ManageOrders = () => {
           ))}
         </TabView>
       </Card>
-      <Dialog
-        header="รายการสินค้า"
-        visible={visibleItems}
-        style={{ width: "80vw" }}
-        onHide={() => setVisibleItems(false)}
-      >
-        <DataTable
-          value={orderItems}
-          editMode="row"
-          dataKey="id"
-          onRowEditComplete={onRowEditComplete}
-        >
+      <Dialog header="รายการสินค้า" visible={visibleItems} style={{ width: "80vw" }} onHide={() => setVisibleItems(false)}>
+        <DataTable value={orderItems} editMode="row" dataKey="id" onRowEditComplete={onRowEditComplete}>
           <Column field="product.name" header="ชื่อสินค้า" />
-          <Column
-            header="รูปสินค้า"
-            body={(rowData) => <ImageTemplate rowData={rowData} />}
-          />
+          <Column header="รูปสินค้า" body={(rowData) => <ImageTemplate rowData={rowData} />} />
           <Column
             field="color"
             header="สี"
             editor={colorEditor}
-            body={(rowData) =>
-              rowData.color === "default" ? "" : rowData.color || "-"
-            }
+            body={(rowData) => (rowData.color === "default" ? "" : rowData.color || "-")}
           />
           <Column
             field="width"
@@ -546,33 +572,21 @@ const ManageOrders = () => {
             field="thickness"
             header="ความหนา"
             editor={thicknessEditor}
-            body={(rowData) =>
-              rowData.color === "default" ? "" : rowData.thickness || "-"
-            }
+            body={(rowData) => (rowData.color === "default" ? "" : rowData.thickness || "-")}
           />
           <Column
             field="installOption"
             header="ตัวเลือกติดตั้ง"
             editor={installOptionEditor}
-            body={(rowData) =>
-              rowData.color === "default" ? "" : rowData.installOption || "-"
-            }
+            body={(rowData) => (rowData.color === "default" ? "" : rowData.installOption || "-")}
           />
           <Column field="quantity" header="จำนวน" editor={quantityEditor} />
           <Column field="price" header="ราคา/ต่อชิ้น (บาท)" />
-          <Column
-            rowEditor
-            headerStyle={{ width: "5rem" }}
-            bodyStyle={{ textAlign: "center" }}
-          />
+          <Column header="ตรวจเช็ครายการอะไหล่" body={bomButtonTemplate} />
+          <Column rowEditor headerStyle={{ width: "5rem" }} bodyStyle={{ textAlign: "center" }} />
         </DataTable>
       </Dialog>
-      <Dialog
-        header="รายละเอียดที่อยู่"
-        visible={visibleAddress}
-        style={{ width: "50vw" }}
-        onHide={() => setVisibleAddress(false)}
-      >
+      <Dialog header="รายละเอียดที่อยู่" visible={visibleAddress} style={{ width: "50vw" }} onHide={() => setVisibleAddress(false)}>
         {selectedAddress ? (
           <DataTable value={[selectedAddress]}>
             <Column field="addressLine" header="ที่อยู่" />
@@ -591,11 +605,7 @@ const ManageOrders = () => {
         onHide={() => setConfirmDialogVisible(false)}
         footer={
           <div>
-            <Button
-              label="ยกเลิก"
-              className="p-button-text"
-              onClick={() => setConfirmDialogVisible(false)}
-            />
+            <Button label="ยกเลิก" className="p-button-text" onClick={() => setConfirmDialogVisible(false)} />
             <Button
               label="ยืนยัน"
               className="p-button-primary"
@@ -612,11 +622,17 @@ const ManageOrders = () => {
       >
         <p>
           คุณแน่ใจว่าต้องการเปลี่ยนสถานะเป็น "
-          {selectedOrderForStatusUpdate?.newStatus === "complete"
-            ? "เสร็จแล้ว"
-            : "ยกเลิก"}
+          {selectedOrderForStatusUpdate?.newStatus === "complete" ? "เสร็จแล้ว" : "ยกเลิก"}
           " หรือไม่?
         </p>
+      </Dialog>
+      <Dialog header="รายการอะไหล่ที่ใช้" visible={visibleBOMDialog} style={{ width: "60vw" }} onHide={() => setVisibleBOMDialog(false)}>
+        <DataTable value={currentBOM} dataKey="partName">
+          <Column field="partName" header="ชื่ออะไหล่" />
+          <Column field="requiredQty" header="จำนวนที่ใช้" />
+          <Column field="remainingQty" header="จำนวนคงเหลือ" />
+          <Column field="unit" header="หน่วย" />
+        </DataTable>
       </Dialog>
     </div>
   );

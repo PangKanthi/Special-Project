@@ -1,5 +1,5 @@
 import express from "express";
-import { getAllProducts, getProductById, createProduct, updateProduct, deleteProduct, getRandomProducts, getAllParts, getPriceTiers, addPriceTier, updatePriceTier, deletePriceTier } from "../controllers/productController.js";
+import { getAllProducts, getProductById, createProduct, updateProduct, deleteProduct, getRandomProducts, getAllParts, getPriceTiers, addPriceTier, updatePriceTier, deletePriceTier, setBomItems, getBomItems } from "../controllers/productController.js";
 import authMiddleware from "../middlewares/authMiddleware.js";
 import { productUpload } from "../middlewares/uploadMiddleware.js";
 
@@ -16,6 +16,7 @@ router.get("/:id/price-tiers", getPriceTiers);
 router.post("/:id/price-tiers", authMiddleware.verifyToken, authMiddleware.isAdmin, addPriceTier);
 router.patch("/price-tiers/:id", authMiddleware.verifyToken, authMiddleware.isAdmin, updatePriceTier);
 router.delete("/price-tiers/:id", authMiddleware.verifyToken, authMiddleware.isAdmin, deletePriceTier);
-
+router.post("/:id/bom", authMiddleware.verifyToken, authMiddleware.isAdmin, setBomItems);
+router.get("/:id/bom", getBomItems);
 
 export default router;

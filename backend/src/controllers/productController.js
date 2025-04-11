@@ -1,4 +1,5 @@
 import ProductService from "../services/productService.js";
+import prisma from "../config/db.js";
 
 export const createProduct = async (req, res, next) => {
   try {
@@ -137,5 +138,37 @@ export const deletePriceTier = async (req, res, next) => {
     res.json({ message: "deleted" });
   } catch (err) {
     next(err);
+  }
+};
+
+export const setBomItems = async (req, res, next) => {
+  try {
+    const productId = req.params.id;
+    const bomItems = req.body.bomItems;
+    const result = await ProductService.setBomItems(productId, bomItems);
+    res.status(200).json({ message: "BOM updated successfully", data: result });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getBomItems = async (req, res, next) => {
+  try {
+    const productId = Number(req.params.id);
+    console.log("Fetching BOM items for product:", productId);
+
+    // ดึงข้อมูล BOM จากตาราง bom_item โดยใช้ productId
+    const bomItems = await prisma.bom_item.findMany({
+      where: { productId },
+      include: {
+        part: true,
+      },
+    });
+
+    res.status(200).json(bomItems);
+  } catch (error) {
+    console.error("Error fetching BOM items:", error);
+    // ส่งข้อผิดพลาดกลับไปพร้อมรายละเอียด
+    res.status(500).json({ error: error.message });
   }
 };
