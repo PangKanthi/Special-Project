@@ -20,6 +20,7 @@ import useUserCount from "./Homeadmin component/useUserCount";
 import useInventoryData from "./Homeadmin component/useInventoryData";
 import NotificationButton from "./Homeadmin component/NotificationButton";
 import useUserSummaryData from "./Homeadmin component/useUserSummaryData";
+import useRepairSalesData from "./Homeadmin component/useRepairSalesData";
 
 const unitMap = {
   แผ่นประตูม้วน: "แผ่น",
@@ -59,6 +60,15 @@ export default function Homeadmin() {
     loadMonthData,
   } = useSalesDataSeparate();
 
+  const {
+    yearData: repairYearData,
+    monthData: repairMonthData,
+    totalYearSales: totalRepairYear,
+    totalMonthSales: totalRepairMonth,
+    loadYearData: loadRepairYear,
+    loadMonthData: loadRepairMonth,
+  } = useRepairSalesData();
+
   // ============== State เกี่ยวกับกราฟ ==============
   const [chartMode, setChartMode] = useState("year"); // "year" | "month"
   const [chartData, setChartData] = useState({ labels: [], datasets: [] });
@@ -67,6 +77,8 @@ export default function Homeadmin() {
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [userChartMode, setUserChartMode] = useState("daily");
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [chartCategory, setChartCategory] = useState("sales"); // "sales" หรือ "repairs"
+
 
   // ============== Dialog ตัวอย่าง: แสดงรายการรายเดือน ==============
   const [showMonthDialog, setShowMonthDialog] = useState(false);
@@ -74,7 +86,6 @@ export default function Homeadmin() {
   // เมื่อ mount ครั้งแรก -> โหลดยอดขายรายปี (เพื่อทำกราฟเป็นค่า default)
   useEffect(() => {
     loadYearData().then(() => {
-      // หลังโหลดเสร็จ -> sync กับ chartData
       updateChartData("year");
     });
   }, []);
@@ -83,15 +94,17 @@ export default function Homeadmin() {
     loadSummary();
   }, []);
 
-  // เมื่อ chartMode เปลี่ยน -> รีเฟรชข้อมูล + update chart
+  useEffect(() => {
+    loadRepairYear();
+  }, []);
+
+
   useEffect(() => {
     if (chartMode === "year") {
-      // ถ้าเปลี่ยนเป็น year -> loadYearData (ถ้ายังไม่โหลด)
       loadYearData().then(() => {
         updateChartData("year");
       });
     } else if (chartMode === "month") {
-      // ถ้าเปลี่ยนเป็น month แต่ยังไม่เลือกเดือน -> chart ยังว่าง
       updateChartData("month");
     }
   }, [chartMode]);
@@ -382,6 +395,71 @@ export default function Homeadmin() {
           </DataTable>
         </Dialog>
       </Card>
+      <div className="pt-5">
+        <Card style={{ backgroundColor: "#026DCA", borderRadius: "5px" }}>
+          <div style={{ backgroundColor: "#fcfcfc", borderRadius: "5px" }} className="p-3">
+            <h2 className="text-2xl">ค่าซ่อมสินค้า</h2>
+            <div className="mb-2 flex gap-2">
+              <Dropdown
+                value={chartMode}
+                options={[
+                  { label: "รายปี", value: "year" },
+                  { label: "รายเดือน", value: "month" },
+                ]}
+                onChange={(e) => setChartMode(e.value)}
+              />
+              {chartMode === "month" && (
+                <Dropdown
+                  value={selectedMonth}
+                  options={[
+                    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+                  ]}
+                  onChange={(e) => {
+                    setSelectedMonth(e.value);
+                    loadRepairMonth(e.value);
+                  }}
+                />
+              )}
+            </div>
+
+            <Chart
+              type="bar"
+              data={{
+                labels: chartMode === "year"
+                  ? repairYearData.map((r) => r.name)
+                  : repairMonthData.map((r) => r.name),
+                datasets: [
+                  {
+                    label: "ค่าซ่อม (บาท)",
+                    data: chartMode === "year"
+                      ? repairYearData.map((r) => r.sales || r.total)
+                      : repairMonthData.map((r) => r.total),
+                    backgroundColor: "rgba(255, 99, 132, 0.6)",
+                    borderColor: "rgba(255, 99, 132, 1)",
+                    borderWidth: 2,
+                  },
+                ],
+              }}
+              options={{
+                maintainAspectRatio: false,
+                plugins: { legend: { display: true } },
+                scales: { y: { beginAtZero: true } },
+              }}
+              style={{ height: "400px" }}
+            />
+
+            <div className="pt-3">
+              <span className="font-bold text-lg text-red-500">
+                {chartMode === "year"
+                  ? `ค่าซ่อมรวมทั้งปี: ${totalRepairYear.toLocaleString()} บาท`
+                  : `ค่าซ่อมรวมเดือน ${selectedMonth ?? "-"}: ${totalRepairMonth.toLocaleString()} บาท`}
+              </span>
+            </div>
+          </div>
+        </Card>
+      </div>
+
       <div className="pt-5">
         <Card style={{ backgroundColor: "#026DCA", borderRadius: "5px" }}>
           <div style={{ backgroundColor: "#fcfcfc", borderRadius: "5px" }} className="p-3">

@@ -17,7 +17,7 @@ class OrderService {
                     payment_status: 'pending'
                 }
             });
-    
+
             // 2) สร้าง order_item
             if (orderItems.length > 0) {
                 await tx.order_item.createMany({
@@ -39,11 +39,6 @@ class OrderService {
 
             return order;
         });
-    
-        // ✅ หลัง transaction เสร็จ ค่อยแจ้งเตือน
-        await createOutOfStockNotifications();
-    
-        return order; // ✅ ส่งกลับ
     }
 
 
@@ -78,61 +73,64 @@ class OrderService {
     }
 
     static async updateOrderStatus(orderId, status) {
-        return await prisma.$transaction(async (tx) => {
-            // ดึง order พร้อม order_items และข้อมูล product ของแต่ละ order item
-            const order = await tx.order.findUnique({
-                where: { id: orderId },
-                include: { order_items: { include: { product: true } } }
-            });
-
-            if (!order) throw new Error("Order not found");
-
-            // อัปเดตสถานะ order
-            const updatedOrder = await tx.order.update({
-                where: { id: orderId },
-                data: { status }
-            });
-
-            // ลดสต็อกอะไหล่เฉพาะเมื่อลูกค้าสั่งซื้อเสร็จสมบูรณ์ (complete)
-            if (status === "complete") {
-                for (const item of order.order_items) {
-                    const product = item.product;
-                    // ถ้า order item เป็นอะไหล่เอง
-                    if (product.is_part) {
-                        await tx.product.update({
-                            where: { id: product.id },
-                            data: {
-                                stock_quantity: {
-                                    decrement: item.quantity
-                                }
-                            }
-                        });
-                    } else {
-                        // สำหรับสินค้าที่ไม่ใช่อะไหล่ (มี BOM) ให้ดึง bom_items ของสินค้านั้น
-                        const bomItems = await tx.bom_item.findMany({
-                            where: { productId: product.id },
-                            include: { part: true } // ดึงข้อมูล part เพื่อใช้ส่วนชื่อและสต็อก
-                        });
-                        for (const bom of bomItems) {
-                            // คำนวณจำนวนที่ใช้ = order item quantity * bom_item.quantity
-                            const requiredQty = item.quantity * bom.quantity;
-                            if (bom.part) {
-                                await tx.product.update({
-                                    where: { id: bom.part.id },
-                                    data: {
-                                        stock_quantity: {
-                                            decrement: requiredQty
-                                        }
-                                    }
-                                });
-                            }
-                        }
+        let updatedOrder;
+      
+        await prisma.$transaction(async (tx) => {
+          const order = await tx.order.findUnique({
+            where: { id: orderId },
+            include: { order_items: { include: { product: true } } }
+          });
+      
+          if (!order) throw new Error("Order not found");
+      
+          updatedOrder = await tx.order.update({
+            where: { id: orderId },
+            data: { status }
+          });
+      
+          if (status === "complete") {
+            for (const item of order.order_items) {
+              const product = item.product;
+              if (product.is_part) {
+                await tx.product.update({
+                  where: { id: product.id },
+                  data: {
+                    stock_quantity: {
+                      decrement: item.quantity
                     }
+                  }
+                });
+              } else {
+                const bomItems = await tx.bom_item.findMany({
+                  where: { productId: product.id },
+                  include: { part: true }
+                });
+                for (const bom of bomItems) {
+                  const requiredQty = item.quantity * bom.quantity;
+                  if (bom.part) {
+                    await tx.product.update({
+                      where: { id: bom.part.id },
+                      data: {
+                        stock_quantity: {
+                          decrement: requiredQty
+                        }
+                      }
+                    });
+                  }
                 }
+              }
             }
-            return updatedOrder;
+          }
         });
-    }
+      
+        // ✅ รอ transaction จบก่อนค่อยเช็คแจ้งเตือน
+        if (status === "complete") {
+          await createOutOfStockNotifications();
+        }
+      
+        return updatedOrder;
+      }
+      
 
     static async createOrderFromCart(userId, addressId) {
         return await prisma.$transaction(async (tx) => {

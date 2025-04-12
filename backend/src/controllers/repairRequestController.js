@@ -293,4 +293,3 @@ export const updateDefaultRepairPrice = async (req, res) => {
         return res.status(500).json({ message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
     }
 };
-
