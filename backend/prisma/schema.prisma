@@ -148,12 +148,22 @@ model work_sample {
 model repair_request {
   id                  Int          @id @default(autoincrement())
   problem_description String       @db.Text
-  service_type        String       @db.VarChar(50)
+  service_type        String?      @db.VarChar(50)
   request_date        DateTime     @default(now()) @db.Timestamp(6)
   userId              Int
   addressId           Int
   status              RepairStatus @default(pending)
   images              String[]
+  product_name        String?      @db.VarChar(100)
+  product_image       String[]
+  color               String?      @db.VarChar(50)
+  width               Decimal?     @db.Decimal(10, 2)
+  length              Decimal?     @db.Decimal(10, 2)
+  thickness           String?
+  installOption       String?      @db.VarChar(50)
+  quantity            Int?
+  price               Decimal?     @db.Decimal(10, 2)
+  repair_price        Decimal?     @db.Decimal(10, 2)
 
   user        user          @relation(fields: [userId], references: [id], onDelete: Cascade)
   address     Address       @relation(fields: [addressId], references: [id], onDelete: Cascade)
@@ -217,6 +227,7 @@ model notification {
   message   String   @db.Text
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
+  productId Int?
 
   user user @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
@@ -230,4 +241,11 @@ model productPriceTier {
   price_per_sqm Float
 
   product product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model repair_price {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
 }

@@ -23,6 +23,7 @@ const Managerepairrequests = ({ setNotifications }) => {
 
   const [partsFirst, setPartsFirst] = useState(0);
   const [partsRows, setPartsRows] = useState(5);
+  const [repairPrice, setRepairPrice] = useState(null);
 
   const [first, setFirst] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -31,9 +32,12 @@ const Managerepairrequests = ({ setNotifications }) => {
   const [addressDialogVisible, setAddressDialogVisible] = useState(false);
   const [confirmDialogVisible, setConfirmDialogVisible] = useState(false);
   const [selectedStatusRequest, setSelectedStatusRequest] = useState(null);
-
+  const [visibleItems, setVisibleItems] = useState(false);
+  const [selectedRepairItem, setSelectedRepairItem] = useState(null);
   // (A) <-- เพิ่ม state สำหรับ Search
   const [search, setSearch] = useState("");
+  const [editDefaultPriceVisible, setEditDefaultPriceVisible] = useState(false);
+  const [newDefaultPrice, setNewDefaultPrice] = useState(null);
 
   const openAddressDialog = (rowData) => {
     setSelectedRequest(rowData);
@@ -57,6 +61,11 @@ const Managerepairrequests = ({ setNotifications }) => {
 
   const handleQuantityChange = (productId, value) => {
     setSelectedParts((prev) => ({ ...prev, [productId]: value }));
+  };
+
+  const viewRepairItem = (repair) => {
+    setSelectedRepairItem(repair);
+    setVisibleItems(true);
   };
 
   const unitMap = {
@@ -211,9 +220,16 @@ const Managerepairrequests = ({ setNotifications }) => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({
+          status: newStatus,
+          ...(newStatus === "complete" && repairPrice !== null && !isNaN(repairPrice)
+            ? { repair_price: parseFloat(repairPrice) }
+            : {})
+        }),
       });
+
       const data = await response.json();
+
       if (response.ok) {
         const updatedItem = data.data;
         const newList = repairRequests.map((req) =>
@@ -228,10 +244,12 @@ const Managerepairrequests = ({ setNotifications }) => {
     }
   };
 
+
   const updateRepairStatus = (repairId, newStatus) => {
     if (newStatus === "complete" || newStatus === "cancle") {
       setSelectedStatusRequest({ repairId, newStatus });
       setConfirmDialogVisible(true);
+      setRepairPrice(null);
     } else {
       performStatusUpdate(repairId, newStatus);
     }
@@ -307,8 +325,8 @@ const Managerepairrequests = ({ setNotifications }) => {
         <h1 className="text-2xl font-bold">การจัดการคำขอแจ้งซ่อม</h1>
 
         {/* (A) Search Box ตำแหน่งชิดขวา */}
-        <div className="ml-auto w-72 pt-3">
-          <span className="p-input-icon-left w-full flex items-center">
+        <div className="flex ml-auto items-center gap-2 mt-3" style={{ width: '100%', maxWidth: '500px', height: "38px" }}>
+          <span className="p-input-icon-left w-full">
             <i className="pi pi-search pl-3 text-gray-500" />
             <InputText
               value={search}
@@ -317,6 +335,18 @@ const Managerepairrequests = ({ setNotifications }) => {
               className="w-full pl-8"
             />
           </span>
+          <Button
+            label="แก้ไขราคาซ่อมเริ่มต้น"
+            icon="pi pi-pencil"
+            className="p-button-sm px-3 text-sm h-full py-0"
+            style={{
+              fontSize: '0.875rem',
+              whiteSpace: 'nowrap',
+              minWidth: '180px'
+            }}
+            onClick={() => setEditDefaultPriceVisible(true)}
+          />
+
         </div>
       </div>
 
@@ -358,6 +388,17 @@ const Managerepairrequests = ({ setNotifications }) => {
             header="เบอร์โทรศัพท์"
           />
           <Column field="service_type" header="ประเภทการซ่อม" />
+          <Column
+            header="สินค้าแจ้งซ่อม"
+            body={(rowData) => (
+              <Button
+                label="ดูสินค้า"
+                icon="pi pi-eye"
+                className="p-button-sm"
+                onClick={() => viewRepairItem(rowData)}
+              />
+            )}
+          />
           <Column field="problem_description" header="รายละเอียด" />
           <Column
             field="request_date"
@@ -385,6 +426,15 @@ const Managerepairrequests = ({ setNotifications }) => {
                 onClick={() => openPartsDialog(rowData)}
               />
             )}
+          />
+          <Column
+            field="repair_price"
+            header="ราคาซ่อม (บาท)"
+            body={(rowData) =>
+              rowData.repair_price !== null
+                ? Number(rowData.repair_price).toLocaleString("th-TH")
+                : "-"
+            }
           />
           <Column
             field="status"
@@ -453,8 +503,7 @@ const Managerepairrequests = ({ setNotifications }) => {
           <Column
             header="สต็อกที่มี"
             body={(rowData) =>
-              `${rowData.stock_quantity.toLocaleString()} ${
-                unitMap[rowData.category] || "ชุด"
+              `${rowData.stock_quantity.toLocaleString()} ${unitMap[rowData.category] || "ชุด"
               }`
             }
           />
@@ -529,7 +578,114 @@ const Managerepairrequests = ({ setNotifications }) => {
             : "ยกเลิก"}
           " หรือไม่?
         </p>
+        {selectedStatusRequest?.newStatus === "complete" && (
+          <div className="mt-4">
+            <label htmlFor="repairPrice" className="block mb-2 font-semibold">
+              ราคาซ่อม (บาท)
+            </label>
+            <InputNumber
+              id="repairPrice"
+              value={repairPrice}
+              onValueChange={(e) => setRepairPrice(e.value)}
+              mode="currency"
+              currency="THB"
+              locale="th-TH"
+              className="w-full"
+            />
+          </div>
+        )}
       </Dialog>
+      <Dialog
+        header="รายละเอียดสินค้า"
+        visible={visibleItems}
+        style={{ width: "70vw" }}
+        onHide={() => setVisibleItems(false)}
+      >
+        {selectedRepairItem && (
+          <div className="p-4">
+            <DataTable value={[selectedRepairItem]} responsiveLayout="scroll">
+              <Column field="product_name" header="ชื่อสินค้า" />
+              <Column
+                header="รูปสินค้า"
+                body={(rowData) => (
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    {rowData.product_image?.map((img, index) => (
+                      <img
+                        key={index}
+                        src={`${process.env.REACT_APP_API}${img}`}
+                        alt={`รูปที่ ${index + 1}`}
+                        style={{
+                          width: "60px",
+                          height: "60px",
+                          objectFit: "cover",
+                          borderRadius: "6px",
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
+              />
+              <Column field="color" header="สี" />
+              <Column field="width" header="กว้าง (ม.)" />
+              <Column field="length" header="ยาว (ม.)" />
+              <Column field="thickness" header="ความหนา" />
+              <Column field="installOption" header="ตัวเลือกติดตั้ง" />
+              <Column field="quantity" header="จำนวน" />
+              <Column
+                field="price"
+                header="ราคา/ต่อชิ้น (บาท)"
+                body={(rowData) => rowData.price?.toLocaleString()}
+              />
+            </DataTable>
+          </div>
+        )}
+      </Dialog>
+      <Dialog
+        header="แก้ไขราคาซ่อมเริ่มต้น"
+        visible={editDefaultPriceVisible}
+        onHide={() => setEditDefaultPriceVisible(false)}
+        footer={
+          <>
+            <Button label="ยกเลิก" onClick={() => setEditDefaultPriceVisible(false)} className="p-button-text" />
+            <Button
+              label="บันทึก"
+              onClick={async () => {
+                try {
+                  const res = await fetch(`${process.env.REACT_APP_API}/api/repair-requests/default-repair-price`, {
+                    method: "PUT",
+                    headers: {
+                      "Content-Type": "application/json",
+                      Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                    body: JSON.stringify({ value: newDefaultPrice }),
+                  });
+                  const data = await res.json();
+                  if (res.ok) {
+                    alert("อัปเดตราคาสำเร็จ");
+                    setEditDefaultPriceVisible(false);
+                  } else {
+                    alert(data.message || "เกิดข้อผิดพลาด");
+                  }
+                } catch (err) {
+                  console.error(err);
+                  alert("ไม่สามารถอัปเดตได้");
+                }
+              }}
+            />
+          </>
+        }
+      >
+        <InputNumber
+          value={newDefaultPrice}
+          onValueChange={(e) => setNewDefaultPrice(e.value)}
+          mode="currency"
+          currency="THB"
+          locale="th-TH"
+          placeholder="กรอกราคาใหม่"
+        />
+      </Dialog>
+
+
     </div>
   );
 };

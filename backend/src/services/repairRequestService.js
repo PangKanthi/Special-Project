@@ -43,7 +43,7 @@ class RepairRequestService {
     }
   }
 
-  static async updateRepairRequest(id, problemDescription, serviceType, imageUrls = [], status) {
+  static async updateRepairRequest(id, problemDescription, serviceType, imageUrls = [], status, repair_price) {
     try {
       const existingRequest = await prisma.repair_request.findUnique({
         where: { id: Number(id) }
@@ -57,7 +57,8 @@ class RepairRequestService {
           problem_description: problemDescription || existingRequest.problem_description,
           service_type: serviceType || existingRequest.service_type,
           images: imageUrls.length > 0 ? imageUrls : existingRequest.images,
-          status: status || existingRequest.status
+          status: status || existingRequest.status,
+          repair_price: repair_price ?? existingRequest.repair_price,   
         },
         include: {
           address: true

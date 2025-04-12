@@ -16,6 +16,15 @@ const Repair = () => {
     problemDescription: "",
     serviceType: "",
     images: [],
+    product_name: "",        // ชื่อสินค้า
+    product_image: [],       // รูปภาพสินค้า
+    color: "",               // สี
+    width: "",               // ความกว้าง
+    length: "",              // ความยาว
+    thickness: "",           // ความหนา
+    installOption: "",       // ตัวเลือกติดตั้ง
+    quantity: "",            // จำนวน
+    price: "",               // ราคาต่อชิ้น
   });
 
   const [errors, setErrors] = useState({});
@@ -29,6 +38,9 @@ const Repair = () => {
 
   // ✅ เก็บข้อมูล user (ชื่อ, นามสกุล, เบอร์) เพื่อแสดงในหน้า
   const [user, setUser] = useState(null);
+
+  const [completedProducts, setCompletedProducts] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   const navigate = useNavigate();
   const fileUploadRef = useRef(null);
@@ -48,16 +60,11 @@ const Repair = () => {
         const data = await res.json();
         if (res.ok) {
           setAddresses(data.data || []);
-          // ⬇️ ลบโค้ด auto-select ที่อยู่แรกออก
-          // if (data.data.length > 0) {
-          //   setSelectedAddress(data.data[0]); // ❌ ไม่เลือกอัตโนมัติ
-          // }
         }
       } catch (err) {
         console.error("เกิดข้อผิดพลาดในการดึงที่อยู่:", err);
       }
     };
-
     // 📌 ฟังก์ชันดึงข้อมูลผู้ใช้
     const fetchUser = async () => {
       try {
@@ -75,6 +82,23 @@ const Repair = () => {
       fetchAddresses();
       fetchUser();
     }
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const fetchCompletedProducts = async () => {
+      try {
+        const res = await fetch(`${process.env.REACT_APP_API}/api/repair-requests/completed-products`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (res.ok) setCompletedProducts(data.data);
+      } catch (err) {
+        console.error("ไม่สามารถดึงสินค้าที่เคยสั่งซื้อได้:", err);
+      }
+    };
+
+    if (token) fetchCompletedProducts();
   }, []);
 
   // ✅ ฟังก์ชัน handleAddressSelection สำหรับเลือกที่อยู่จาก Dropdown
@@ -180,6 +204,19 @@ const Repair = () => {
     formData.append("serviceType", form.serviceType);
     formData.append("firstname", user?.firstname || "");
     formData.append("lastname", user?.lastname || "");
+    formData.append("product_name", form.product_name);
+    formData.append("color", form.color);
+    formData.append("width", form.width);
+    formData.append("length", form.length);
+    formData.append("thickness", form.thickness);
+    formData.append("installOption", form.installOption);
+    formData.append("quantity", form.quantity);
+    formData.append("price", form.price);
+
+    form.product_image.forEach((img) => {
+      formData.append("product_image", img);
+    });
+    
 
     form.images.forEach((img) => {
       formData.append("images", img.file);
@@ -269,6 +306,41 @@ const Repair = () => {
     setIsLoggedIn(!!token);
   }, []);
 
+  useEffect(() => {
+    if (selectedProduct) {
+      // ✅ ตั้งค่าที่อยู่ตาม order เดิม
+      if (selectedProduct.address) {
+        setSelectedAddress(selectedProduct.address);
+        setForm(prevForm => ({
+          ...prevForm,
+          addressLine: selectedProduct.address.addressLine,
+          province: selectedProduct.address.province,
+          district: selectedProduct.address.district,
+          subdistrict: selectedProduct.address.subdistrict,
+          postcode: selectedProduct.address.postalCode
+        }));
+      }
+
+      // ✅ ตั้งค่า product snapshot + serviceType
+      setForm(prev => ({
+        ...prev,
+        serviceType: selectedProduct.service_type ?? '',
+
+        // 🔁 กรอกข้อมูลสินค้าที่เลือก
+        product_name: selectedProduct.name ?? '',
+        product_image: selectedProduct.product_image || [],
+        color: selectedProduct.color ?? '',
+        width: selectedProduct.width ?? '',
+        length: selectedProduct.length ?? '',
+        thickness: selectedProduct.thickness ?? '',
+        installOption: selectedProduct.installOption ?? '',
+        quantity: selectedProduct.quantity ?? '',
+        price: selectedProduct.price ?? ''
+      }));
+    }
+  }, [selectedProduct]);
+
+
   return (
     <div
       style={{
@@ -309,6 +381,9 @@ const Repair = () => {
           serviceTypes={serviceTypes}
           user={user}
           errors={errors}
+          completedProducts={completedProducts}
+          selectedProduct={selectedProduct}
+          setSelectedProduct={setSelectedProduct}
         />
 
         {/* ✅ ส่วนอัปโหลดรูปภาพ */}

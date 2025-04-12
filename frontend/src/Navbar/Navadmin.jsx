@@ -97,6 +97,12 @@ export default function Navbar() {
       className: pathname === "/managedoorpart" ? "font-bold text-black" : "",
     },
     {
+      label: "จัดการรีวิว",
+      icon: PrimeIcons.COMMENTS,
+      action: () => navigate("/managereview"),
+      className: pathname === "/managereview" ? "font-bold text-black" : "",
+    },
+    {
       label: "ประวัติ",
       icon: PrimeIcons.BOOK,
       action: () => navigate("/history"),

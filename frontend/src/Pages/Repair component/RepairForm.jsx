@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { InputText } from "primereact/inputtext";
 import { Dropdown } from "primereact/dropdown";
 import { InputTextarea } from "primereact/inputtextarea";
@@ -6,11 +6,11 @@ import { Message } from "primereact/message";
 import useLocationData from "../../Hooks/useLocationData"; // Hook โหลดข้อมูลจังหวัด
 
 const problemOptions = [
-  { label: "ประตูม้วนติดขัดด้านข้าง",  value: "ประตูม้วนติดขัดด้านข้าง" },
-  { label: "แผ่นประตูหลุดออกจากราง",   value: "แผ่นประตูหลุดออกจากราง" },
-  { label: "แผ่นประตูชำรุด/เสียหาย",   value: "แผ่นประตูชำรุด" },
-  { label: "รางประตูชำรุด/บิดงอ",       value: "รางประตูชำรุด" },
-  { label: "มอเตอร์ประตูม้วนขัดข้อง",   value: "มอเตอร์ประตูม้วนขัดข้อง" }
+  { label: "ประตูม้วนติดขัดด้านข้าง", value: "ประตูม้วนติดขัดด้านข้าง" },
+  { label: "แผ่นประตูหลุดออกจากราง", value: "แผ่นประตูหลุดออกจากราง" },
+  { label: "แผ่นประตูชำรุด/เสียหาย", value: "แผ่นประตูชำรุด" },
+  { label: "รางประตูชำรุด/บิดงอ", value: "รางประตูชำรุด" },
+  { label: "มอเตอร์ประตูม้วนขัดข้อง", value: "มอเตอร์ประตูม้วนขัดข้อง" }
 ];
 
 const RepairForm = ({
@@ -24,6 +24,9 @@ const RepairForm = ({
   serviceTypes,
   user,
   errors,
+  completedProducts,
+  selectedProduct,
+  setSelectedProduct
 }) => {
   // ✅ ใช้ Hook locationData ดึงจังหวัด/อำเภอ/ตำบล
   const { provinces, amphures, tambons } = useLocationData();
@@ -31,6 +34,7 @@ const RepairForm = ({
   const [selectedProvince, setSelectedProvince] = useState(null);
   const [selectedAmphure, setSelectedAmphure] = useState(null);
   const [selectedTambon, setSelectedTambon] = useState(null);
+  const [defaultPrice, setDefaultPrice] = useState(null);
 
   // ✅ เลือกปัญหาที่พบบ่อย
   const handleSelectProblem = (e) => {
@@ -84,20 +88,97 @@ const RepairForm = ({
     );
   };
 
+  useEffect(() => {
+    const fetchDefaultPrice = async () => {
+      try {
+        const res = await fetch(`${process.env.REACT_APP_API}/api/repair-requests/default-repair-price`);
+        const data = await res.json();
+        if (res.ok) {
+          setDefaultPrice(data.price);
+          setForm((prevForm) => ({
+            ...prevForm,
+            repair_price: data.price // ✅ กำหนดราคาลงใน form
+          }));
+        }
+      } catch (err) {
+        console.error("❌ ดึงราคาตั้งต้นล้มเหลว:", err);
+      }
+    };
+
+    fetchDefaultPrice();
+  }, []);
+
+
+
   return (
     <div className="p-fluid p-formgrid p-grid" style={{ justifyContent: "center" }}>
       {/* 🔸 ประเภทการซ่อม */}
       <div className="p-field p-col-12">
-        <h3 className="text-right">ค่าซ่อมเริ่มต้น 3,000 บาท</h3>
-        <label htmlFor="serviceType">ประเภทการซ่อม</label>
-        <Dropdown
-          id="serviceType"
-          value={form.serviceType}
-          options={serviceTypes}
-          onChange={(e) => handleInputChange(e, "serviceType")}
-          placeholder="*เลือกประเภทบริการ"
-        />
-        {errors.serviceType && <Message severity="error" text={errors.serviceType} />}
+        <h3 className="text-right">
+          ค่าซ่อมเริ่มต้น {defaultPrice?.toLocaleString("th-TH") || "..."} บาท
+        </h3>
+        {completedProducts.length > 0 && (
+          <div className="p-field p-col-12 pt-2">
+            <label htmlFor="product">เลือกสินค้าที่ต้องการแจ้งซ่อม</label>
+            <Dropdown
+              id="product"
+              value={selectedProduct}
+              options={completedProducts}
+              onChange={(e) => setSelectedProduct(e.value)}
+              optionLabel="name"
+              placeholder="เลือกสินค้าที่เคยสั่งซื้อ"
+              itemTemplate={(option) => (
+                <div className="flex align-items-center">
+                  {option.image && (
+                    <img
+                      src={`${process.env.REACT_APP_API}${option.image}`}
+                      alt={option.name}
+                      style={{ width: 40, marginRight: 10 }}
+                      onError={(e) => (e.target.src = "https://via.placeholder.com/40")}
+                    />
+                  )}
+                  <span>{option.name}</span>
+                </div>
+              )}
+            />
+            {selectedProduct && (
+              <div className="p-field p-col-12 border p-3 rounded bg-gray-100 mt-2">
+                <p><strong>ชื่อสินค้า:</strong> {selectedProduct.name}</p>
+                {Array.isArray(form.product_image) && form.product_image.map((img, index) => (
+                  <img
+                    key={index}
+                    src={`${process.env.REACT_APP_API}${img}`}
+                    alt={`รูปสินค้า ${index + 1}`}
+                    style={{
+                      width: "120px",
+                      height: "100px",
+                      objectFit: "cover",
+                      marginRight: "10px",
+                      borderRadius: "10px"
+                    }}
+                  />
+                ))}
+                <p><strong>สี:</strong> {selectedProduct.color}</p>
+                <p><strong>ขนาด:</strong> {selectedProduct.width} x {selectedProduct.length} เมตร</p>
+                <p><strong>ความหนา:</strong> {selectedProduct.thickness}</p>
+                <p><strong>ตัวเลือกติดตั้ง:</strong> {selectedProduct.installOption}</p>
+                <p><strong>จำนวน:</strong> {selectedProduct.quantity}</p>
+                <p><strong>ราคาต่อชิ้น:</strong> {selectedProduct.price?.toLocaleString()} บาท</p>
+              </div>
+            )}
+          </div>
+        )}
+        <div className="pt-2">
+          <label htmlFor="serviceType">ประเภทการซ่อม</label>
+          <Dropdown
+            id="serviceType"
+            value={form.serviceType}
+            options={serviceTypes}
+            onChange={(e) => setForm({ ...form, serviceType: e.value })}
+            placeholder="*เลือกประเภทบริการ"
+          />
+          {errors.serviceType && <Message severity="error" text={errors.serviceType} />}
+        </div>
       </div>
 
       {/* 🔸 รายละเอียดปัญหา */}

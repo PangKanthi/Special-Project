@@ -3,6 +3,8 @@ import { TabMenu } from "primereact/tabmenu";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Tag } from "primereact/tag";
+import { Button } from "primereact/button";
+import { Dialog } from "primereact/dialog";
 import moment from "moment";
 
 const RepairPage = () => {
@@ -12,6 +14,8 @@ const RepairPage = () => {
     const [filteredRepairs, setFilteredRepairs] = useState([]);
     const [first, setFirst] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [visibleItems, setVisibleItems] = useState(false);
+    const [selectedRepairItem, setSelectedRepairItem] = useState(null);
 
     useEffect(() => {
         fetchRepairRequests();
@@ -20,6 +24,11 @@ const RepairPage = () => {
     useEffect(() => {
         filterRepairs(activeTab);
     }, [repairRequests, activeTab]);
+
+    const viewRepairItem = (repair) => {
+        setSelectedRepairItem(repair);
+        setVisibleItems(true);
+    };
 
     const dateTemplate = (rowData) => {
         return moment(rowData.request_date).format("DD/MM/YYYY HH:mm");  // เปลี่ยนรูปแบบวันที่
@@ -135,6 +144,17 @@ const RepairPage = () => {
                 onPage={onPageChange}
             >
                 <Column field="service_type" header="ประเภทการซ่อม" />
+                <Column
+                    header="สินค้าแจ้งซ่อม"
+                    body={(rowData) => (
+                        <Button
+                            label="ดูสินค้า"
+                            icon="pi pi-eye"
+                            className="p-button-sm"
+                            onClick={() => viewRepairItem(rowData)}
+                        />
+                    )}
+                />
                 <Column field="problem_description" header="รายละเอียด" />
                 <Column body={dateTemplate} header="วันที่แจ้งซ่อม" />
                 <Column field="address.addressLine" header="ที่อยู่" />
@@ -145,6 +165,46 @@ const RepairPage = () => {
                 <Column body={imageTemplate} header="รูปภาพ" />
                 <Column body={statusTemplate} field="status" header="สถานะ" />
             </DataTable>
+            <Dialog
+                header="สินค้าแจ้งซ่อม"
+                visible={visibleItems}
+                style={{ width: "70vw" }}
+                onHide={() => setVisibleItems(false)}
+            >
+                {selectedRepairItem && (
+                    <div className="p-4">
+                        <DataTable value={[selectedRepairItem]} responsiveLayout="scroll">
+                            <Column field="product_name" header="ชื่อสินค้า" />
+                            <Column
+                                header="รูปสินค้า"
+                                body={(rowData) => (
+                                    <div style={{ display: "flex", gap: "8px" }}>
+                                        {rowData.product_image?.map((img, index) => (
+                                            <img
+                                                key={index}
+                                                src={`${process.env.REACT_APP_API}${img}`}
+                                                alt={`รูปที่ ${index + 1}`}
+                                                style={{ width: "60px", height: "60px", objectFit: "cover", borderRadius: "6px" }}
+                                            />
+                                        ))}
+                                    </div>
+                                )}
+                            />
+                            <Column field="color" header="สี" />
+                            <Column field="width" header="กว้าง (ม.)" />
+                            <Column field="length" header="ยาว (ม.)" />
+                            <Column field="thickness" header="ความหนา" />
+                            <Column field="installOption" header="ตัวเลือกติดตั้ง" />
+                            <Column field="quantity" header="จำนวน" />
+                            <Column
+                                field="price"
+                                header="ราคา/ต่อชิ้น (บาท)"
+                                body={(rowData) => rowData.price?.toLocaleString()}
+                            />
+                        </DataTable>
+                    </div>
+                )}
+            </Dialog>
         </div>
     );
 };

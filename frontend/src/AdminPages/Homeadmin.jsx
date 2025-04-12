@@ -255,7 +255,7 @@ export default function Homeadmin() {
 
           {/* ======== ฝั่งขวา: Chart ที่สลับได้ (ปี/เดือน) ======== */}
           <div className="col-12 md:col-7">
-            <Card title="ยอดขาย" className="shadow-3 p-2 relative">
+            <Card title="ยอดขายสินค้า" className="shadow-3 p-2 relative">
               {/* Dropdown เลือกโหมด (year / month) */}
               <div className="mb-2 flex gap-2">
                 <Dropdown
@@ -369,7 +369,7 @@ export default function Homeadmin() {
           header="รายละเอียดคำสั่งซื้อรายเดือน"
           visible={showMonthDialog}
           onHide={() => setShowMonthDialog(false)}
-          style={{ width: "50vw" }}
+          style={{ width: "60vw" }}
         >
           <DataTable value={monthData} paginator rows={5}>
             <Column field="name" header="คำสั่งซื้อ" />
@@ -382,70 +382,73 @@ export default function Homeadmin() {
           </DataTable>
         </Dialog>
       </Card>
+      <div className="pt-5">
+        <Card style={{ backgroundColor: "#026DCA", borderRadius: "5px" }}>
+          <div style={{ backgroundColor: "#fcfcfc", borderRadius: "5px" }} className="p-3">
+            <h2 className="text-2xl">สถิติตามผู้ใช้</h2>
+            <div className="ml-3 mb-3 grid grid-cols-1 md:grid-cols-3 gap-3">
+              <Dropdown
+                value={selectedUserId}
+                options={summaryData.map((u) => ({
+                  label: `${u.firstname} ${u.lastname}`,
+                  value: u.userId,
+                }))}
+                onChange={(e) => setSelectedUserId(e.value)}
+                placeholder="เลือกผู้ใช้"
+                filter
+              />
 
-      <Card title="สถิติตามผู้ใช้" className="mt-5 p-3">
-        <div className="mb-3 grid grid-cols-1 md:grid-cols-3 gap-3">
-          <Dropdown
-            value={selectedUserId}
-            options={summaryData.map((u) => ({
-              label: `${u.firstname} ${u.lastname}`,
-              value: u.userId,
-            }))}
-            onChange={(e) => setSelectedUserId(e.value)}
-            placeholder="เลือกผู้ใช้"
-            filter
-          />
+              <Dropdown
+                value={userChartMode}
+                options={[
+                  { label: "กราฟรายวัน", value: "daily" },
+                  { label: "กราฟรายเดือน", value: "monthly" }
+                ]}
+                onChange={(e) => setUserChartMode(e.value)}
+                placeholder="เลือกโหมดกราฟ"
+              />
 
-          <Dropdown
-            value={userChartMode}
-            options={[
-              { label: "กราฟรายวัน", value: "daily" },
-              { label: "กราฟรายเดือน", value: "monthly" }
-            ]}
-            onChange={(e) => setUserChartMode(e.value)}
-            placeholder="เลือกโหมดกราฟ"
-          />
+              <Dropdown
+                value={selectedYear}
+                options={availableYears.map((y) => ({ label: `ปี ${y}`, value: Number(y) }))}
+                onChange={(e) => setSelectedYear(e.value)}
+                placeholder="เลือกปี"
+              />
+            </div>
 
-          <Dropdown
-            value={selectedYear}
-            options={availableYears.map((y) => ({ label: `ปี ${y}`, value: Number(y) }))}
-            onChange={(e) => setSelectedYear(e.value)}
-            placeholder="เลือกปี"
-          />
-        </div>
-
-        {loading ? (
-          <p>กำลังโหลดข้อมูล...</p>
-        ) : chartUserData ? (
-          <Chart
-            type="bar"
-            data={chartUserData}
-            options={{
-              maintainAspectRatio: false,
-              plugins: { legend: { display: true } },
-              scales: {
-                x: {
-                  title: {
-                    display: true,
-                    text: userChartMode === "daily" ? "วันที่" : "เดือน",
+            {loading ? (
+              <p>กำลังโหลดข้อมูล...</p>
+            ) : chartUserData ? (
+              <Chart
+                type="bar"
+                data={chartUserData}
+                options={{
+                  maintainAspectRatio: false,
+                  plugins: { legend: { display: true } },
+                  scales: {
+                    x: {
+                      title: {
+                        display: true,
+                        text: userChartMode === "daily" ? "วันที่" : "เดือน",
+                      },
+                      ticks: { maxRotation: 45, minRotation: 0 },
+                    },
+                    y: {
+                      beginAtZero: true,
+                      title: { display: true, text: "จำนวนรายการ" },
+                    },
                   },
-                  ticks: { maxRotation: 45, minRotation: 0 },
-                },
-                y: {
-                  beginAtZero: true,
-                  title: { display: true, text: "จำนวนรายการ" },
-                },
-              },
-            }}
-            style={{ height: "400px" }}
-          />
-        ) : selectedUserId ? (
-          <p className="text-gray-500">ไม่พบข้อมูลของผู้ใช้นี้</p>
-        ) : (
-          <p className="text-gray-500">กรุณาเลือกผู้ใช้</p>
-        )}
-      </Card>
-
+                }}
+                style={{ height: "400px" }}
+              />
+            ) : selectedUserId ? (
+              <p className="text-gray-500">ไม่พบข้อมูลของผู้ใช้นี้</p>
+            ) : (
+              <p className="text-gray-500">กรุณาเลือกผู้ใช้</p>
+            )}
+          </div>
+        </Card>
+      </div>
     </div>
   );
 }

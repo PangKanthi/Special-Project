@@ -55,16 +55,19 @@ export default function NotificationButton() {
         }
       );
 
-      // 👉 เปลี่ยน path ตามประเภทข้อความ
+      // 👉 เช็คประเภทข้อความ แล้วนำทาง
       if (message.includes("คำสั่งซื้อ")) {
         navigate("/manageorders");
       } else if (message.includes("คำขอซ่อม")) {
         navigate("/managerepairrequests");
+      } else if (message.includes("หมดสต็อก")) {
+        navigate("/manageproducts"); // ✅ ไปที่หน้าอะไหล่
       }
     } catch (error) {
       console.error("Error marking notification as read", error);
     }
   }
+
 
   const messageTemplate = (rowData) => (
     <span style={{ fontWeight: rowData.isRead ? "normal" : "bold" }}>

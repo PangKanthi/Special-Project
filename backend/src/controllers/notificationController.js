@@ -27,3 +27,49 @@ export const markNotificationAsRead = async (req, res) => {
         res.status(500).json({ error: "ไม่สามารถอัปเดตการแจ้งเตือนได้" });
     }
 };
+
+export const createOutOfStockNotifications = async () => {
+    try {
+        const outOfStockParts = await prisma.product.findMany({
+            where: {
+                is_part: true,
+                stock_quantity: {
+                    lte: 0, // ✅ ครอบคลุม 0 และติดลบ
+                },
+            },
+        });
+
+        const adminUsers = await prisma.user.findMany({
+            where: { role: 'A' },
+        });
+
+        for (const product of outOfStockParts) {
+            for (const admin of adminUsers) {
+                const messageText = `🔴 อะไหล่ "${product.name}" หมดสต็อก`;
+
+                const existing = await prisma.notification.findFirst({
+                    where: {
+                        userId: admin.id,
+                        productId: product.id,
+                        isRead: false
+                    },
+                });
+
+                if (!existing) {
+                    await prisma.notification.create({
+                        data: {
+                            userId: admin.id,
+                            productId: product.id,
+                            message: `🔴 อะไหล่ "${product.name}" หมดสต็อก`,
+                            isRead: false,
+                        },
+                    });
+                }
+            }
+        }
+    } catch (error) {
+        console.error("❌ Error creating out-of-stock notifications:", error);
+    }
+};
+
+

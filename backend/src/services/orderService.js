@@ -1,11 +1,12 @@
 import fs from 'fs';
 import prisma from '../config/db.js';
 import CartService from './cartService.js';
+import { createOutOfStockNotifications } from '../controllers/notificationController.js';
 const rawData = fs.readFileSync("src/config/doorConfig.json", "utf-8");
 const doorConfig = JSON.parse(rawData);
 class OrderService {
     static async createOrder(userId, addressId, orderItems, totalAmount) {
-        return await prisma.$transaction(async (tx) => {
+        const order = await prisma.$transaction(async (tx) => {
             // 1) สร้าง order
             const order = await tx.order.create({
                 data: {
@@ -16,7 +17,7 @@ class OrderService {
                     payment_status: 'pending'
                 }
             });
-
+    
             // 2) สร้าง order_item
             if (orderItems.length > 0) {
                 await tx.order_item.createMany({
@@ -38,6 +39,11 @@ class OrderService {
 
             return order;
         });
+    
+        // ✅ หลัง transaction เสร็จ ค่อยแจ้งเตือน
+        await createOutOfStockNotifications();
+    
+        return order; // ✅ ส่งกลับ
     }
 
 

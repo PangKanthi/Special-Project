@@ -4,15 +4,18 @@ import { Column } from "primereact/column";
 import { Button } from "primereact/button";
 import { Toast } from "primereact/toast";
 import { Tag } from "primereact/tag";
+import { Dialog } from "primereact/dialog";
 import moment from "moment";
 
 const RepairHistory = () => {
     const [historyData, setHistoryData] = useState([]);
     const [filteredHistory, setFilteredHistory] = useState([]);
     const [searchText, setSearchText] = useState("");
-    const [selectedStatus, setSelectedStatus] = useState(null);
-    const [repairRequests, setRepairRequests] = useState([]);
-    const [filteredRepairs, setFilteredRepairs] = useState([]);
+    const [selectedStatus, setSelectedStatus] = useState(null);;
+    const [visibleItems, setVisibleItems] = useState(false);
+    const [selectedRepairItem, setSelectedRepairItem] = useState(null);
+    const [selectedAddress, setSelectedAddress] = useState(null);
+    const [visibleAddressDialog, setVisibleAddressDialog] = useState(false);
     const toast = useRef(null);
 
     useEffect(() => {
@@ -95,6 +98,16 @@ const RepairHistory = () => {
         }
     };
 
+    const viewRepairItem = (repair) => {
+        setSelectedRepairItem(repair);
+        setVisibleItems(true);
+    };
+
+    const viewAddress = (address) => {
+        setSelectedAddress(address);
+        setVisibleAddressDialog(true);
+    };
+
     const orderStatus = [
         { label: "ทั้งหมด", value: null },
         { label: "สำเร็จ", value: "complete" },
@@ -130,23 +143,110 @@ const RepairHistory = () => {
     return (
         <div>
             <Toast ref={toast} />
-            <DataTable value={filteredHistory} paginator rows={10}  sortField="request_date" sortOrder={-1}>
+            <DataTable value={filteredHistory} paginator rows={10} sortField="request_date" sortOrder={-1}>
                 <Column body={(rowData) => rowData.user?.username || "ไม่ระบุ"} header="ชื่อผู้ใช้" />
                 <Column body={imageTemplate} header="รูปภาพ" />
                 <Column field="service_type" header="ประเภทการซ่อม" />
+                <Column
+                    header="สินค้าแจ้งซ่อม"
+                    body={(rowData) => (
+                        <Button
+                            label="ดูสินค้า"
+                            icon="pi pi-eye"
+                            className="p-button-sm"
+                            onClick={() => viewRepairItem(rowData)}
+                        />
+                    )}
+                />
                 <Column field="problem_description" header="รายละเอียด" />
                 <Column field="request_date" body={dateTemplate} header="วันที่แจ้งซ่อม" sortable />
-                <Column body={(rowData) => rowData.address?.addressLine || "ไม่ระบุ"} header="ที่อยู่" />
-                <Column body={(rowData) => rowData.address?.province || "ไม่ระบุ"} header="จังหวัด" />
-                <Column body={(rowData) => rowData.address?.district || "ไม่ระบุ"} header="เขต/อำเภอ" />
-                <Column body={(rowData) => rowData.address?.subdistrict || "ไม่ระบุ"} header="ตำบล" />
-                <Column body={(rowData) => rowData.address?.postalCode || "ไม่ระบุ"} header="รหัสไปรษณีย์" />
-                <Column body={statusTemplate} field="status" header="สถานะ" sortable/>
+                <Column
+                    header="ที่อยู่"
+                    body={(rowData) => (
+                        <Button
+                            label="ดูที่อยู่"
+                            icon="pi pi-map-marker"
+                            className="p-button-sm"
+                            onClick={() => viewAddress(rowData.address)}
+                        />
+                    )}
+                />
+                <Column body={statusTemplate} field="status" header="สถานะ" sortable />
+                <Column
+                    field="repair_price"
+                    header="ราคาซ่อม (บาท)"
+                    body={(rowData) =>
+                        rowData.repair_price !== null
+                            ? Number(rowData.repair_price).toLocaleString("th-TH")
+                            : "-"
+                    }
+                />
                 <Column
                     body={deleteButton}
                     header="ลบ"
                 />
             </DataTable>
+            <Dialog
+                header="รายละเอียดสินค้า"
+                visible={visibleItems}
+                style={{ width: "70vw" }}
+                onHide={() => setVisibleItems(false)}
+            >
+                {selectedRepairItem && (
+                    <div className="p-4">
+                        <DataTable value={[selectedRepairItem]} responsiveLayout="scroll">
+                            <Column field="product_name" header="ชื่อสินค้า" />
+                            <Column
+                                header="รูปสินค้า"
+                                body={(rowData) => (
+                                    <div style={{ display: "flex", gap: "8px" }}>
+                                        {rowData.product_image?.map((img, index) => (
+                                            <img
+                                                key={index}
+                                                src={`${process.env.REACT_APP_API}${img}`}
+                                                alt={`รูปที่ ${index + 1}`}
+                                                style={{
+                                                    width: "60px",
+                                                    height: "60px",
+                                                    objectFit: "cover",
+                                                    borderRadius: "6px",
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
+                                )}
+                            />
+                            <Column field="color" header="สี" />
+                            <Column field="width" header="กว้าง (ม.)" />
+                            <Column field="length" header="ยาว (ม.)" />
+                            <Column field="thickness" header="ความหนา" />
+                            <Column field="installOption" header="ตัวเลือกติดตั้ง" />
+                            <Column field="quantity" header="จำนวน" />
+                            <Column
+                                field="price"
+                                header="ราคา/ต่อชิ้น (บาท)"
+                                body={(rowData) => rowData.price?.toLocaleString()}
+                            />
+                        </DataTable>
+                    </div>
+                )}
+            </Dialog>
+            <Dialog
+                header="รายละเอียดที่อยู่"
+                visible={visibleAddressDialog}
+                style={{ width: '50vw' }}
+                onHide={() => setVisibleAddressDialog(false)}
+            >
+                {selectedAddress && (
+                    <DataTable value={[selectedAddress]} responsiveLayout="scroll">
+                        <Column field="addressLine" header="ที่อยู่" />
+                        <Column field="subdistrict" header="ตำบล" />
+                        <Column field="district" header="อำเภอ" />
+                        <Column field="province" header="จังหวัด" />
+                        <Column field="postalCode" header="รหัสไปรษณีย์" />
+                    </DataTable>
+                )}
+            </Dialog>
         </div>
     );
 };

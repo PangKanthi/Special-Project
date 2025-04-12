@@ -25,6 +25,7 @@ import Manageusers from "./AdminPages/Manageusers";
 import Managerepairrequests from "./AdminPages/Managerepairrequests";
 import Manageportfolios from "./AdminPages/Manageportfolios";
 import ManageProductPriceTier from "./AdminPages/ManageProductPriceTier";
+import Managereview from "./AdminPages/Managereview"
 import History from "./AdminPages/History";
 import ShopCart from "./Shopuser/ShopCart";
 import ShopOrder from "./Shopuser/ShopOrder";
@@ -53,6 +54,7 @@ const App = () => {
     location.pathname.startsWith("/manageportfolios") ||
     location.pathname.startsWith("/manageproductpricetier") ||
     location.pathname.startsWith("/managedoorpart") ||
+    location.pathname.startsWith("/managereview") ||
     location.pathname.startsWith("/history");
 
   const showFooter = !["/productAuto/", "/productGeneral/"].some((path) =>
@@ -157,7 +159,15 @@ const App = () => {
             path="/managedoorpart"
             element={
               <ProtectedRoute requiredRole="A">
-                <Managedoorpart />
+                <Managedoorpart  />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/managereview"
+            element={
+              <ProtectedRoute requiredRole="A">
+                <Managereview />
               </ProtectedRoute>
             }
           />
