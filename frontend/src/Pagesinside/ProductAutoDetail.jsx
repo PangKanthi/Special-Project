@@ -15,6 +15,7 @@ import useLocationData from "../Hooks/useLocationData";
 import { calculateTotalDoorPrice } from "../utils";
 import { fetchDoorConfig } from "../services/doorConfigService";
 import Loading from "../Component/Loading";
+import SimulatedColorShutter from "./SimulatedColorShutter";
 
 import "primeflex/primeflex.css";
 
@@ -82,6 +83,7 @@ const ProductAutoDetail = () => {
   const [thicknessOptions, setThicknessOptions] = useState([]);
   const [selectedThickness, setSelectedThickness] = useState("");
   const [priceTiers, setPriceTiers] = useState([]);
+  const [simulateDialogVisible, setSimulateDialogVisible] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -339,6 +341,19 @@ const ProductAutoDetail = () => {
     setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
   };
 
+  const handleSimulation = () => {
+    if (selectedColor && selectedColor !== "default") {
+      setSimulateDialogVisible(true);
+    } else {
+      toast.current?.show({
+        severity: "warn",
+        summary: "⚠️ กรุณาเลือกสี",
+        detail: "โปรดเลือกสีจากตัวเลือกด้านบนก่อนกดปุ่มจำลอง",
+        life: 3000,
+      });
+    }
+  };
+
   return (
     <div>
       <Toast ref={toast} />
@@ -418,6 +433,11 @@ const ProductAutoDetail = () => {
                     ))}
                   </div>
                 )}
+              {!product.is_part && (
+                <div className="p-d-flex p-jc-center p-ai-center mb-3">
+                  <Button label="จำลองสีประตูม้วน" onClick={handleSimulation} />
+                </div>
+              )}
 
               {!product.is_part && (
                 <div className="mb-3 flex gap-3">
@@ -677,6 +697,45 @@ const ProductAutoDetail = () => {
           </div>
         </div>
       </div>
+      <Dialog
+        header="จำลองสีประตูม้วน"
+        visible={simulateDialogVisible}
+        style={{ width: "450px" }}
+        onHide={() => setSimulateDialogVisible(false)}
+        draggable={false}
+      >
+        {/* ตัวเลือกสีภายใน Dialog */}
+        {product.colors && product.colors.length > 0 && (
+          <div className="p-d-flex p-flex-row p-jc-center p-ai-center gap-2 mb-3 " style={{ display: "flex", flexDirection: "row" }}>
+            {product.colors.map((color) => (
+              <div
+                key={color}
+                onClick={() => setSelectedColor(color)}
+                style={{
+                  width: "20px",
+                  height: "20px",
+                  borderRadius: "50%",
+                  backgroundColor: color,
+                  border:
+                    selectedColor === color
+                      ? "3px solid #000000"
+                      : "2px solid #cccccc",
+                  cursor: "pointer",
+                  transition: "all 0.3s ease-in-out",
+                  transform:
+                    selectedColor === color ? "scale(1.1)" : "scale(1)",
+                }}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* แสดงผล simulation ตามสีที่เลือก */}
+        <SimulatedColorShutter
+          imageUrl="/assets/images/colordoor.png"
+          selectedColor={selectedColor}
+        />
+      </Dialog>
       <div className="flex justify-content-center">
         <div style={{ maxWidth: "1000px", width: "100%" }}>
           <CustomerReviews productId={id} />
