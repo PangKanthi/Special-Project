@@ -6,6 +6,7 @@ import { Dialog } from "primereact/dialog";
 import { Tag } from "primereact/tag";
 import { TabView, TabPanel } from "primereact/tabview";
 import axios from "axios";
+import OrderSummaryDialog from "../../Component/OrderSummaryDialog";
 
 const OrderPage = () => {
   const [orders, setOrders] = useState([]);
@@ -14,6 +15,37 @@ const OrderPage = () => {
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [visibleAddress, setVisibleAddress] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+
+  // state สำหรับ OrderSummaryDialog
+  const [visibleSummary, setVisibleSummary] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [bomDetailsMap, setBomDetailsMap] = useState({});
+  const viewOrderSummary = async (order) => {
+    setSelectedOrder(order);
+    await fetchBOMForOrder(order);
+    setVisibleSummary(true);
+  };
+
+  const fetchBOMForOrder = async (order) => {
+    const newBOMMap = {};
+    // วนลูปทุก order item ถ้า is_part = false ให้ดึงข้อมูล BOM ของ product นั้น ๆ
+    for (const item of order.order_items) {
+      if (!item.product.is_part) {
+        try {
+          const res = await axios.get(
+            `${process.env.REACT_APP_API}/api/products/${item.product.id}/bom`
+          );
+          // ใช้ order item id เป็น key
+          newBOMMap[item.id] = res.data;
+        } catch (err) {
+          console.error("Error loading BOM for product:", item.product.id, err);
+          // กำหนดเป็น [] หากไม่มี BOM หรือโหลดไม่สำเร็จ
+          newBOMMap[item.id] = [];
+        }
+      }
+    }
+    setBomDetailsMap(newBOMMap);
+  };
 
   const items = [
     { label: "ทั้งหมด", value: "ทั้งหมด", icon: "pi pi-list" },
@@ -191,6 +223,17 @@ const OrderPage = () => {
                 }}
               />
               <Column header="สถานะ" body={statusTemplate} />
+              <Column
+                header="สรุปออเดอร์"
+                body={(rowData) => (
+                  <Button
+                    label="ดูสรุป"
+                    icon="pi pi-print"
+                    className="p-button-sm"
+                    onClick={() => viewOrderSummary(rowData)}
+                  />
+                )}
+              />
             </DataTable>
           </TabPanel>
         ))}
@@ -237,6 +280,15 @@ const OrderPage = () => {
           <p>ไม่มีข้อมูลที่อยู่</p>
         )}
       </Dialog>
+
+      {selectedOrder && (
+        <OrderSummaryDialog
+          visible={visibleSummary}
+          onHide={() => setVisibleSummary(false)}
+          selectedOrder={selectedOrder}
+          bomDetailsMap={bomDetailsMap}
+        />
+      )}
     </div>
   );
 };

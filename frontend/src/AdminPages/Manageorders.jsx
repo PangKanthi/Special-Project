@@ -9,6 +9,7 @@ import { Tag } from "primereact/tag";
 import { InputNumber } from "primereact/inputnumber";
 import { InputText } from "primereact/inputtext";
 import { TabView, TabPanel } from "primereact/tabview";
+import OrderSummaryDialog from "../Component/OrderSummaryDialog";
 import axios from "axios";
 
 const ManageOrders = () => {
@@ -20,13 +21,43 @@ const ManageOrders = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [confirmDialogVisible, setConfirmDialogVisible] = useState(false);
   const [search, setSearch] = useState("");
-  const [selectedOrderForStatusUpdate, setSelectedOrderForStatusUpdate] = useState(null);
+  const [selectedOrderForStatusUpdate, setSelectedOrderForStatusUpdate] =
+    useState(null);
   // เก็บ mapping ของ price tiers (จาก productPriceTier) โดยใช้ product id
   const [productTierOptions, setProductTierOptions] = useState({});
   // State สำหรับ Dialog แสดงข้อมูล BOM (อะไหล่ที่ใช้)
   const [visibleBOMDialog, setVisibleBOMDialog] = useState(false);
   const [currentBOM, setCurrentBOM] = useState([]);
 
+  const [visibleSummary, setVisibleSummary] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [bomDetailsMap, setBomDetailsMap] = useState({});
+
+  const viewOrderSummary = async (order) => {
+    setSelectedOrder(order);
+    await fetchBOMForOrder(order);
+    setVisibleSummary(true);
+  };
+
+  const fetchBOMForOrder = async (order) => {
+    const newBOMMap = {};
+    for (const item of order.order_items) {
+      if (!item.product.is_part) {
+        try {
+          const res = await axios.get(
+            `${process.env.REACT_APP_API}/api/products/${item.product.id}/bom`
+          );
+          // ใช้ order item id เป็น key
+          newBOMMap[item.id] = res.data;
+        } catch (err) {
+          console.error("Error loading BOM for product:", item.product.id, err);
+          newBOMMap[item.id] = [];
+        }
+      }
+    }
+    setBomDetailsMap(newBOMMap);
+  };
+  
   useEffect(() => {
     fetchOrders();
   }, []);
@@ -51,7 +82,11 @@ const ManageOrders = () => {
             );
             tiersByProduct[productId] = response.data;
           } catch (error) {
-            console.error("Error fetching price tiers for product", productId, error);
+            console.error(
+              "Error fetching price tiers for product",
+              productId,
+              error
+            );
           }
         })
       );
@@ -294,9 +329,9 @@ const ManageOrders = () => {
         />
       );
     }
-    const thicknessOptions = Array.from(new Set(tiers.map((tier) => tier.thickness))).map(
-      (thk) => ({ label: thk, value: thk })
-    );
+    const thicknessOptions = Array.from(
+      new Set(tiers.map((tier) => tier.thickness))
+    ).map((thk) => ({ label: thk, value: thk }));
     return (
       <Dropdown
         value={options.value}
@@ -469,7 +504,10 @@ const ManageOrders = () => {
         </div>
       </div>
       <Card>
-        <TabView activeIndex={activeIndex} onTabChange={(e) => setActiveIndex(e.index)}>
+        <TabView
+          activeIndex={activeIndex}
+          onTabChange={(e) => setActiveIndex(e.index)}
+        >
           {tabItems.map((tab, idx) => (
             <TabPanel
               key={idx}
@@ -489,9 +527,18 @@ const ManageOrders = () => {
                 sortOrder={-1}
               >
                 <Column field="id" header="หมายเลขคำสั่งซื้อ" sortable />
-                <Column header="ชื่อจริง" body={(rowData) => rowData.user?.firstname || "-"} />
-                <Column header="นามสกุล" body={(rowData) => rowData.user?.lastname || "-"} />
-                <Column header="เบอร์โทรศัพท์" body={(rowData) => rowData.user?.phone || "-"} />
+                <Column
+                  header="ชื่อจริง"
+                  body={(rowData) => rowData.user?.firstname || "-"}
+                />
+                <Column
+                  header="นามสกุล"
+                  body={(rowData) => rowData.user?.lastname || "-"}
+                />
+                <Column
+                  header="เบอร์โทรศัพท์"
+                  body={(rowData) => rowData.user?.phone || "-"}
+                />
                 <Column
                   header="ที่อยู่"
                   body={(rowData) => (
@@ -522,7 +569,12 @@ const ManageOrders = () => {
                     `${Number(rowData.total_amount).toLocaleString()} บาท`
                   }
                 />
-                <Column field="status" header="สถานะ" body={statusTemplate} sortable />
+                <Column
+                  field="status"
+                  header="สถานะ"
+                  body={statusTemplate}
+                  sortable
+                />
                 <Column
                   header="เปลี่ยนสถานะ"
                   body={(rowData) => (
@@ -534,8 +586,21 @@ const ManageOrders = () => {
                         { label: "เสร็จสิ้น", value: "complete" },
                         { label: "ยกเลิก", value: "cancle" },
                       ]}
-                      onChange={(e) => handleStatusChangeRequest(rowData, e.value)}
+                      onChange={(e) =>
+                        handleStatusChangeRequest(rowData, e.value)
+                      }
                       style={{ width: "150px" }}
+                    />
+                  )}
+                />
+                <Column
+                  header="สรุปออเดอร์"
+                  body={(rowData) => (
+                    <Button
+                      label="ดูสรุป"
+                      icon="pi pi-print"
+                      className="p-button-sm"
+                      onClick={() => viewOrderSummary(rowData)}
                     />
                   )}
                 />
@@ -544,15 +609,30 @@ const ManageOrders = () => {
           ))}
         </TabView>
       </Card>
-      <Dialog header="รายการสินค้า" visible={visibleItems} style={{ width: "80vw" }} onHide={() => setVisibleItems(false)}>
-        <DataTable value={orderItems} editMode="row" dataKey="id" onRowEditComplete={onRowEditComplete}>
+      <Dialog
+        header="รายการสินค้า"
+        visible={visibleItems}
+        style={{ width: "80vw" }}
+        onHide={() => setVisibleItems(false)}
+      >
+        <DataTable
+          value={orderItems}
+          editMode="row"
+          dataKey="id"
+          onRowEditComplete={onRowEditComplete}
+        >
           <Column field="product.name" header="ชื่อสินค้า" />
-          <Column header="รูปสินค้า" body={(rowData) => <ImageTemplate rowData={rowData} />} />
+          <Column
+            header="รูปสินค้า"
+            body={(rowData) => <ImageTemplate rowData={rowData} />}
+          />
           <Column
             field="color"
             header="สี"
             editor={colorEditor}
-            body={(rowData) => (rowData.color === "default" ? "" : rowData.color || "-")}
+            body={(rowData) =>
+              rowData.color === "default" ? "" : rowData.color || "-"
+            }
           />
           <Column
             field="width"
@@ -582,21 +662,34 @@ const ManageOrders = () => {
             field="thickness"
             header="ความหนา"
             editor={thicknessEditor}
-            body={(rowData) => (rowData.color === "default" ? "" : rowData.thickness || "-")}
+            body={(rowData) =>
+              rowData.color === "default" ? "" : rowData.thickness || "-"
+            }
           />
           <Column
             field="installOption"
             header="ตัวเลือกติดตั้ง"
             editor={installOptionEditor}
-            body={(rowData) => (rowData.color === "default" ? "" : rowData.installOption || "-")}
+            body={(rowData) =>
+              rowData.color === "default" ? "" : rowData.installOption || "-"
+            }
           />
           <Column field="quantity" header="จำนวน" editor={quantityEditor} />
           <Column field="price" header="ราคา/ต่อชิ้น (บาท)" />
           <Column header="ตรวจเช็ครายการอะไหล่" body={bomButtonTemplate} />
-          <Column rowEditor headerStyle={{ width: "5rem" }} bodyStyle={{ textAlign: "center" }} />
+          <Column
+            rowEditor
+            headerStyle={{ width: "5rem" }}
+            bodyStyle={{ textAlign: "center" }}
+          />
         </DataTable>
       </Dialog>
-      <Dialog header="รายละเอียดที่อยู่" visible={visibleAddress} style={{ width: "50vw" }} onHide={() => setVisibleAddress(false)}>
+      <Dialog
+        header="รายละเอียดที่อยู่"
+        visible={visibleAddress}
+        style={{ width: "50vw" }}
+        onHide={() => setVisibleAddress(false)}
+      >
         {selectedAddress ? (
           <DataTable value={[selectedAddress]}>
             <Column field="addressLine" header="ที่อยู่" />
@@ -615,7 +708,11 @@ const ManageOrders = () => {
         onHide={() => setConfirmDialogVisible(false)}
         footer={
           <div>
-            <Button label="ยกเลิก" className="p-button-text" onClick={() => setConfirmDialogVisible(false)} />
+            <Button
+              label="ยกเลิก"
+              className="p-button-text"
+              onClick={() => setConfirmDialogVisible(false)}
+            />
             <Button
               label="ยืนยัน"
               className="p-button-primary"
@@ -632,11 +729,18 @@ const ManageOrders = () => {
       >
         <p>
           คุณแน่ใจว่าต้องการเปลี่ยนสถานะเป็น "
-          {selectedOrderForStatusUpdate?.newStatus === "complete" ? "เสร็จแล้ว" : "ยกเลิก"}
+          {selectedOrderForStatusUpdate?.newStatus === "complete"
+            ? "เสร็จแล้ว"
+            : "ยกเลิก"}
           " หรือไม่?
         </p>
       </Dialog>
-      <Dialog header="รายการอะไหล่ที่ใช้" visible={visibleBOMDialog} style={{ width: "60vw" }} onHide={() => setVisibleBOMDialog(false)}>
+      <Dialog
+        header="รายการอะไหล่ที่ใช้"
+        visible={visibleBOMDialog}
+        style={{ width: "60vw" }}
+        onHide={() => setVisibleBOMDialog(false)}
+      >
         <DataTable value={currentBOM} dataKey="partName">
           {/* คอลัมน์ใหม่สำหรับแสดงรูปอะไหล่ */}
           <Column
@@ -656,6 +760,14 @@ const ManageOrders = () => {
           <Column field="unit" header="หน่วย" />
         </DataTable>
       </Dialog>
+      {selectedOrder && (
+        <OrderSummaryDialog
+          visible={visibleSummary}
+          onHide={() => setVisibleSummary(false)}
+          selectedOrder={selectedOrder}
+          bomDetailsMap={bomDetailsMap}
+        />
+      )}
     </div>
   );
 };
