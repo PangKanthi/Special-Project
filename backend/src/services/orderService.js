@@ -53,8 +53,8 @@ class OrderService {
                                 name: true,
                                 images: true,
                                 category: true,
-                                // 🟢 ต้องเพิ่ม "colors" มาด้วย
-                                colors: true
+                                colors: true,
+                                warranty: true
                             }
                         }
                     }
@@ -74,63 +74,62 @@ class OrderService {
 
     static async updateOrderStatus(orderId, status) {
         let updatedOrder;
-      
+
         await prisma.$transaction(async (tx) => {
-          const order = await tx.order.findUnique({
-            where: { id: orderId },
-            include: { order_items: { include: { product: true } } }
-          });
-      
-          if (!order) throw new Error("Order not found");
-      
-          updatedOrder = await tx.order.update({
-            where: { id: orderId },
-            data: { status }
-          });
-      
-          if (status === "complete") {
-            for (const item of order.order_items) {
-              const product = item.product;
-              if (product.is_part) {
-                await tx.product.update({
-                  where: { id: product.id },
-                  data: {
-                    stock_quantity: {
-                      decrement: item.quantity
-                    }
-                  }
-                });
-              } else {
-                const bomItems = await tx.bom_item.findMany({
-                  where: { productId: product.id },
-                  include: { part: true }
-                });
-                for (const bom of bomItems) {
-                  const requiredQty = item.quantity * bom.quantity;
-                  if (bom.part) {
-                    await tx.product.update({
-                      where: { id: bom.part.id },
-                      data: {
-                        stock_quantity: {
-                          decrement: requiredQty
-                        }
-                      }
-                    });
-                  }
-                }
-              }
+            const order = await tx.order.findUnique({
+                where: { id: orderId },
+                include: { order_items: { include: { product: true } } }
+            });
+
+            if (!order) throw new Error("Order not found");
+
+            const updateData = { status };
+            if (status === "complete") {
+                updateData.completedAt = new Date();
             }
-          }
+
+            updatedOrder = await tx.order.update({
+                where: { id: orderId },
+                data: updateData
+            });
+
+            if (status === "complete") {
+                for (const item of order.order_items) {
+                    const product = item.product;
+                    if (product.is_part) {
+                        await tx.product.update({
+                            where: { id: product.id },
+                            data: {
+                                stock_quantity: { decrement: item.quantity }
+                            }
+                        });
+                    } else {
+                        const bomItems = await tx.bom_item.findMany({
+                            where: { productId: product.id },
+                            include: { part: true }
+                        });
+                        for (const bom of bomItems) {
+                            const requiredQty = item.quantity * bom.quantity;
+                            if (bom.part) {
+                                await tx.product.update({
+                                    where: { id: bom.part.id },
+                                    data: { stock_quantity: { decrement: requiredQty } }
+                                });
+                            }
+                        }
+                    }
+                }
+            }
         });
-      
-        // ✅ รอ transaction จบก่อนค่อยเช็คแจ้งเตือน
+
         if (status === "complete") {
-          await createOutOfStockNotifications();
+            await createOutOfStockNotifications();
         }
-      
+
         return updatedOrder;
-      }
-      
+    }
+
+
 
     static async createOrderFromCart(userId, addressId) {
         return await prisma.$transaction(async (tx) => {

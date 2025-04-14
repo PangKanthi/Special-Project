@@ -13,6 +13,32 @@ import moment from "moment";
 
 const API_URL = `${process.env.REACT_APP_API}/api`;
 
+const fmtTHB = (num) =>
+  num === null || num === undefined
+    ? "-"
+    : `${Number(num).toLocaleString("th-TH")} บาท`;
+
+const calculateWarrantyStatus = (completedAt, warranty) => {
+  if (!completedAt || !warranty) return "-";
+  const completedAtBkk = moment.tz(completedAt, "Asia/Bangkok");
+  const expiryDate = completedAtBkk.clone().add(warranty, "year");
+  return moment.tz("Asia/Bangkok").isBefore(expiryDate);
+};
+
+const serviceTypeTH = (val) => {
+  switch (val) {
+    case "shutter":
+      return "ประตูม้วน";
+    case "shutter_parts":
+      return "อะไหล่ประตูม้วน";
+    default:
+      return val || "-";
+  }
+};
+
+const formatDateBkk = (date) =>
+  moment.tz(date, "Asia/Bangkok").format("DD/MM/YYYY HH:mm");
+
 const Managerepairrequests = ({ setNotifications }) => {
   const [repairRequests, setRepairRequests] = useState([]);
   const [filteredRepairs, setFilteredRepairs] = useState([]);
@@ -82,6 +108,7 @@ const Managerepairrequests = ({ setNotifications }) => {
     ตัวล็อคโซ่สาว: "ตัว",
     ชุดมอเตอร์ประตูม้วน: "ชุด",
     สวิตช์กดควบคุม: "ชุด",
+    อื่นๆ:"ชุด",
   };
 
   const confirmSelectedParts = async () => {
@@ -223,9 +250,11 @@ const Managerepairrequests = ({ setNotifications }) => {
         },
         body: JSON.stringify({
           status: newStatus,
-          ...(newStatus === "complete" && repairPrice !== null && !isNaN(repairPrice)
+          ...(newStatus === "complete" &&
+          repairPrice !== null &&
+          !isNaN(repairPrice)
             ? { repair_price: parseFloat(repairPrice) }
-            : {})
+            : {}),
         }),
       });
 
@@ -237,6 +266,7 @@ const Managerepairrequests = ({ setNotifications }) => {
           req.id === updatedItem.id ? updatedItem : req
         );
         setRepairRequests(newList);
+        await fetchRepairRequests();
       } else {
         console.error("Update failed:", data.error);
       }
@@ -244,7 +274,6 @@ const Managerepairrequests = ({ setNotifications }) => {
       console.error("Update error:", err);
     }
   };
-
 
   const updateRepairStatus = (repairId, newStatus) => {
     if (newStatus === "complete" || newStatus === "cancle") {
@@ -326,7 +355,10 @@ const Managerepairrequests = ({ setNotifications }) => {
         <h1 className="text-2xl font-bold">การจัดการคำขอแจ้งซ่อม</h1>
 
         {/* (A) Search Box ตำแหน่งชิดขวา */}
-        <div className="flex ml-auto items-center gap-2 mt-3" style={{ width: '100%', maxWidth: '500px', height: "38px" }}>
+        <div
+          className="flex ml-auto items-center gap-2 mt-3"
+          style={{ width: "100%", maxWidth: "500px", height: "38px" }}
+        >
           <span className="p-input-icon-left w-full">
             <i className="pi pi-search pl-3 text-gray-500" />
             <InputText
@@ -341,13 +373,12 @@ const Managerepairrequests = ({ setNotifications }) => {
             icon="pi pi-pencil"
             className="p-button-sm px-3 text-sm h-full py-0"
             style={{
-              fontSize: '0.875rem',
-              whiteSpace: 'nowrap',
-              minWidth: '180px'
+              fontSize: "0.875rem",
+              whiteSpace: "nowrap",
+              minWidth: "180px",
             }}
             onClick={() => setEditDefaultPriceVisible(true)}
           />
-
         </div>
       </div>
 
@@ -388,7 +419,11 @@ const Managerepairrequests = ({ setNotifications }) => {
             body={(rowData) => rowData.user?.phone || "ไม่ระบุ"}
             header="เบอร์โทรศัพท์"
           />
-          <Column field="service_type" header="ประเภทการซ่อม" />
+          <Column
+            field="service_type"
+            header="ประเภทการซ่อม"
+            body={(rowData) => serviceTypeTH(rowData.service_type)}
+          />
           <Column
             header="สินค้าแจ้งซ่อม"
             body={(rowData) => (
@@ -430,12 +465,28 @@ const Managerepairrequests = ({ setNotifications }) => {
           />
           <Column
             field="repair_price"
-            header="ราคาซ่อม (บาท)"
-            body={(rowData) =>
-              rowData.repair_price !== null
-                ? Number(rowData.repair_price).toLocaleString("th-TH")
-                : "-"
-            }
+            header="ราคาซ่อม"
+            body={(rowData) => fmtTHB(rowData.repair_price)}
+          />
+          <Column
+            header="การรับประกัน"
+            body={(rowData) => {
+              const warranty =
+                rowData.warranty ??
+                rowData.order?.order_items?.[0]?.product?.warranty ??
+                null;
+              const isUnder = calculateWarrantyStatus(
+                rowData.order?.completedAt,
+                warranty
+              );
+              if (isUnder === "-") return <span>-</span>;
+              return (
+                <Tag
+                  value={isUnder ? "อยู่ในการรับประกัน" : "หมดประกัน"}
+                  severity={isUnder ? "success" : "danger"}
+                />
+              );
+            }}
           />
           <Column
             field="status"
@@ -504,7 +555,8 @@ const Managerepairrequests = ({ setNotifications }) => {
           <Column
             header="สต็อกที่มี"
             body={(rowData) =>
-              `${rowData.stock_quantity.toLocaleString()} ${unitMap[rowData.category] || "ชุด"
+              `${rowData.stock_quantity.toLocaleString()} ${
+                unitMap[rowData.category] || "ชุด"
               }`
             }
           />
@@ -634,8 +686,24 @@ const Managerepairrequests = ({ setNotifications }) => {
               <Column field="quantity" header="จำนวน" />
               <Column
                 field="price"
-                header="ราคา/ต่อชิ้น (บาท)"
-                body={(rowData) => rowData.price?.toLocaleString()}
+                header="ราคา/ต่อชิ้น"
+                body={(rowData) => fmtTHB(rowData.price)}
+              />
+              <Column
+                header="การรับประกัน"
+                body={(rowData) => {
+                  const years = Number(rowData.warranty ?? 0);
+                  const completed = rowData.order?.completedAt ?? null;
+                  const status = calculateWarrantyStatus(completed, years);
+                  if (status === "-") return <span>-</span>;
+
+                  return (
+                    <Tag
+                      value={status ? "อยู่ในการรับประกัน" : "หมดประกัน"}
+                      severity={status ? "success" : "danger"}
+                    />
+                  );
+                }}
               />
             </DataTable>
           </div>
@@ -647,19 +715,28 @@ const Managerepairrequests = ({ setNotifications }) => {
         onHide={() => setEditDefaultPriceVisible(false)}
         footer={
           <>
-            <Button label="ยกเลิก" onClick={() => setEditDefaultPriceVisible(false)} className="p-button-text" />
+            <Button
+              label="ยกเลิก"
+              onClick={() => setEditDefaultPriceVisible(false)}
+              className="p-button-text"
+            />
             <Button
               label="บันทึก"
               onClick={async () => {
                 try {
-                  const res = await fetch(`${process.env.REACT_APP_API}/api/repair-requests/default-repair-price`, {
-                    method: "PUT",
-                    headers: {
-                      "Content-Type": "application/json",
-                      Authorization: `Bearer ${localStorage.getItem("token")}`,
-                    },
-                    body: JSON.stringify({ value: newDefaultPrice }),
-                  });
+                  const res = await fetch(
+                    `${process.env.REACT_APP_API}/api/repair-requests/default-repair-price`,
+                    {
+                      method: "PUT",
+                      headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${localStorage.getItem(
+                          "token"
+                        )}`,
+                      },
+                      body: JSON.stringify({ value: newDefaultPrice }),
+                    }
+                  );
                   const data = await res.json();
                   if (res.ok) {
                     alert("อัปเดตราคาสำเร็จ");
@@ -684,9 +761,8 @@ const Managerepairrequests = ({ setNotifications }) => {
           locale="th-TH"
           placeholder="กรอกราคาใหม่"
         />
+        <label> บาท</label>
       </Dialog>
-
-
     </div>
   );
 };

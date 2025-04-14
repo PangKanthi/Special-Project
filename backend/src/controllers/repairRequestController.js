@@ -7,6 +7,7 @@ const prisma = new PrismaClient();
 export const createRepairRequest = async (req, res, next) => {
     try {
         const {
+            orderId,
             problemDescription,
             serviceType,
             firstname,
@@ -61,6 +62,7 @@ export const createRepairRequest = async (req, res, next) => {
         // ✅ บันทึกข้อมูล `images` เป็น Array ใน PostgreSQL
         const repairRequest = await prisma.repair_request.create({
             data: {
+                orderId: orderId ? parseInt(orderId, 10) : null, 
                 userId,
                 addressId: finalAddressId,
                 problem_description: problemDescription,
@@ -115,15 +117,29 @@ export const getRepairRequestById = async (req, res, next) => {
 
 export const getAllRepairRequests = async (req, res) => {
     try {
-        const allRequests = await prisma.repair_request.findMany({
+        const all = await prisma.repair_request.findMany({
             include: {
                 user: true,
-                address: true
+                address: true,
+                order: {
+                    include: {
+                        order_items: {
+                            include: { product: { select: { warranty: true } } }
+                        }
+                    }
+                }
             }
         });
-        return res.status(200).json({ message: "ดึงข้อมูลคำขอซ่อมทั้งหมดสำเร็จ", data: allRequests });
+
+        const enriched = all.map(r => ({
+            ...r,
+            warranty: r.order?.order_items?.[0]?.product?.warranty ?? null
+        }));
+
+        return res.status(200).json({ message: "ok", data: enriched });
     } catch (err) {
-        return res.status(500).json({ error: "เกิดข้อผิดพลาดในการดึงข้อมูลทั้งหมด" });
+        console.error("❌ getAllRepairRequests error:", err);
+        return res.status(500).json({ error: "server error" });
     }
 };
 
@@ -208,7 +224,7 @@ export const getUserCompletedProducts = async (req, res) => {
                         product: true,
                     },
                 },
-                address: true // ✅ แก้ตรงนี้
+                address: true
             },
         });
 
@@ -228,6 +244,7 @@ export const getUserCompletedProducts = async (req, res) => {
             order.order_items
                 .filter(item => item.product)
                 .map(item => ({
+                    orderId: order.id, 
                     productId: item.product.id,
                     name: item.product.name,
                     product_image: item.product.images || [],
@@ -246,7 +263,9 @@ export const getUserCompletedProducts = async (req, res) => {
                     thickness: item.thickness,
                     installOption: item.installOption,
                     quantity: item.quantity,
-                    price: item.price
+                    price: item.price,
+                    warranty: item.product.warranty,
+                    completedAt: order.completedAt,
                 }))
         );
 

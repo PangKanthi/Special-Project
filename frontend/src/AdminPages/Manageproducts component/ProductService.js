@@ -31,9 +31,12 @@ const ProductService = {
     formData.append("price", priceValue || " ");
     formData.append("is_part", product.is_part ? true : false);
     formData.append("category", product.category);
-    formData.append("warranty", product.warranty || "");
+    formData.append("price", priceValue ?? "");
     formData.append("stock_quantity", stockQuantityValue);
     formData.append("colors", JSON.stringify(product.colors));
+    formData.append("warranty", product.warranty === "" || product.warranty == null
+      ? ""
+      : String(product.warranty));
 
     product.images.forEach((img) => {
       formData.append("images", img.file);
@@ -55,7 +58,7 @@ const ProductService = {
 
   async updateProduct(productId, updatedProduct) {
     const priceValue = updatedProduct.price === "" ? null : updatedProduct.price;
-    const stockQuantityValue = updatedProduct.stock_quantity ? String(updatedProduct.stock_quantity): null;
+    const stockQuantityValue = updatedProduct.stock_quantity ? String(updatedProduct.stock_quantity) : null;
 
     const formData = new FormData();
     formData.append("name", updatedProduct.name);
@@ -63,7 +66,9 @@ const ProductService = {
     formData.append("price", priceValue);
     formData.append("is_part", JSON.stringify(updatedProduct.is_part === true));
     formData.append("category", updatedProduct.category);
-    formData.append("warranty", updatedProduct.warranty || "");
+    formData.append("warranty", updatedProduct.warranty === "" || updatedProduct.warranty == null
+      ? ""
+      : String(updatedProduct.warranty));
     formData.append("stock_quantity", stockQuantityValue);
     formData.append("colors", JSON.stringify(updatedProduct.colors));
     formData.append("status", updatedProduct.status);

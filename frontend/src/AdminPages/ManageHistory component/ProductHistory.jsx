@@ -6,7 +6,15 @@ import { Dialog } from "primereact/dialog";
 import { Toast } from "primereact/toast";
 import { Tag } from "primereact/tag";
 import { Dropdown } from "primereact/dropdown";
+import moment from "moment-timezone";
 import axios from "axios";
+
+const isUnderWarranty = (completedAt, warrantyYears) => {
+  const years = Number(warrantyYears);
+  if (!completedAt || !years || isNaN(years)) return null;
+  const expiry = moment.tz(completedAt, "Asia/Bangkok").add(years, "year");
+  return moment.tz("Asia/Bangkok").isBefore(expiry);
+};
 
 const ProductHistory = () => {
   const [orders, setOrders] = useState([]);
@@ -104,7 +112,12 @@ const ProductHistory = () => {
 
   const viewOrderItems = (order) => {
     if (order.order_items && order.order_items.length > 0) {
-      setOrderItems(order.order_items);
+      setOrderItems(
+        order.order_items.map((item) => ({
+          ...item,
+          orderCompletedAt: order.completedAt,
+        }))
+      );
       setVisibleItems(true);
     } else {
       alert("ไม่มีรายการสินค้า");
@@ -199,7 +212,14 @@ const ProductHistory = () => {
             />
           )}
         />
-        <Column field="total_amount" header="ยอดรวมทั้งหมด (บาท)" sortable />
+        <Column
+          field="total_amount"
+          header="ยอดรวมทั้งหมด"
+          sortable
+          body={(rowData) =>
+            `${Number(rowData.total_amount).toLocaleString("th-TH")} บาท`
+          }
+        />
         <Column header="สถานะ" body={statusTemplate} sortable />
         <Column
           header="ลบ"
@@ -237,6 +257,21 @@ const ProductHistory = () => {
             body={(rowData) => {
               const price = Number(rowData.price) || 0;
               return `${price.toLocaleString("th-TH")} บาท`;
+            }}
+          />
+          <Column
+            header="การรับประกัน"
+            body={(rowData) => {
+              const years = rowData.product?.warranty ?? null;
+              const completed = rowData.orderCompletedAt ?? null;
+              const status = isUnderWarranty(completed, years);
+              if (status === null) return <span>-</span>;
+              return (
+                <Tag
+                  value={status ? "อยู่ในการรับประกัน" : "หมดประกัน"}
+                  severity={status ? "success" : "danger"}
+                />
+              );
             }}
           />
         </DataTable>

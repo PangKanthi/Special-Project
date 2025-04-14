@@ -5,18 +5,31 @@ export const createProduct = async (req, res, next) => {
   try {
     const imageUrls = req.files ? req.files.map(file => `/uploads/products/${file.filename}`) : [];
     const colors = req.body.colors ? JSON.parse(req.body.colors) : [];
+    const toNumberOrNull = (val, parseFn) => {
+      if (val === undefined || val === null) return null;
+      const txt = String(val).trim();
+      if (txt === "") return null;
+      const n = parseFn(txt);
+      return Number.isNaN(n) ? null : n;
+    };
 
+    const price = toNumberOrNull(req.body.price, parseFloat);      // Decimal?
+    const stock_quantity = toNumberOrNull(req.body.stock_quantity, parseInt);
+    const warranty = toNumberOrNull(req.body.warranty, parseInt);     // Int?
+    const isPart = req.body.is_part === "true" || req.body.is_part === true;
+    const statusFlag = req.body.status === "true" || req.body.status === true;
+    //-------------------------------------------------------------
     const newProduct = await ProductService.createProduct(
       {
         name: req.body.name,
         description: req.body.description || "",
-        price: parseFloat(req.body.price),
-        is_part: req.body.is_part === "true",
+        price,
+        is_part: isPart,
         category: req.body.category,
-        warranty: req.body.warranty || "",
-        stock_quantity: parseInt(req.body.stock_quantity, 10),
+        warranty,
+        stock_quantity,
         colors,
-        status: req.body.status === "true",
+        status: statusFlag,
       },
       imageUrls
     );
@@ -29,22 +42,32 @@ export const createProduct = async (req, res, next) => {
 
 export const updateProduct = async (req, res, next) => {
   try {
-    const isPart = req.body.is_part === "true" || req.body.is_part === true;
-    const stockQuantity = req.body.stock_quantity ? parseInt(req.body.stock_quantity, 10) : null;
-    const price = req.body.price ? parseFloat(req.body.price) : null;
     const colors = req.body.colors ? JSON.parse(req.body.colors) : [];
     const newImages = req.files ? req.files.map(file => `/uploads/products/${file.filename}`) : [];
     const status = req.body.status === "true" || req.body.status === true;
+    const toNumberOrNull = (val, parseFn) => {
+      if (val === undefined || val === null) return null;
+      const txt = String(val).trim();
+      if (txt === "") return null;
+      const n = parseFn(txt);
+      return Number.isNaN(n) ? null : n;
+    };
+
+    const price = toNumberOrNull(req.body.price, parseFloat);
+    const stockQuantity = toNumberOrNull(req.body.stock_quantity, parseInt);
+    const warranty = toNumberOrNull(req.body.warranty, parseInt);
+    const isPart = req.body.is_part === "true" || req.body.is_part === true;
+    const statusFlag = req.body.status === "true" || req.body.status === true;
 
     const updatedProduct = await ProductService.updateProduct(
       req.params.id,
-      { 
-        ...req.body, 
+      {
+        ...req.body,
         is_part: isPart,
         stock_quantity: stockQuantity,
         price: price,
         colors,
-        status
+        status: statusFlag
       },
       newImages
     );

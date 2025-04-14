@@ -7,6 +7,7 @@ import { Dialog } from "primereact/dialog";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Dropdown } from "primereact/dropdown";
+import { getBangkokTime } from "../utils/timeUtils";
 
 // ----- Hook สำหรับยอดขาย (ที่เราแยกไฟล์) -----
 import useSalesDataSeparate from "./Homeadmin component/useSalesDataSeparate";
@@ -35,6 +36,7 @@ const unitMap = {
   ตัวล็อคโซ่สาว: "ตัว",
   ชุดมอเตอร์ประตูม้วน: "ชุด",
   สวิตช์กดควบคุม: "ชุด",
+  อื่นๆ:"ชุด",
   manual_rolling_shutter: "ชุด",
   chain_electric_shutter: "ชุด",
   electric_rolling_shutter: "ชุด",
@@ -76,7 +78,7 @@ export default function Homeadmin() {
   const { summaryData, loadSummary, loading } = useUserSummaryData();
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [userChartMode, setUserChartMode] = useState("daily");
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedYear, setSelectedYear] = useState(getBangkokTime().getFullYear());
   const [chartCategory, setChartCategory] = useState("sales"); // "sales" หรือ "repairs"
 
 

@@ -16,15 +16,17 @@ const Repair = () => {
     problemDescription: "",
     serviceType: "",
     images: [],
-    product_name: "",        // ชื่อสินค้า
-    product_image: [],       // รูปภาพสินค้า
-    color: "",               // สี
-    width: "",               // ความกว้าง
-    length: "",              // ความยาว
-    thickness: "",           // ความหนา
-    installOption: "",       // ตัวเลือกติดตั้ง
-    quantity: "",            // จำนวน
-    price: "",               // ราคาต่อชิ้น
+    product_name: "", // ชื่อสินค้า
+    product_image: [], // รูปภาพสินค้า
+    color: "", // สี
+    width: "", // ความกว้าง
+    length: "", // ความยาว
+    thickness: "", // ความหนา
+    installOption: "", // ตัวเลือกติดตั้ง
+    quantity: "", // จำนวน
+    price: "", // ราคาต่อชิ้น
+    warranty: "",
+    completedAt: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -88,9 +90,12 @@ const Repair = () => {
     const token = localStorage.getItem("token");
     const fetchCompletedProducts = async () => {
       try {
-        const res = await fetch(`${process.env.REACT_APP_API}/api/repair-requests/completed-products`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await fetch(
+          `${process.env.REACT_APP_API}/api/repair-requests/completed-products`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         const data = await res.json();
         if (res.ok) setCompletedProducts(data.data);
       } catch (err) {
@@ -201,6 +206,9 @@ const Repair = () => {
 
     const formData = new FormData();
     formData.append("problemDescription", form.problemDescription);
+    if (selectedProduct && selectedProduct.orderId) {
+      formData.append("orderId", selectedProduct.orderId);
+    }
     formData.append("serviceType", form.serviceType);
     formData.append("firstname", user?.firstname || "");
     formData.append("lastname", user?.lastname || "");
@@ -212,11 +220,11 @@ const Repair = () => {
     formData.append("installOption", form.installOption);
     formData.append("quantity", form.quantity);
     formData.append("price", form.price);
+    formData.append("warranty", form.warranty);
 
     form.product_image.forEach((img) => {
       formData.append("product_image", img);
     });
-    
 
     form.images.forEach((img) => {
       formData.append("images", img.file);
@@ -311,35 +319,36 @@ const Repair = () => {
       // ✅ ตั้งค่าที่อยู่ตาม order เดิม
       if (selectedProduct.address) {
         setSelectedAddress(selectedProduct.address);
-        setForm(prevForm => ({
+        setForm((prevForm) => ({
           ...prevForm,
           addressLine: selectedProduct.address.addressLine,
           province: selectedProduct.address.province,
           district: selectedProduct.address.district,
           subdistrict: selectedProduct.address.subdistrict,
-          postcode: selectedProduct.address.postalCode
+          postcode: selectedProduct.address.postalCode,
         }));
       }
 
       // ✅ ตั้งค่า product snapshot + serviceType
-      setForm(prev => ({
+      setForm((prev) => ({
         ...prev,
-        serviceType: selectedProduct.service_type ?? '',
+        serviceType: selectedProduct.service_type ?? "",
 
         // 🔁 กรอกข้อมูลสินค้าที่เลือก
-        product_name: selectedProduct.name ?? '',
+        product_name: selectedProduct.name ?? "",
         product_image: selectedProduct.product_image || [],
-        color: selectedProduct.color ?? '',
-        width: selectedProduct.width ?? '',
-        length: selectedProduct.length ?? '',
-        thickness: selectedProduct.thickness ?? '',
-        installOption: selectedProduct.installOption ?? '',
-        quantity: selectedProduct.quantity ?? '',
-        price: selectedProduct.price ?? ''
+        color: selectedProduct.color ?? "",
+        width: selectedProduct.width ?? "",
+        length: selectedProduct.length ?? "",
+        thickness: selectedProduct.thickness ?? "",
+        installOption: selectedProduct.installOption ?? "",
+        quantity: selectedProduct.quantity ?? "",
+        price: selectedProduct.price ?? "",
+        warranty: selectedProduct.warranty ?? "",
+        completedAt: selectedProduct.completedAt ?? "",
       }));
     }
   }, [selectedProduct]);
-
 
   return (
     <div

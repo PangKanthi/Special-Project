@@ -32,6 +32,7 @@ const unitMap = {
   ตัวล็อคโซ่สาว: "ตัว",
   ชุดมอเตอร์ประตูม้วน: "ชุด",
   สวิตช์กดควบคุม: "ชุด",
+  อื่นๆ:"ชุด",
   manual_rolling_shutter: "ชุด",
   chain_electric_shutter: "ชุด",
   electric_rolling_shutter: "ชุด",
@@ -58,6 +59,7 @@ const partCategoryOptions = [
   { label: "ตัวล็อคโซ่สาว", value: "ตัวล็อคโซ่สาว" },
   { label: "ชุดมอเตอร์ประตูม้วน", value: "ชุดมอเตอร์ประตูม้วน" },
   { label: "สวิตช์กดควบคุม", value: "สวิตช์กดควบคุม" },
+  { label: "อื่นๆ", value: "อื่นๆ" },
 ];
 
 const checkLogin = () => {

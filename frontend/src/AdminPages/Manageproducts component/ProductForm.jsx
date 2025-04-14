@@ -6,6 +6,7 @@ import { MultiSelect } from "primereact/multiselect";
 import { Dropdown } from "primereact/dropdown";
 import { Dialog } from "primereact/dialog";
 import { InputSwitch } from "primereact/inputswitch";
+import { InputNumber } from "primereact/inputnumber";
 
 const ProductForm = ({
   visible,
@@ -35,6 +36,7 @@ const ProductForm = ({
     ตัวล็อคโซ่สาว: "ตัว",
     ชุดมอเตอร์ประตูม้วน: "ชุด",
     สวิตช์กดควบคุม: "ชุด",
+    อื่นๆ: "ชุด",
     manual_rolling_shutter: "ชุด",
     chain_electric_shutter: "ชุด",
     electric_rolling_shutter: "ชุด",
@@ -174,8 +176,8 @@ const ProductForm = ({
                 newProduct.is_part === false
                   ? categoryOptions.shutter
                   : newProduct.is_part === true
-                    ? categoryOptions.shutter_parts
-                    : []
+                  ? categoryOptions.shutter_parts
+                  : []
               }
               onChange={handleInputChange}
               className="w-full"
@@ -260,11 +262,21 @@ const ProductForm = ({
           </div>
 
           <div className="pt-3">
-            <label className="block">การรับประกัน</label>
-            <InputText
+            <label className="block">การรับประกัน ระบุจำนวนปี</label>
+            <InputNumber
               name="warranty"
-              value={newProduct.warranty}
-              onChange={handleInputChange}
+              placeholder="ระบุจำนวนปี"
+              value={newProduct.warranty ?? null} // null = ช่องว่าง
+              onValueChange={(e) =>
+                handleInputChange({
+                  target: {
+                    name: "warranty",
+                    value: e.value === null ? "" : e.value, // ส่งกลับไปให้ handler
+                  },
+                })
+              }
+              min={0}
+              mode="decimal"
               className="w-full"
             />
           </div>

@@ -3,14 +3,15 @@ import { InputText } from "primereact/inputtext";
 import { Dropdown } from "primereact/dropdown";
 import { InputTextarea } from "primereact/inputtextarea";
 import { Message } from "primereact/message";
-import useLocationData from "../../Hooks/useLocationData"; // Hook โหลดข้อมูลจังหวัด
+import useLocationData from "../../Hooks/useLocationData";
+import moment from "moment-timezone";
 
 const problemOptions = [
   { label: "ประตูม้วนติดขัดด้านข้าง", value: "ประตูม้วนติดขัดด้านข้าง" },
   { label: "แผ่นประตูหลุดออกจากราง", value: "แผ่นประตูหลุดออกจากราง" },
   { label: "แผ่นประตูชำรุด/เสียหาย", value: "แผ่นประตูชำรุด" },
   { label: "รางประตูชำรุด/บิดงอ", value: "รางประตูชำรุด" },
-  { label: "มอเตอร์ประตูม้วนขัดข้อง", value: "มอเตอร์ประตูม้วนขัดข้อง" }
+  { label: "มอเตอร์ประตูม้วนขัดข้อง", value: "มอเตอร์ประตูม้วนขัดข้อง" },
 ];
 
 const RepairForm = ({
@@ -26,7 +27,7 @@ const RepairForm = ({
   errors,
   completedProducts,
   selectedProduct,
-  setSelectedProduct
+  setSelectedProduct,
 }) => {
   // ✅ ใช้ Hook locationData ดึงจังหวัด/อำเภอ/ตำบล
   const { provinces, amphures, tambons } = useLocationData();
@@ -91,13 +92,15 @@ const RepairForm = ({
   useEffect(() => {
     const fetchDefaultPrice = async () => {
       try {
-        const res = await fetch(`${process.env.REACT_APP_API}/api/repair-requests/default-repair-price`);
+        const res = await fetch(
+          `${process.env.REACT_APP_API}/api/repair-requests/default-repair-price`
+        );
         const data = await res.json();
         if (res.ok) {
           setDefaultPrice(data.price);
           setForm((prevForm) => ({
             ...prevForm,
-            repair_price: data.price // ✅ กำหนดราคาลงใน form
+            repair_price: data.price, // ✅ กำหนดราคาลงใน form
           }));
         }
       } catch (err) {
@@ -108,10 +111,11 @@ const RepairForm = ({
     fetchDefaultPrice();
   }, []);
 
-
-
   return (
-    <div className="p-fluid p-formgrid p-grid" style={{ justifyContent: "center" }}>
+    <div
+      className="p-fluid p-formgrid p-grid"
+      style={{ justifyContent: "center" }}
+    >
       {/* 🔸 ประเภทการซ่อม */}
       <div className="p-field p-col-12">
         <h3 className="text-right">
@@ -134,7 +138,9 @@ const RepairForm = ({
                       src={`${process.env.REACT_APP_API}${option.image}`}
                       alt={option.name}
                       style={{ width: 40, marginRight: 10 }}
-                      onError={(e) => (e.target.src = "https://via.placeholder.com/40")}
+                      onError={(e) =>
+                        (e.target.src = "https://via.placeholder.com/40")
+                      }
                     />
                   )}
                   <span>{option.name}</span>
@@ -143,27 +149,68 @@ const RepairForm = ({
             />
             {selectedProduct && (
               <div className="p-field p-col-12 border p-3 rounded bg-gray-100 mt-2">
-                <p><strong>ชื่อสินค้า:</strong> {selectedProduct.name}</p>
-                {Array.isArray(form.product_image) && form.product_image.map((img, index) => (
-                  <img
-                    key={index}
-                    src={`${process.env.REACT_APP_API}${img}`}
-                    alt={`รูปสินค้า ${index + 1}`}
-                    style={{
-                      width: "120px",
-                      height: "100px",
-                      objectFit: "cover",
-                      marginRight: "10px",
-                      borderRadius: "10px"
-                    }}
-                  />
-                ))}
-                <p><strong>สี:</strong> {selectedProduct.color}</p>
-                <p><strong>ขนาด:</strong> {selectedProduct.width} x {selectedProduct.length} เมตร</p>
-                <p><strong>ความหนา:</strong> {selectedProduct.thickness}</p>
-                <p><strong>ตัวเลือกติดตั้ง:</strong> {selectedProduct.installOption}</p>
-                <p><strong>จำนวน:</strong> {selectedProduct.quantity}</p>
-                <p><strong>ราคาต่อชิ้น:</strong> {selectedProduct.price?.toLocaleString()} บาท</p>
+                <p>
+                  <strong>ชื่อสินค้า:</strong> {selectedProduct.name}
+                </p>
+                {Array.isArray(form.product_image) &&
+                  form.product_image.map((img, index) => (
+                    <img
+                      key={index}
+                      src={`${process.env.REACT_APP_API}${img}`}
+                      alt={`รูปสินค้า ${index + 1}`}
+                      style={{
+                        width: "120px",
+                        height: "100px",
+                        objectFit: "cover",
+                        marginRight: "10px",
+                        borderRadius: "10px",
+                      }}
+                    />
+                  ))}
+                <p>
+                  <strong>สี:</strong> {selectedProduct.color}
+                </p>
+                <p>
+                  <strong>ขนาด:</strong> {selectedProduct.width} x{" "}
+                  {selectedProduct.length} เมตร
+                </p>
+                <p>
+                  <strong>ความหนา:</strong> {selectedProduct.thickness}
+                </p>
+                <p>
+                  <strong>ตัวเลือกติดตั้ง:</strong>{" "}
+                  {selectedProduct.installOption}
+                </p>
+                <p>
+                  <strong>จำนวน:</strong> {selectedProduct.quantity}
+                </p>
+                <p>
+                  <strong>ราคาต่อชิ้น:</strong>{" "}
+                  {selectedProduct.price?.toLocaleString()} บาท
+                </p>
+                {selectedProduct.completedAt &&
+                  selectedProduct.warranty &&
+                  (() => {
+                    // แปลงเวลา completedAt เป็นโซน Asia/Bangkok
+                    const completedAtBangkok = moment
+                      .utc(selectedProduct.completedAt)
+                      .tz("Asia/Bangkok");
+                    // บวกจำนวนปีของการรับประกันเพื่อคำนวณวันหมดอายุ
+                    const expiryDate = completedAtBangkok
+                      .clone()
+                      .add(selectedProduct.warranty, "year");
+                    // เปรียบเทียบกับเวลาปัจจุบันในโซน Asia/Bangkok
+                    const isUnderWarranty = moment()
+                      .tz("Asia/Bangkok")
+                      .isBefore(expiryDate);
+                    return (
+                      <p>
+                        <strong>สถานะประกัน:</strong>{" "}
+                        {isUnderWarranty ? "อยู่ในประกัน" : "หมดประกัน"}
+                      </p>
+                    );
+                  })()}
+
               </div>
             )}
           </div>
@@ -177,7 +224,9 @@ const RepairForm = ({
             onChange={(e) => setForm({ ...form, serviceType: e.value })}
             placeholder="*เลือกประเภทบริการ"
           />
-          {errors.serviceType && <Message severity="error" text={errors.serviceType} />}
+          {errors.serviceType && (
+            <Message severity="error" text={errors.serviceType} />
+          )}
         </div>
       </div>
 

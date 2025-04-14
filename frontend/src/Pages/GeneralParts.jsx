@@ -55,6 +55,7 @@ const GeneralParts = () => {
     { label: "ตัวล็อคโซ่สาว", value: "ตัวล็อคโซ่สาว" },
     { label: "ชุดมอเตอร์ประตูม้วน", value: "ชุดมอเตอร์ประตูม้วน" },
     { label: "สวิตช์กดควบคุม", value: "สวิตช์กดควบคุม" },
+    { label: "อื่นๆ", value: "อื่นๆ" }
   ];  
 
   let filteredProducts = products.filter((product) => {

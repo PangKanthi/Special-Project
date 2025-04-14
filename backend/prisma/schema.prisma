@@ -20,7 +20,7 @@ model product {
   description    String?      @db.Text
   price          Decimal?     @db.Decimal(10, 2)
   category       String       @db.VarChar(50)
-  warranty       String?      @db.VarChar(50)
+  warranty       Int?
   is_part        Boolean?     @default(false)
   stock_quantity Int?
   created_at     DateTime?    @default(now()) @db.Timestamp(6)
@@ -77,18 +77,20 @@ model Address {
 }
 
 model order {
-  id             Int      @id @default(autoincrement())
-  order_date     DateTime @default(now()) @db.Timestamp(6)
-  status         String   @db.VarChar(20)
-  total_amount   Decimal  @db.Decimal(10, 2)
+  id             Int       @id @default(autoincrement())
+  order_date     DateTime  @default(now()) @db.Timestamp(6)
+  completedAt    DateTime? @db.Timestamp(6)
+  status         String    @db.VarChar(20)
+  total_amount   Decimal   @db.Decimal(10, 2)
   userId         Int
   addressId      Int
-  payment_status String   @db.VarChar(20)
+  payment_status String    @db.VarChar(20)
 
-  user          user           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  address       Address        @relation(fields: [addressId], references: [id], onDelete: Cascade)
-  order_items   order_item[]
-  payment_slips payment_slip[]
+  user           user             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  address        Address          @relation(fields: [addressId], references: [id], onDelete: Cascade)
+  order_items    order_item[]
+  payment_slips  payment_slip[]
+  repair_request repair_request[]
 
   @@map("orders")
 }
@@ -150,6 +152,7 @@ model repair_request {
   problem_description String       @db.Text
   service_type        String?      @db.VarChar(50)
   request_date        DateTime     @default(now()) @db.Timestamp(6)
+  orderId             Int?
   userId              Int
   addressId           Int
   status              RepairStatus @default(pending)
@@ -167,6 +170,7 @@ model repair_request {
 
   user        user          @relation(fields: [userId], references: [id], onDelete: Cascade)
   address     Address       @relation(fields: [addressId], references: [id], onDelete: Cascade)
+  order       order?        @relation(fields: [orderId], references: [id])
   repair_part repair_part[]
 }
 

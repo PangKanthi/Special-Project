@@ -24,6 +24,7 @@ const unitMap = {
   "ตัวล็อคโซ่สาว": "ตัว",
   "ชุดมอเตอร์ประตูม้วน": "ชุด",
   "สวิตช์กดควบคุม": "ชุด",
+  อื่นๆ:"ชุด",
   manual_rolling_shutter: "ชุด",
   chain_electric_shutter: "ชุด",
   electric_rolling_shutter: "ชุด",

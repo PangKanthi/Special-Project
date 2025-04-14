@@ -28,6 +28,7 @@ const ManageProducts = () => {
     ตัวล็อคโซ่สาว: "ตัวล็อคโซ่สาว",
     ชุดมอเตอร์ประตูม้วน: "ชุดมอเตอร์ประตูม้วน",
     สวิตช์กดควบคุม: "สวิตช์กดควบคุม",
+    อื่นๆ: "อื่นๆ",
   };
 
   const [search, setSearch] = useState("");
@@ -89,7 +90,14 @@ const ManageProducts = () => {
   };
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-
+    if (name === "warranty") {
+      const num = parseInt(value, 10);
+      setNewProduct((prev) => ({
+        ...prev,
+        warranty: Number.isNaN(num) ? null : num,
+      }));
+      return;
+    }
     if (name === "category") {
       const configKey = categoryMap[value];
 
@@ -114,7 +122,7 @@ const ManageProducts = () => {
           ...prev,
           category: value,
           description: fullDesc,
-          warranty: warranty,
+          warranty: warranty ?? null,
         }));
         return;
       }
@@ -283,6 +291,7 @@ const ManageProducts = () => {
             { label: "ตัวล็อคโซ่สาว", value: "ตัวล็อคโซ่สาว" },
             { label: "ชุดมอเตอร์ประตูม้วน", value: "ชุดมอเตอร์ประตูม้วน" },
             { label: "สวิตช์กดควบคุม", value: "สวิตช์กดควบคุม" },
+            { label: "อื่นๆ", value: "อื่นๆ" },
           ],
         }}
       />
@@ -327,6 +336,7 @@ const ManageProducts = () => {
             { label: "ตัวล็อคโซ่สาว", value: "ตัวล็อคโซ่สาว" },
             { label: "ชุดมอเตอร์ประตูม้วน", value: "ชุดมอเตอร์ประตูม้วน" },
             { label: "สวิตช์กดควบคุม", value: "สวิตช์กดควบคุม" },
+            { label: "อื่นๆ", value: "อื่นๆ" },
           ],
         }}
       />
