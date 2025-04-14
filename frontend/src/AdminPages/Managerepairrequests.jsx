@@ -60,7 +60,8 @@ const Managerepairrequests = ({ setNotifications }) => {
   };
 
   const handleQuantityChange = (productId, value) => {
-    setSelectedParts((prev) => ({ ...prev, [productId]: value }));
+    const validValue = value < 0 ? 0 : value;
+    setSelectedParts((prev) => ({ ...prev, [productId]: validValue }));
   };
 
   const viewRepairItem = (repair) => {

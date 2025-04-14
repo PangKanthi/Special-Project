@@ -28,9 +28,15 @@ const ProductHistory = () => {
     if (dataLoaded) {
       console.log("Orders fetched:", orders);
       if (statusFilter === null) {
-        setFilteredOrders(orders.filter(order => order.status === 'complete' || order.status === 'cancle'));
+        setFilteredOrders(
+          orders.filter(
+            (order) => order.status === "complete" || order.status === "cancle"
+          )
+        );
       } else {
-        setFilteredOrders(orders.filter(order => order.status === statusFilter));
+        setFilteredOrders(
+          orders.filter((order) => order.status === statusFilter)
+        );
       }
     }
   }, [orders, statusFilter, dataLoaded]);
@@ -38,9 +44,12 @@ const ProductHistory = () => {
   const fetchOrders = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(`${process.env.REACT_APP_API}/api/orders`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        `${process.env.REACT_APP_API}/api/orders`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       const fetchedOrders = response.data.data.filter(
         (order) => order.status === "complete" || order.status === "cancle"
@@ -60,7 +69,9 @@ const ProductHistory = () => {
       await axios.delete(`${process.env.REACT_APP_API}/api/orders/${orderId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setOrders((prevOrders) => prevOrders.filter((order) => order.id !== orderId));
+      setOrders((prevOrders) =>
+        prevOrders.filter((order) => order.id !== orderId)
+      );
       toast.current.show({
         severity: "success",
         summary: "สำเร็จ",
@@ -141,11 +152,31 @@ const ProductHistory = () => {
   return (
     <div>
       <Toast ref={toast} />
-      <DataTable value={filteredOrders} dataKey="id" paginator rows={10} sortField="user.id" sortOrder={1}>
-        <Column header="ID" body={(rowData) => rowData.user?.id || "-"} sortable/>
-        <Column header="ชื่อ" body={(rowData) => rowData.user?.firstname || "-"} />
-        <Column header="นามสกุล" body={(rowData) => rowData.user?.lastname || "-"} />
-        <Column header="เบอร์โทรศัพท์" body={(rowData) => rowData.user?.phone || "-"} />
+      <DataTable
+        value={filteredOrders}
+        dataKey="id"
+        paginator
+        rows={10}
+        sortField="user.id"
+        sortOrder={1}
+      >
+        <Column
+          header="ID"
+          body={(rowData) => rowData.user?.id || "-"}
+          sortable
+        />
+        <Column
+          header="ชื่อ"
+          body={(rowData) => rowData.user?.firstname || "-"}
+        />
+        <Column
+          header="นามสกุล"
+          body={(rowData) => rowData.user?.lastname || "-"}
+        />
+        <Column
+          header="เบอร์โทรศัพท์"
+          body={(rowData) => rowData.user?.phone || "-"}
+        />
         <Column
           header="ที่อยู่"
           body={(rowData) => (
@@ -168,8 +199,8 @@ const ProductHistory = () => {
             />
           )}
         />
-        <Column field="total_amount" header="ยอดรวมทั้งหมด (บาท)" sortable/>
-        <Column header="สถานะ" body={statusTemplate} sortable/>
+        <Column field="total_amount" header="ยอดรวมทั้งหมด (บาท)" sortable />
+        <Column header="สถานะ" body={statusTemplate} sortable />
         <Column
           header="ลบ"
           body={(rowData) => (
@@ -191,14 +222,23 @@ const ProductHistory = () => {
       >
         <DataTable value={orderItems}>
           <Column field="product.name" header="ชื่อสินค้า" />
-          <Column header="รูปสินค้า" body={(rowData) => <ImageTemplate rowData={rowData} />} />
+          <Column
+            header="รูปสินค้า"
+            body={(rowData) => <ImageTemplate rowData={rowData} />}
+          />
           <Column field="color" header="สี" />
           <Column field="width" header="กว้าง (ม.)" />
           <Column field="length" header="ยาว (ม.)" />
           <Column field="thickness" header="ความหนา" />
           <Column field="installOption" header="ตัวเลือกติดตั้ง" />
           <Column field="quantity" header="จำนวน" />
-          <Column field="price" header="ราคา/ต่อชิ้น (บาท)" />
+          <Column
+            header="ราคา/ต่อชิ้น"
+            body={(rowData) => {
+              const price = Number(rowData.price) || 0;
+              return `${price.toLocaleString("th-TH")} บาท`;
+            }}
+          />
         </DataTable>
       </Dialog>
 
