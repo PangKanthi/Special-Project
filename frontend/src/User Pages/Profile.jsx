@@ -59,27 +59,15 @@ const Profile = () => {
     try {
       await axios.put(
         `${process.env.REACT_APP_API}/api/users/me/profile`,
-        { profile }, // หากไม่มีข้อมูลที่ต้องส่ง ให้ใส่ {}
+        profile,
         {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
       alert("อัปเดตโปรไฟล์สำเร็จ");
       setEditDialog(false);
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      if (error.response) {
-        alert(
-          `เกิดข้อผิดพลาด: ${
-            error.response.data.error || "ไม่สามารถอัปเดตโปรไฟล์ได้"
-          }`
-        );
-      } else {
-        alert("เกิดข้อผิดพลาดในการอัปเดตโปรไฟล์");
-      }
-    }
+      getUserProfile();
+    } catch (err) { /* … */ }
   };
 
   const changePassword = async () => {
