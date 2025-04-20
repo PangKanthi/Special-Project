@@ -23,6 +23,7 @@ export default function ManageProductPriceTier() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [editing, setEditing] = useState({});
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showAddThicknessDialog, setShowAddThicknessDialog] = useState(false);
   const [newTier, setNewTier] = useState({
     thickness: "",
     min_area: 0,
@@ -30,6 +31,7 @@ export default function ManageProductPriceTier() {
     price_per_sqm: 0,
     productId: null,
   });
+  const [newThickness, setNewThickness] = useState("");
   const toast = useRef(null);
   const [filterProductId, setFilterProductId] = useState(null);
   const [searchText, setSearchText] = useState("");
@@ -130,6 +132,14 @@ export default function ManageProductPriceTier() {
   };
 
   const addTier = async () => {
+    const { min_area, max_area, productId } = newTier;
+    const overlaps = checkOverlap(min_area, max_area, productId);
+
+    if (overlaps) {
+      toast.current.show({ severity: "error", summary: "พื้นที่ซ้ำกัน" });
+      return;
+    }
+
     try {
       await api.post(`/api/products/${newTier.productId}/price-tiers`, newTier);
       setShowAddDialog(false);
@@ -148,6 +158,43 @@ export default function ManageProductPriceTier() {
     } catch (err) {
       toast.current.show({ severity: "error", summary: err.message });
     }
+  };
+
+  const addThickness = async () => {
+    try {
+      // ส่งค่า newThickness และค่าพื้นที่และราคาเป็น 0
+      await api.post(`/api/products/${newTier.productId}/price-tiers`, {
+        thickness: newThickness,
+        min_area: newTier.min_area,
+        max_area: newTier.max_area,
+        price_per_sqm: newTier.price_per_sqm,
+      });
+      setShowAddThicknessDialog(false);
+      setNewThickness("");
+      setNewTier({
+        thickness: "",
+        min_area: 0,
+        max_area: 0,
+        price_per_sqm: 0,
+        productId: null,
+      });
+      loadProductsAndTiers();
+      toast.current.show({
+        severity: "success",
+        summary: "เพิ่มความหนาสำเร็จ",
+      });
+    } catch (err) {
+      toast.current.show({ severity: "error", summary: err.message });
+    }
+  };
+
+  const checkOverlap = (minArea, maxArea, productId) => {
+    const existingTiers = tiers.filter((tier) => tier.productId === productId);
+    return existingTiers.some(
+      (tier) =>
+        (minArea >= tier.min_area && minArea <= tier.max_area) ||
+        (maxArea >= tier.min_area && maxArea <= tier.max_area)
+    );
   };
 
   const filteredTiers = tiers.filter((tier) => {
@@ -183,6 +230,12 @@ export default function ManageProductPriceTier() {
             onChange={(e) => setSearchText(e.target.value)}
             placeholder="ค้นหาด้วยคำในชื่อสินค้า"
             className="w-72"
+          />
+          <Button
+            label="เพิ่มความหนา"
+            icon="pi pi-plus"
+            className="ml-4"
+            onClick={() => setShowAddThicknessDialog(true)}
           />
           <Button
             label="เพิ่มช่วงราคา"
@@ -273,16 +326,35 @@ export default function ManageProductPriceTier() {
             className="w-full mb-3"
           />
         </div>
+
         <div className="field">
           <label>ความหนา</label>
-          <InputText
-            value={newTier.thickness}
-            onChange={(e) =>
-              setNewTier((p) => ({ ...p, thickness: e.target.value }))
-            }
-            className="w-full"
-          />
+          {tiers.filter((tier) => tier.productId === newTier.productId).length >
+          0 ? (
+            <Dropdown
+              value={newTier.thickness}
+              options={tiers
+                .filter((tier) => tier.productId === newTier.productId)
+                .map((t) => ({ label: t.thickness, value: t.thickness }))}
+              onChange={(e) => {
+                const selectedTier = tiers.find(
+                  (tier) => tier.thickness === e.value
+                );
+                setNewTier((p) => ({
+                  ...p,
+                  thickness: e.value,
+                  min_area: selectedTier ? selectedTier.min_area : 0,
+                  max_area: selectedTier ? selectedTier.max_area : 0,
+                }));
+              }}
+              placeholder="เลือกความหนา"
+              className="w-full mb-3"
+            />
+          ) : (
+            <div className="text-red-600">กรุณาไปเพิ่มความหนาก่อน</div>
+          )}
         </div>
+
         <div className="grid formgrid">
           <div className="col-6">
             <label>พื้นที่ต่ำสุด</label>
@@ -305,6 +377,7 @@ export default function ManageProductPriceTier() {
             />
           </div>
         </div>
+
         <div className="field">
           <label>ราคา/ตร.ม.</label>
           <InputNumber
@@ -318,12 +391,97 @@ export default function ManageProductPriceTier() {
             className="w-full"
           />
         </div>
+
         <div className="mt-3">
           <Button
             label="บันทึก"
             icon="pi pi-check"
             onClick={addTier}
-            disabled={!newTier.productId}
+            disabled={
+              !newTier.productId ||
+              !newTier.thickness ||
+              newTier.min_area <= 0 ||
+              newTier.max_area <= 0 ||
+              newTier.price_per_sqm <= 0
+            }
+          />
+        </div>
+      </Dialog>
+
+      <Dialog
+        header="เพิ่มความหนาใหม่"
+        visible={showAddThicknessDialog}
+        onHide={() => setShowAddThicknessDialog(false)}
+      >
+        <div className="field">
+          <label>สินค้า</label>
+          <Dropdown
+            value={newTier.productId}
+            options={products.map((p) => ({ label: p.name, value: p.id }))}
+            onChange={(e) => setNewTier((p) => ({ ...p, productId: e.value }))}
+            placeholder="เลือกสินค้า"
+            className="w-full mb-3"
+          />
+        </div>
+
+        <div className="field">
+          <label>ความหนา</label>
+          <InputText
+            value={newThickness}
+            onChange={(e) => setNewThickness(e.target.value)}
+            className="w-full"
+          />
+        </div>
+
+        <div className="grid formgrid">
+          <div className="col-6">
+            <label>พื้นที่ต่ำสุด</label>
+            <InputNumber
+              value={newTier.min_area}
+              onValueChange={(e) =>
+                setNewTier((p) => ({ ...p, min_area: e.value }))
+              }
+              className="w-full"
+            />
+          </div>
+          <div className="col-6">
+            <label>พื้นที่สูงสุด</label>
+            <InputNumber
+              value={newTier.max_area}
+              onValueChange={(e) =>
+                setNewTier((p) => ({ ...p, max_area: e.value }))
+              }
+              className="w-full"
+            />
+          </div>
+        </div>
+
+        <div className="field">
+          <label>ราคา/ตร.ม.</label>
+          <InputNumber
+            value={newTier.price_per_sqm}
+            onValueChange={(e) =>
+              setNewTier((p) => ({ ...p, price_per_sqm: e.value }))
+            }
+            mode="currency"
+            currency="THB"
+            locale="th-TH"
+            className="w-full"
+          />
+        </div>
+
+        <div className="mt-3">
+          <Button
+            label="เพิ่มความหนา"
+            icon="pi pi-check"
+            onClick={addThickness}
+            disabled={
+              !newTier.productId ||
+              !newThickness ||
+              newTier.min_area <= 0 ||
+              newTier.max_area <= 0 ||
+              newTier.price_per_sqm <= 0
+            }
           />
         </div>
       </Dialog>

@@ -52,7 +52,7 @@ export default function useSalesDataSeparate() {
   async function loadMonthData(selectedMonth) {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("http://localhost:1234/api/orders", {
+      const response = await axios.get(`${process.env.REACT_APP_API}/api/orders`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const completedOrders = response.data.data.filter(o => o.status === "complete");
