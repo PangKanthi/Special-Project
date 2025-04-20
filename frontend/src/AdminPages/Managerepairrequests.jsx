@@ -64,6 +64,7 @@ const Managerepairrequests = ({ setNotifications }) => {
   const [search, setSearch] = useState("");
   const [editDefaultPriceVisible, setEditDefaultPriceVisible] = useState(false);
   const [newDefaultPrice, setNewDefaultPrice] = useState(null);
+  const [visibleUserDialog, setVisibleUserDialog] = useState(false);
 
   const openAddressDialog = (rowData) => {
     setSelectedRequest(rowData);
@@ -95,6 +96,11 @@ const Managerepairrequests = ({ setNotifications }) => {
     setVisibleItems(true);
   };
 
+  const openUserInfoDialog = (rowData) => {
+    setSelectedRequest(rowData);
+    setVisibleUserDialog(true);
+  };
+
   const unitMap = {
     แผ่นประตูม้วน: "แผ่น",
     เสารางประตูม้วน: "เส้น",
@@ -108,7 +114,7 @@ const Managerepairrequests = ({ setNotifications }) => {
     ตัวล็อคโซ่สาว: "ตัว",
     ชุดมอเตอร์ประตูม้วน: "ชุด",
     สวิตช์กดควบคุม: "ชุด",
-    อื่นๆ:"ชุด",
+    อื่นๆ: "ชุด",
   };
 
   const confirmSelectedParts = async () => {
@@ -251,8 +257,8 @@ const Managerepairrequests = ({ setNotifications }) => {
         body: JSON.stringify({
           status: newStatus,
           ...(newStatus === "complete" &&
-          repairPrice !== null &&
-          !isNaN(repairPrice)
+            repairPrice !== null &&
+            !isNaN(repairPrice)
             ? { repair_price: parseFloat(repairPrice) }
             : {}),
         }),
@@ -408,22 +414,17 @@ const Managerepairrequests = ({ setNotifications }) => {
           sortOrder={-1}
         >
           <Column
-            body={(rowData) => rowData.user?.firstname || "ไม่ระบุ"}
-            header="ชื่อจริง"
+            header="ข้อมูลผู้ใช้"
+            body={(rowData) => (
+              <Button
+                label="ดูผู้ใช้"
+                icon="pi pi-eye"
+                className="p-button-sm"
+                onClick={() => openUserInfoDialog(rowData)}
+              />
+            )}
           />
-          <Column
-            body={(rowData) => rowData.user?.lastname || "ไม่ระบุ"}
-            header="นามสกุล"
-          />
-          <Column
-            body={(rowData) => rowData.user?.phone || "ไม่ระบุ"}
-            header="เบอร์โทรศัพท์"
-          />
-          <Column
-            field="service_type"
-            header="ประเภทการซ่อม"
-            body={(rowData) => serviceTypeTH(rowData.service_type)}
-          />
+
           <Column
             header="สินค้าแจ้งซ่อม"
             body={(rowData) => (
@@ -447,7 +448,8 @@ const Managerepairrequests = ({ setNotifications }) => {
             body={(rowData) => (
               <Button
                 label="ดูที่อยู่"
-                className="p-button-text p-button-sm"
+                icon="pi pi-eye"
+                className="p-button-sm"
                 onClick={() => openAddressDialog(rowData)}
               />
             )}
@@ -458,7 +460,8 @@ const Managerepairrequests = ({ setNotifications }) => {
             body={(rowData) => (
               <Button
                 label="เลือกอะไหล่"
-                className="p-button-outlined p-button-sm"
+                icon="pi pi-eye"
+                className="p-button-sm"
                 onClick={() => openPartsDialog(rowData)}
               />
             )}
@@ -555,8 +558,7 @@ const Managerepairrequests = ({ setNotifications }) => {
           <Column
             header="สต็อกที่มี"
             body={(rowData) =>
-              `${rowData.stock_quantity.toLocaleString()} ${
-                unitMap[rowData.category] || "ชุด"
+              `${rowData.stock_quantity.toLocaleString()} ${unitMap[rowData.category] || "ชุด"
               }`
             }
           />
@@ -763,6 +765,32 @@ const Managerepairrequests = ({ setNotifications }) => {
         />
         <label> บาท</label>
       </Dialog>
+      <Dialog
+        header={`ข้อมูลผู้ใช้: ${selectedRequest?.user?.username || "ไม่ระบุ"}`}
+        visible={visibleUserDialog}
+        style={{ width: "650px" }}
+        onHide={() => setVisibleUserDialog(false)}
+      >
+        <DataTable
+          value={
+            selectedRequest?.user
+              ? [
+                {
+                  ...selectedRequest.user,
+                  service_type_text: serviceTypeTH(selectedRequest.service_type),
+                },
+              ]
+              : []
+          }
+          emptyMessage="ไม่พบข้อมูลผู้ใช้"
+        >
+          <Column field="firstname" header="ชื่อจริง" />
+          <Column field="lastname" header="นามสกุล" />
+          <Column field="phone" header="เบอร์โทร" />
+          <Column field="service_type_text" header="ประเภทการซ่อม" />
+        </DataTable>
+      </Dialog>
+
     </div>
   );
 };

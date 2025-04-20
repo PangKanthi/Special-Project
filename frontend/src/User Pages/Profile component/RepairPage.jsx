@@ -16,6 +16,8 @@ const RepairPage = () => {
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [visibleItems, setVisibleItems] = useState(false);
     const [selectedRepairItem, setSelectedRepairItem] = useState(null);
+    const [visibleAddressDialog, setVisibleAddressDialog] = useState(false);
+    const [selectedAddress, setSelectedAddress] = useState(null);
 
     useEffect(() => {
         fetchRepairRequests();
@@ -71,6 +73,11 @@ const RepairPage = () => {
         setRowsPerPage(event.rows);
     };
 
+    const openAddressDialog = (repair) => {
+        setSelectedAddress(repair.address);
+        setVisibleAddressDialog(true);
+    };
+
     const imageTemplate = (rowData) => {
         return (
             <div>
@@ -122,7 +129,6 @@ const RepairPage = () => {
         return <Tag value={statusText} severity={severity} />;
     };
 
-
     return (
         <div>
             <TabMenu
@@ -157,11 +163,17 @@ const RepairPage = () => {
                 />
                 <Column field="problem_description" header="รายละเอียด" />
                 <Column body={dateTemplate} header="วันที่แจ้งซ่อม" />
-                <Column field="address.addressLine" header="ที่อยู่" />
-                <Column field="address.province" header="จังหวัด" />
-                <Column field="address.district" header="เขต/อำเภอ" />
-                <Column field="address.subdistrict" header="ตำบล" />
-                <Column field="address.postalCode" header="รหัสไปรษณีย์" />
+                <Column
+                    header="ที่อยู่"
+                    body={(rowData) => (
+                        <Button
+                            label="ดูที่อยู่"
+                            icon="pi pi-eye"
+                            className="p-button-sm"
+                            onClick={() => openAddressDialog(rowData)}
+                        />
+                    )}
+                />
                 <Column body={imageTemplate} header="รูปภาพ" />
                 <Column body={statusTemplate} field="status" header="สถานะ" />
             </DataTable>
@@ -204,6 +216,20 @@ const RepairPage = () => {
                         </DataTable>
                     </div>
                 )}
+            </Dialog>
+            <Dialog
+                header="ข้อมูลที่อยู่"
+                visible={visibleAddressDialog}
+                style={{ width: "650px" }}
+                onHide={() => setVisibleAddressDialog(false)}
+            >
+                <DataTable value={selectedAddress ? [selectedAddress] : []}>
+                    <Column field="addressLine" header="ที่อยู่" />
+                    <Column field="subdistrict" header="ตำบล" />
+                    <Column field="district" header="เขต/อำเภอ" />
+                    <Column field="province" header="จังหวัด" />
+                    <Column field="postalCode" header="รหัสไปรษณีย์" />
+                </DataTable>
             </Dialog>
         </div>
     );

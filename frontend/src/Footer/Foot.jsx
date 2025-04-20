@@ -12,11 +12,10 @@ const Footer = () => {
       boxShadow: "0px -4px 8px rgba(0, 0, 0, 0.2)",
     }}>
       <div className="grid align-items-center">
-        {/* ✅ โลโก้ */}
         <div className="col-12 md:col-2 flex justify-content-center align-items-center">
           <div style={{
             backgroundColor: "#ffffff",
-            padding: "12px", // ✅ ลดขนาด padding ให้เล็กลง
+            padding: "12px",
             borderRadius: "10px",
             boxShadow: "0px 3px 6px rgba(0, 0, 0, 0.1)",
           }}>
@@ -26,7 +25,7 @@ const Footer = () => {
 
         {/* ✅ ชื่อบริษัท */}
         <div className="col-12 md:col-2 flex justify-content-center align-items-center">
-          <h3 style={{ fontWeight: "bold", marginBottom: "0", fontSize: "16px" }}>ดีเดย์ ประตูม้วน ระยอง</h3>
+          <h3 style={{ fontWeight: "bold", marginBottom: "0", fontSize: "16px" }}>หจก. ดีเดย์ ประตูม้วน (สำนักงานใหญ่)</h3>
         </div>
 
         {/* ✅ เกี่ยวกับเรา */}
@@ -35,15 +34,15 @@ const Footer = () => {
           <p style={{ fontSize: "12px", lineHeight: "1.4" }}>
             จำหน่ายติดตั้งประตูม้วนไฟฟ้าลิ่ม ระยอง ติดตั้งประตูม้วนทุกชนิด ใช้งานสะดวก ใช้วัสดุคุณภาพ ราคาไม่แพง
           </p>
-          <p style={{ fontSize: "14px", fontWeight: "bold" }}>📞 08-6033-5224</p>
+          <p style={{ fontSize: "14px", fontWeight: "bold" }}>📞 083-015-1893</p>
         </div>
 
         {/* ✅ ติดต่อเรา */}
         <div className="col-12 md:col-3">
           <h4 style={{ fontSize: "14px", borderBottom: "1px solid #ffffff", display: "inline-block", paddingBottom: "3px" }}>ติดต่อเรา</h4>
           <p style={{ fontSize: "12px", lineHeight: "1.4" }}>ดีเดย์ ประตูม้วน ระยอง</p>
-          <p style={{ fontSize: "12px" }}>407/ หมู่ 2 ต.บานทอง อ.ปลวกแดง จ.ระยอง 21140</p>
-          <p style={{ fontSize: "14px", fontWeight: "bold" }}>📞 08-6033-5224</p>
+          <p style={{ fontSize: "12px" }}>422/63 หมู่ 5 ต.เขาคันทรง อ.ศรีราชา จ.ชลบุรี 20230</p>
+          <p style={{ fontSize: "14px", fontWeight: "bold" }}>📞 086-033-5224</p>
           <p style={{ fontSize: "12px", color: "#ffeb3b", cursor: "pointer" }}>
             ✉ Email: Ddayshutter@Hotmail.com
           </p>
@@ -62,7 +61,7 @@ const Footer = () => {
 
       {/* ✅ Copyright */}
       <p style={{ fontSize: "10px", opacity: "0.8" }}>
-        © 2024 ดีเดย์ ประตูม้วน ระยอง | All Rights Reserved
+        © 2024 ดีเดย์ ประตูม้วน | All Rights Reserved
       </p>
     </div>
   );
