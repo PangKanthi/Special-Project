@@ -23,17 +23,22 @@ const ManageOrders = () => {
   const [search, setSearch] = useState("");
   const [selectedOrderForStatusUpdate, setSelectedOrderForStatusUpdate] =
     useState(null);
-  // เก็บ mapping ของ price tiers (จาก productPriceTier) โดยใช้ product id
   const [productTierOptions, setProductTierOptions] = useState({});
-  // State สำหรับ Dialog แสดงข้อมูล BOM (อะไหล่ที่ใช้)
   const [visibleBOMDialog, setVisibleBOMDialog] = useState(false);
   const [currentBOM, setCurrentBOM] = useState([]);
-
   const [visibleSummary, setVisibleSummary] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [bomDetailsMap, setBomDetailsMap] = useState({});
+  const [visibleAddProductDialog, setVisibleAddProductDialog] = useState(false);
+  const [products, setProducts] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [quantity, setQuantity] = useState(1);
 
   const viewOrderSummary = async (order) => {
+    if (!order || !order.id) {
+      alert("กรุณาเลือกคำสั่งซื้อลูกค้าก่อน");
+      return;
+    }
     setSelectedOrder(order);
     await fetchBOMForOrder(order);
     setVisibleSummary(true);
@@ -57,12 +62,12 @@ const ManageOrders = () => {
     }
     setBomDetailsMap(newBOMMap);
   };
-  
+
   useEffect(() => {
     fetchOrders();
+    fetchProducts();
   }, []);
 
-  // หลังจาก orders โหลดเสร็จ ดึงข้อมูล price tiers สำหรับสินค้าทั้งหมดที่อยู่ใน orders
   useEffect(() => {
     const fetchAllPriceTiers = async () => {
       const tiersByProduct = {};
@@ -113,7 +118,80 @@ const ManageOrders = () => {
     }
   };
 
-  // คำนวณราคาใหม่โดยใช้ข้อมูลจาก productPriceTier (คำนวณจากพื้นที่และราคา per square meter)
+  const fetchProducts = async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_API}/api/products`
+      );
+      const parts = response.data.filter((product) => product.is_part === true);
+      setProducts(parts);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
+
+  const addProductToOrder = async (productId, quantity) => {
+    if (!selectedOrder || !selectedOrder.id) {
+      alert("กรุณาเลือกคำสั่งซื้อลูกค้าก่อน");
+      return;
+    }
+
+    if (!productId || quantity <= 0) {
+      alert("กรุณาเลือกสินค้าและจำนวนสินค้า");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      console.log("Sending data to API:", {
+        orderId: selectedOrder.id,
+        productId,
+        quantity,
+      });
+
+      // ส่งข้อมูลไปที่ API
+      const response = await axios.post(
+        `${process.env.REACT_APP_API}/api/orders/${selectedOrder.id}/add-item`,
+        { productId, quantity },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      // รีเฟรชข้อมูลรายการสินค้า
+      const { data } = await axios.get(
+        `${process.env.REACT_APP_API}/api/orders/${selectedOrder.id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setOrderItems(data.data.order_items); // อัพเดต orderItems ใหม่
+      setVisibleAddProductDialog(false); // ปิด Dialog หลังจากเพิ่มสินค้า
+      fetchOrders(); // อัพเดตข้อมูลคำสั่งซื้อ
+    } catch (error) {
+      console.error("Error adding product to order:", error);
+    }
+  };
+
+  const selectOrder = (order) => {
+    setSelectedOrder(order);
+  };
+
+  const removeProductFromOrder = async (orderItemId) => {
+    console.log("Removing product:", orderItemId, "from order:", selectedOrder.id);
+    try {
+        const token = localStorage.getItem("token");
+        const response = await axios.delete(
+            `${process.env.REACT_APP_API}/api/orders/${selectedOrder.id}/remove-item/${orderItemId}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        // Assuming the backend returns updated order data
+        setOrderItems(response.data.orderItems); // Update order items in the UI
+        setSelectedOrder({ ...selectedOrder, total_amount: response.data.total_amount }); // Update the total amount
+    } catch (error) {
+        console.error("Error removing product from order:", error);
+    }
+};
+
+
   const recalcPriceWithRowDataAsync = async (rowData) => {
     const productId = rowData.product?.id;
     if (rowData.color === "default" || !productId) return rowData.price;
@@ -248,7 +326,6 @@ const ManageOrders = () => {
     return <Tag value={statusText} severity={severity} />;
   };
 
-  // แสดงรูปสินค้าใน DataTable ของ order item
   const ImageTemplate = (rowData) => {
     const images = rowData.rowData.product?.images || [];
     return (
@@ -278,6 +355,7 @@ const ManageOrders = () => {
   };
 
   const viewOrderItems = (order) => {
+    setSelectedOrder(order);
     setOrderItems(order.order_items);
     setVisibleItems(true);
   };
@@ -440,7 +518,6 @@ const ManageOrders = () => {
     );
   };
 
-  // แสดงปุ่ม "ตรวจเช็ครายการอะไหล่" เฉพาะสำหรับ order item ที่ไม่ใช่อะไหล่
   const bomButtonTemplate = (rowData) => {
     if (rowData.product && !rowData.product.is_part) {
       return (
@@ -454,8 +531,6 @@ const ManageOrders = () => {
     return null;
   };
 
-  // ฟังก์ชันดึงข้อมูล BOM items จาก endpoint /api/products/{productId}/bom
-  // Mapping ข้อมูล: นำ bom.part ออกมาแสดงชื่อ, รูป, จำนวนที่ใช้ (orderItem.quantity * bom.quantity), จำนวนคงเหลือ, และหน่วย
   const handleCheckBOM = async (orderItem) => {
     if (!orderItem.product || orderItem.product.is_part) return;
     try {
@@ -465,7 +540,6 @@ const ManageOrders = () => {
       const bomItems = response.data;
       const bomDetails = bomItems.map((bom) => ({
         partName: bom.part ? bom.part.name : "N/A",
-        // เพิ่มการดึงรูปอะไหล่จาก bom.part.images[0] ถ้ามี
         partImage:
           bom.part && bom.part.images && bom.part.images.length > 0
             ? `${process.env.REACT_APP_API}${bom.part.images[0]}`
@@ -615,6 +689,12 @@ const ManageOrders = () => {
         style={{ width: "80vw" }}
         onHide={() => setVisibleItems(false)}
       >
+        <Button
+          label="เพิ่มสินค้า"
+          icon="pi pi-plus"
+          className="p-button-success p-button-sm"
+          onClick={() => setVisibleAddProductDialog(true)}
+        />
         <DataTable
           value={orderItems}
           editMode="row"
@@ -631,7 +711,7 @@ const ManageOrders = () => {
             header="สี"
             editor={colorEditor}
             body={(rowData) =>
-              rowData.color === "default" ? "" : rowData.color || "-"
+              rowData.color === "default" ? "-" : rowData.color || "-"
             }
           />
           <Column
@@ -640,7 +720,7 @@ const ManageOrders = () => {
             editor={dimensionEditor}
             body={(rowData) =>
               rowData.color === "default"
-                ? ""
+                ? "-"
                 : rowData.width != null
                 ? rowData.width
                 : "-"
@@ -652,7 +732,7 @@ const ManageOrders = () => {
             editor={dimensionEditor}
             body={(rowData) =>
               rowData.color === "default"
-                ? ""
+                ? "-"
                 : rowData.length != null
                 ? rowData.length
                 : "-"
@@ -663,7 +743,7 @@ const ManageOrders = () => {
             header="ความหนา"
             editor={thicknessEditor}
             body={(rowData) =>
-              rowData.color === "default" ? "" : rowData.thickness || "-"
+              rowData.color === "default" ? "-" : rowData.thickness || "-"
             }
           />
           <Column
@@ -671,7 +751,7 @@ const ManageOrders = () => {
             header="ตัวเลือกติดตั้ง"
             editor={installOptionEditor}
             body={(rowData) =>
-              rowData.color === "default" ? "" : rowData.installOption || "-"
+              rowData.color === "default" ? "-" : rowData.installOption || "-"
             }
           />
           <Column field="quantity" header="จำนวน" editor={quantityEditor} />
@@ -681,6 +761,18 @@ const ManageOrders = () => {
             rowEditor
             headerStyle={{ width: "5rem" }}
             bodyStyle={{ textAlign: "center" }}
+          />
+          <Column
+            header="Actions"
+            body={(rowData) => (
+              <div className="flex gap-2">
+                <Button
+                  icon="pi pi-trash"
+                  className="p-button-sm p-button-danger"
+                  onClick={() => removeProductFromOrder(rowData.id)}
+                />
+              </div>
+            )}
           />
         </DataTable>
       </Dialog>
@@ -760,6 +852,48 @@ const ManageOrders = () => {
           <Column field="unit" header="หน่วย" />
         </DataTable>
       </Dialog>
+
+      <Dialog
+        header="เพิ่มอะไหล่ไปยังออเดอร์"
+        visible={visibleAddProductDialog}
+        style={{ width: "50vw" }}
+        onHide={() => setVisibleAddProductDialog(false)}
+      >
+        <Dropdown
+          options={products.map((product) => ({
+            label: product.name,
+            value: product.id,
+          }))}
+          placeholder="เลือกอะไหล่"
+          value={selectedProduct}
+          onChange={(e) => {
+            console.log("Product selected:", e.value);
+            setSelectedProduct(e.value);
+          }}
+          style={{ width: "100%" }}
+        />
+        <InputNumber
+          value={quantity}
+          onValueChange={(e) => setQuantity(e.value)}
+          min={1}
+          style={{ width: "100%", marginTop: "1rem" }}
+          placeholder="จำนวน"
+        />
+        <Button
+          label="เพิ่มอะไหล่"
+          icon="pi pi-plus"
+          className="p-button-success"
+          onClick={() => {
+            console.log("Selected product id before adding:", selectedProduct);
+            if (selectedProduct && quantity > 0) {
+              addProductToOrder(selectedProduct, quantity);
+            } else {
+              alert("กรุณาเลือกสินค้าและจำนวนสินค้า");
+            }
+          }}
+        />
+      </Dialog>
+
       {selectedOrder && (
         <OrderSummaryDialog
           visible={visibleSummary}

@@ -12,10 +12,8 @@ const OrderSummaryDialog = ({
   selectedOrder,
   bomDetailsMap,
 }) => {
-  // State ควบคุม expandable rows
   const [expandedRows, setExpandedRows] = useState(null);
-
-  // Template สำหรับ expandable row (BOM รายการ)
+  const isOnlyParts = selectedOrder.order_items.every(item => item.product.is_part);
   const rowExpansionTemplate = (data) => {
     if (data.product.is_part) return null;
     const bomDetails =
@@ -68,6 +66,10 @@ const OrderSummaryDialog = ({
       pdf.save(`order_${selectedOrder.id}.pdf`);
     });
   };
+
+  const totalAmount = selectedOrder.total_amount;
+  const totalBeforeVAT = (totalAmount / 1.07).toFixed(2);
+  const vatAmount = (totalAmount - totalBeforeVAT).toFixed(2);
 
   return (
     <Dialog
@@ -156,12 +158,26 @@ const OrderSummaryDialog = ({
         <div
           style={{
             textAlign: "right",
-            marginBottom: "10mm",
             fontSize: "24px",
             fontWeight: "bold",
           }}
         >
           หมายเลขคำสั่งซื้อ: {selectedOrder.id}
+        </div>
+        <div
+          style={{
+            textAlign: "right",
+            marginBottom: "10mm",
+            fontSize: "24px",
+            fontWeight: "bold",
+          }}
+        >
+          วันที่สั่งซื้อ:{" "}
+          {new Date(selectedOrder.order_date).toLocaleDateString("th-TH", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })}
         </div>
 
         {/* ข้อมูลลูกค้า */}
@@ -269,6 +285,12 @@ const OrderSummaryDialog = ({
               style={{ fontSize: "22px" }}
             />
           </DataTable>
+        </div>
+
+        <div style={{ marginTop: "10mm", textAlign: "right", fontSize: "22px" }}>
+          <strong>
+            VAT 7%: {Number(vatAmount).toLocaleString()} บาท
+          </strong>
         </div>
 
         <div
