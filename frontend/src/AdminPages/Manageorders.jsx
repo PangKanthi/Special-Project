@@ -186,21 +186,28 @@ const ManageOrders = () => {
   };
 
   const removeProductFromOrder = async (orderItemId) => {
-    console.log("Removing product:", orderItemId, "from order:", selectedOrder.id);
+    console.log(
+      "Removing product:",
+      orderItemId,
+      "from order:",
+      selectedOrder.id
+    );
     try {
-        const token = localStorage.getItem("token");
-        const response = await axios.delete(
-            `${process.env.REACT_APP_API}/api/orders/${selectedOrder.id}/remove-item/${orderItemId}`,
-            { headers: { Authorization: `Bearer ${token}` } }
-        );
-        setOrderItems(response.data.orderItems);
-        setSelectedOrder({ ...selectedOrder, total_amount: response.data.total_amount });
-        fetchOrders();
+      const token = localStorage.getItem("token");
+      const response = await axios.delete(
+        `${process.env.REACT_APP_API}/api/orders/${selectedOrder.id}/remove-item/${orderItemId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setOrderItems(response.data.orderItems);
+      setSelectedOrder({
+        ...selectedOrder,
+        total_amount: response.data.total_amount,
+      });
+      fetchOrders();
     } catch (error) {
-        console.error("Error removing product from order:", error);
+      console.error("Error removing product from order:", error);
     }
-};
-
+  };
 
   const recalcPriceWithRowDataAsync = async (rowData) => {
     const productId = rowData.product?.id;
@@ -764,7 +771,14 @@ const ManageOrders = () => {
             }
           />
           <Column field="quantity" header="จำนวน" editor={quantityEditor} />
-          <Column field="price" header="ราคา/ต่อชิ้น (บาท)" />
+          <Column
+            field="price"
+            header="ราคา/ต่อชิ้น (บาท)"
+            body={(rowData) => {
+              const price = parseFloat(rowData.price);
+              return price ? price.toLocaleString("th-TH") : "";
+            }}
+          />
           <Column header="ตรวจเช็ครายการอะไหล่" body={bomButtonTemplate} />
           <Column
             rowEditor
