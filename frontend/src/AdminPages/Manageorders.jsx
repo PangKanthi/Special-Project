@@ -699,7 +699,7 @@ const ManageOrders = () => {
         onHide={() => setVisibleItems(false)}
       >
         <Button
-          label="เพิ่มสินค้า"
+          label="เพิ่มอะไหล่"
           icon="pi pi-plus"
           className="p-button-success p-button-sm"
           onClick={() => setVisibleAddProductDialog(true)}
