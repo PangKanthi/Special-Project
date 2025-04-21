@@ -33,7 +33,6 @@ class ProductService {
   }
 
   static async updateProduct(id, data, newImages) {
-    // หา product เดิม
     const product = await prisma.product.findUnique({ where: { id: Number(id) } });
     if (!product) throw new Error("Product not found");
 
@@ -48,13 +47,19 @@ class ProductService {
     }
 
     if (data.removeImages && data.removeImages !== "null") {
-      try {
-        const removeList = JSON.parse(data.removeImages);
-        updatedImages = updatedImages.filter(img => !removeList.includes(img));
-      } catch (err) {
-        console.error("❌ JSON parsing error for removeImages:", err);
-      }
+      const removeList = JSON.parse(data.removeImages);
+      removeList.forEach((imgPath) => {
+        const fullPath = `.${imgPath}`;
+        if (fs.existsSync(fullPath)) {
+          fs.unlinkSync(fullPath);
+          console.log("🗑 ลบไฟล์:", fullPath);
+        } else {
+          console.warn("⚠️ ไฟล์ไม่พบ:", fullPath);
+        }
+      });
+      updatedImages = updatedImages.filter(img => !removeList.includes(img));
     }
+
 
     const updatedProduct = await prisma.product.update({
       where: { id: Number(id) },
@@ -105,7 +110,7 @@ class ProductService {
       where: { is_part: true },
     });
   }
-  
+
   static async getPriceTiers(productId) {
     return prisma.productPriceTier.findMany({
       where: { productId: Number(productId) },

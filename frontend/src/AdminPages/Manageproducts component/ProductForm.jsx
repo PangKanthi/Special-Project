@@ -20,6 +20,7 @@ const ProductForm = ({
   handleInputChange,
   categoryOptions,
   colorOptions,
+  handleRemoveImage
 }) => {
   const fileUploadRef = useRef(null);
 
@@ -42,21 +43,21 @@ const ProductForm = ({
     electric_rolling_shutter: "ชุด",
   };
 
-  const handleRemoveImage = (event) => {
-    setNewProduct((prev) => {
-      let updatedImages;
-      if (event.file) {
-        updatedImages = prev.images.filter(
-          (image) => image.file && image.file.name !== event.file.name
-        );
-      } else {
-        updatedImages = prev.images.filter(
-          (image) => image.previewUrl !== event.previewUrl
-        );
-      }
-      return { ...prev, images: updatedImages };
-    });
-  };
+  // const handleRemoveImage = (event) => {
+  //   setNewProduct((prev) => {
+  //     let updatedImages;
+  //     if (event.file) {
+  //       updatedImages = prev.images.filter(
+  //         (image) => image.file && image.file.name !== event.file.name
+  //       );
+  //     } else {
+  //       updatedImages = prev.images.filter(
+  //         (image) => image.previewUrl !== event.previewUrl
+  //       );
+  //     }
+  //     return { ...prev, images: updatedImages };
+  //   });
+  // };
 
   // ✅ ลบภาพเมื่อใช้ปุ่ม Remove ของ FileUpload
   const onRemoveFile = (event) => {
@@ -176,8 +177,8 @@ const ProductForm = ({
                 newProduct.is_part === false
                   ? categoryOptions.shutter
                   : newProduct.is_part === true
-                  ? categoryOptions.shutter_parts
-                  : []
+                    ? categoryOptions.shutter_parts
+                    : []
               }
               onChange={handleInputChange}
               className="w-full"

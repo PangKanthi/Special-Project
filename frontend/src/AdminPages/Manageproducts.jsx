@@ -36,6 +36,7 @@ const ManageProducts = () => {
   const [visible, setVisible] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [removedImages, setRemovedImages] = useState([]);
 
   const [newProduct, setNewProduct] = useState({
     name: "",
@@ -155,15 +156,24 @@ const ManageProducts = () => {
     event.stopPropagation();
     setNewProduct((prev) => {
       const updatedImages = prev.images.filter((image) => {
-        if (!image.file) {
-          return image.previewUrl !== imageToRemove.previewUrl;
-        }
-        return image.file.name !== imageToRemove.file.name;
+        const isSameFile =
+          image.file && imageToRemove.file
+            ? image.file.name !== imageToRemove.file.name
+            : image.previewUrl !== imageToRemove.previewUrl;
+  
+        return isSameFile;
       });
+  
+      // ถ้าเป็นรูปจาก server (ไม่มี .file) → เก็บ path เพื่อลบ
+      if (!imageToRemove.file && imageToRemove.previewUrl.includes(process.env.REACT_APP_API)) {
+        const serverPath = imageToRemove.previewUrl.replace(process.env.REACT_APP_API, "");
+        setRemovedImages((prevRemoved) => [...prevRemoved, serverPath]);
+      }
+  
       return { ...prev, images: updatedImages };
     });
   };
-
+  
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -209,6 +219,7 @@ const ManageProducts = () => {
     });
     setEditMode(true);
     setVisible(true);
+    setRemovedImages([]);
   };
 
   const handleSaveEdit = async (event) => {
@@ -218,6 +229,7 @@ const ManageProducts = () => {
     try {
       await ProductService.updateProduct(editingProduct.id, {
         ...newProduct,
+        removeImages: removedImages,
       });
       setVisible(false);
       setEditMode(false);

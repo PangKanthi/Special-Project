@@ -19,8 +19,6 @@ const ProductService = {
     }
   },
 
-
-
   async addProduct(product) {
     const priceValue = product.price.trim() === "" ? null : product.price.trim();
     const stockQuantityValue = product.stock_quantity.trim() === "" ? null : product.stock_quantity.trim();
@@ -78,6 +76,10 @@ const ProductService = {
         if (img.file) formData.append("images", img.file);
       });
     }
+    if (updatedProduct.removeImages?.length > 0) {
+      formData.append("removeImages", JSON.stringify(updatedProduct.removeImages));
+    }
+    
 
     try {
       const response = await axios.put(`${API_URL}/${productId}`, formData, {
