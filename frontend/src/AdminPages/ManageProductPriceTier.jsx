@@ -8,6 +8,7 @@ import { InputText } from "primereact/inputtext";
 import { Button } from "primereact/button";
 import { Dropdown } from "primereact/dropdown";
 import { Dialog } from "primereact/dialog";
+import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
 
 const api = axios.create({ baseURL: process.env.REACT_APP_API });
 
@@ -120,15 +121,24 @@ export default function ManageProductPriceTier() {
     }
   };
 
-  const onDelete = async (tier) => {
-    if (!window.confirm("ยืนยันลบช่วงราคานี้?")) return;
-    try {
-      await api.delete(`/api/products/price-tiers/${tier.id}`);
-      loadProductsAndTiers();
-      toast.current.show({ severity: "success", summary: "ลบแล้ว" });
-    } catch (err) {
-      toast.current.show({ severity: "error", summary: err.message });
-    }
+  const onDelete = (tier) => {
+    confirmDialog({
+      message: "ยืนยันลบช่วงราคานี้?",
+      header: "ยืนยันการลบ",
+      icon: "pi pi-exclamation-triangle",
+      accept: async () => {
+        try {
+          await api.delete(`/api/products/price-tiers/${tier.id}`);
+          loadProductsAndTiers();
+          toast.current.show({ severity: "success", summary: "ลบแล้ว" });
+        } catch (err) {
+          toast.current.show({ severity: "error", summary: err.message });
+        }
+      },
+      reject: () => {
+        // Handle reject if needed (optional)
+      },
+    });
   };
 
   const addTier = async () => {
@@ -213,6 +223,7 @@ export default function ManageProductPriceTier() {
   return (
     <div className="p-6">
       <Toast ref={toast} />
+      <ConfirmDialog />
       <h2 className="text-xl font-bold mb-3">จัดการราคาต่อ ตร.ม. รายสินค้า</h2>
 
       <div className="flex flex-wrap justify-between items-center gap-3 mb-4">
@@ -306,6 +317,7 @@ export default function ManageProductPriceTier() {
               icon="pi pi-trash"
               className="p-button-text p-button-danger"
               onClick={() => onDelete(row)}
+              
             />
           )}
         />

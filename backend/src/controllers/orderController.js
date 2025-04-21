@@ -3,7 +3,7 @@ import prisma from '../config/db.js';
 
 export const createOrder = async (req, res, next) => {
     try {
-        const { addressId, orderItems, totalAmount, firstname, lastname} = req.body;
+        const { addressId, orderItems, totalAmount, firstname, lastname } = req.body;
         const userId = req.user.id;
 
         // Validation เบื้องต้น
@@ -188,7 +188,39 @@ export const updateOrderItem = async (req, res, next) => {
     }
 };
 
-// เพิ่มฟังก์ชัน checkPurchased
+export const addProductToOrder = async (req, res) => {
+    const { productId, quantity } = req.body;
+    const { id } = req.params;           // ← เปลี่ยนจาก orderId เป็น id
+    const orderId = Number(id);          // แปลงเป็นตัวเลขไว้เลยถ้าต้องใช้ Int
+
+    if (!orderId) {
+        return res.status(400).json({ error: "Order ID is required" });
+    }
+    if (!productId || !quantity || quantity <= 0) {
+        return res.status(400).json({ error: "Invalid productId or quantity" });
+    }
+
+    try {
+        const order = await OrderService.addProductToOrder(orderId, productId, quantity);
+        return res.status(200).json({ message: "Product added", orderItems: order.order_items });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ error: "Failed to add product" });
+    }
+};
+
+export const removeProductFromOrder = async (req, res, next) => {
+    try {
+        const { orderItemId, orderId } = req.params;
+        console.log(`Removing product from order: orderId=${orderId}, orderItemId=${orderItemId}`); // Debugging line
+
+        const updatedOrder = await OrderService.removeProductFromOrder(orderId, orderItemId);
+        res.status(200).json({ message: "Product removed", orderItems: updatedOrder.order_items });
+    } catch (error) {
+        next(error);
+    }
+};
+
 export const checkPurchased = async (req, res, next) => {
     try {
         const productId = Number(req.params.productId);

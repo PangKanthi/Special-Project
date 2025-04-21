@@ -138,31 +138,27 @@ class OrderService {
                 data: {
                     userId,
                     addressId,
-                    total_amount: 0,  // หรือคำนวณจริง ๆ
+                    total_amount: 0,
                     status: 'pending',
                     payment_status: 'pending'
                 }
             });
 
-            // 2) ดึง cart + items
             const cart = await tx.cart.findUnique({
                 where: { userId },
                 include: { items: true }
             });
             if (!cart || cart.items.length === 0) throw new Error("Cart is empty");
 
-            // (ตัวอย่าง) คำนวณ total_amount
             const totalAmount = cart.items.reduce((acc, item) => {
                 return acc + Number(item.price ?? 0) * Number(item.quantity ?? 1);
             }, 0);
 
-            // 3) อัปเดต order ให้เก็บ total_amount ที่คำนวณ
             await tx.order.update({
                 where: { id: order.id },
                 data: { total_amount: totalAmount }
             });
 
-            // 4) ย้าย cart_item -> order_item
             await tx.order_item.createMany({
                 data: cart.items.map((item) => ({
                     orderId: order.id,
@@ -170,7 +166,6 @@ class OrderService {
                     quantity: item.quantity,
                     price: item.price,
 
-                    // จัดการคอลัมน์ใหม่
                     color: item.color,
                     width: item.width,
                     length: item.length,
@@ -178,11 +173,7 @@ class OrderService {
                     installOption: item.installOption
                 }))
             });
-
-            // 5) ล้างตะกร้าหรือปล่อยไว้ก็ได้
             await tx.cart_item.deleteMany({ where: { cartId: cart.id } });
-
-            // 6) return order
             return order;
         });
     }
@@ -191,7 +182,7 @@ class OrderService {
         return await prisma.order.findMany({
             where: { userId },
             include: {
-                user: {  // ✅ เพิ่มข้อมูล user
+                user: { 
                     select: {
                         id: true,
                         firstname: true,
@@ -212,8 +203,8 @@ class OrderService {
     }
 
     static async getOrderById(orderId) {
-        return await prisma.order.findUnique({
-            where: { id: orderId },
+        return prisma.order.findUnique({
+            where: { id: Number(orderId) },
             include: { order_items: true }
         });
     }
@@ -271,7 +262,7 @@ class OrderService {
         thickness,
         installOption
     ) {
-        // 1) update ตัว order_item ก่อน
+
         const updatedItem = await prisma.order_item.update({
             where: { id: orderItemId },
             data: {
@@ -286,16 +277,12 @@ class OrderService {
             }
         });
 
-        // 2) หา orderId ที่ item ตัวนี้สังกัด
         const orderId = updatedItem.orderId;
 
-        // 3) คำนวณ new total 
-        //    ดึงทุก item ของ orderId นี้
         const items = await prisma.order_item.findMany({
             where: { orderId },
         });
 
-        // รวม quantity * price
         let newTotal = 0;
         items.forEach((itm) => {
             const qty = Number(itm.quantity ?? 0);
@@ -303,15 +290,99 @@ class OrderService {
             newTotal += qty * prc;
         });
 
-        // 4) update order.total_amount
         await prisma.order.update({
             where: { id: orderId },
             data: { total_amount: newTotal }
         });
 
-        // 5) return updatedItem
         return updatedItem;
     }
+
+    static async addProductToOrder(orderId, productId, quantity) {
+        if (!orderId || !productId || quantity <= 0) {
+            throw new Error("Invalid orderId, productId or quantity");
+        }
+
+        const order = await prisma.order.findUnique({ where: { id: orderId } });
+        if (!order) {
+            throw new Error("Order not found");
+        }
+
+        const product = await prisma.product.findUnique({ where: { id: productId } });
+        if (!product) {
+            throw new Error("Product not found");
+        }
+
+        const price = product.price;
+
+        const newOrderItem = await prisma.order_item.create({
+            data: {
+                orderId: orderId,
+                productId: productId,
+                quantity: quantity,
+                price: price,
+            },
+        });
+
+        const updatedOrder = await prisma.order.update({
+            where: { id: orderId },
+            data: {
+                total_amount: { increment: price * quantity },
+            },
+        });
+
+        return updatedOrder;
+    }
+
+    static async removeProductFromOrder(orderId, orderItemId) {  
+        try {  
+            console.log("Received orderId:", orderId, "type:", typeof orderId);  
+            console.log("Received orderItemId:", orderItemId, "type:", typeof orderItemId);  
+    
+            // Parameter validation  
+            if (!orderId || !orderItemId) {  
+                throw new Error(`Missing required parameters. OrderId: ${orderId}, OrderItemId: ${orderItemId}`);  
+            }
+    
+            // Parse IDs  
+            const orderItemInt = parseInt(orderItemId, 10);  
+            const orderInt = parseInt(orderId, 10);  
+    
+            console.log("Parsed orderInt:", orderInt, "isNaN:", isNaN(orderInt));  
+            console.log("Parsed orderItemInt:", orderItemInt, "isNaN:", isNaN(orderItemInt));  
+    
+            if (isNaN(orderItemInt) || isNaN(orderInt)) {  
+                throw new Error(`Invalid ID format. OrderId: ${orderId}, OrderItemId: ${orderItemId}`);  
+            }  
+    
+            // Find the order item  
+            const orderItem = await prisma.order_item.findUnique({  
+                where: { id: orderItemInt },  
+            });  
+    
+            if (!orderItem) {  
+                throw new Error(`Order item not found with ID: ${orderItemInt}`);  
+            }  
+    
+            // Delete the order item  
+            await prisma.order_item.delete({  
+                where: { id: orderItemInt },  
+            });  
+    
+            // Update the order total  
+            const updatedOrder = await prisma.order.update({  
+                where: { id: orderInt },  
+                data: {  
+                    total_amount: { decrement: orderItem.price * orderItem.quantity }  
+                }  
+            });  
+    
+            return updatedOrder;  
+        } catch (error) {  
+            console.error("Error removing product from order:", error);  
+            throw error; // Re-throw to allow calling code to handle the error  
+        }  
+    }  
 
 }
 

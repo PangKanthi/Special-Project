@@ -8,6 +8,8 @@ import { updateOrderStatus } from '../controllers/orderController.js';
 import { deleteOrder } from '../controllers/orderController.js';
 import { updateOrderItem } from '../controllers/orderController.js'; 
 import { checkPurchased } from '../controllers/orderController.js';   
+import { addProductToOrder } from '../controllers/orderController.js';
+import { removeProductFromOrder } from '../controllers/orderController.js';
 
 const router = express.Router();
 
@@ -25,5 +27,8 @@ router.get('/:id/payment-slip', authMiddleware.verifyToken, getPaymentSlip);
 router.delete('/:id', authMiddleware.verifyToken, deleteOrder);
 
 router.get('/checkPurchased/:productId', authMiddleware.verifyToken, checkPurchased);
+
+router.post("/:id/add-item", authMiddleware.verifyToken, addProductToOrder);
+router.delete("/:id/remove-item/:orderItemId", authMiddleware.verifyToken, removeProductFromOrder);
 
 export default router;

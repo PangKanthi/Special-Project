@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 export const saveSlipToDatabase = async (orderId, imageUrl, isValidSlip) => {
   try {
     if (!orderId) {
-      throw new Error("❌ orderId ไม่สามารถเป็น null ได้");
+      throw new Error("orderId ไม่สามารถเป็น null ได้");
     }
 
     const savedSlip = await prisma.payment_slip.create({
@@ -18,7 +18,7 @@ export const saveSlipToDatabase = async (orderId, imageUrl, isValidSlip) => {
 
     return savedSlip;
   } catch (error) {
-    console.error("❌ เกิดข้อผิดพลาดในการบันทึกสลิป:", error);
+    console.error("เกิดข้อผิดพลาดในการบันทึกสลิป:", error);
     throw error;
   }
 };
