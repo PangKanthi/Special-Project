@@ -7,7 +7,6 @@ const doorConfig = JSON.parse(rawData);
 class OrderService {
     static async createOrder(userId, addressId, orderItems, totalAmount) {
         const order = await prisma.$transaction(async (tx) => {
-            // 1) สร้าง order
             const order = await tx.order.create({
                 data: {
                     userId,
@@ -18,7 +17,6 @@ class OrderService {
                 }
             });
 
-            // 2) สร้าง order_item
             if (orderItems.length > 0) {
                 await tx.order_item.createMany({
                     data: orderItems.map((item) => ({
@@ -34,8 +32,6 @@ class OrderService {
                     }))
                 });
             }
-
-            // ไม่ต้องลดจำนวนอะไหล่ในขั้นตอน createOrder
 
             return order;
         });
@@ -54,7 +50,8 @@ class OrderService {
                                 images: true,
                                 category: true,
                                 colors: true,
-                                warranty: true
+                                warranty: true,
+                                is_part: true
                             }
                         }
                     }
@@ -133,7 +130,6 @@ class OrderService {
 
     static async createOrderFromCart(userId, addressId) {
         return await prisma.$transaction(async (tx) => {
-            // 1) สร้าง order
             const order = await tx.order.create({
                 data: {
                     userId,
@@ -182,7 +178,7 @@ class OrderService {
         return await prisma.order.findMany({
             where: { userId },
             include: {
-                user: { 
+                user: {
                     select: {
                         id: true,
                         firstname: true,
@@ -205,7 +201,23 @@ class OrderService {
     static async getOrderById(orderId) {
         return prisma.order.findUnique({
             where: { id: Number(orderId) },
-            include: { order_items: true }
+            include: {
+                order_items: {
+                    include: {
+                        product: {
+                            select: {
+                                id: true,
+                                name: true,
+                                images: true,
+                                category: true,
+                                colors: true,
+                                warranty: true,
+                                is_part: true
+                            }
+                        }
+                    }
+                }
+            }
         });
     }
 
@@ -334,55 +346,36 @@ class OrderService {
         return updatedOrder;
     }
 
-    static async removeProductFromOrder(orderId, orderItemId) {  
-        try {  
-            console.log("Received orderId:", orderId, "type:", typeof orderId);  
-            console.log("Received orderItemId:", orderItemId, "type:", typeof orderItemId);  
-    
-            // Parameter validation  
-            if (!orderId || !orderItemId) {  
-                throw new Error(`Missing required parameters. OrderId: ${orderId}, OrderItemId: ${orderItemId}`);  
-            }
-    
-            // Parse IDs  
-            const orderItemInt = parseInt(orderItemId, 10);  
-            const orderInt = parseInt(orderId, 10);  
-    
-            console.log("Parsed orderInt:", orderInt, "isNaN:", isNaN(orderInt));  
-            console.log("Parsed orderItemInt:", orderItemInt, "isNaN:", isNaN(orderItemInt));  
-    
-            if (isNaN(orderItemInt) || isNaN(orderInt)) {  
-                throw new Error(`Invalid ID format. OrderId: ${orderId}, OrderItemId: ${orderItemId}`);  
-            }  
-    
-            // Find the order item  
-            const orderItem = await prisma.order_item.findUnique({  
-                where: { id: orderItemInt },  
-            });  
-    
-            if (!orderItem) {  
-                throw new Error(`Order item not found with ID: ${orderItemInt}`);  
-            }  
-    
-            // Delete the order item  
-            await prisma.order_item.delete({  
-                where: { id: orderItemInt },  
-            });  
-    
-            // Update the order total  
-            const updatedOrder = await prisma.order.update({  
-                where: { id: orderInt },  
-                data: {  
-                    total_amount: { decrement: orderItem.price * orderItem.quantity }  
-                }  
-            });  
-    
-            return updatedOrder;  
-        } catch (error) {  
-            console.error("Error removing product from order:", error);  
-            throw error; // Re-throw to allow calling code to handle the error  
-        }  
-    }  
+    static async removeProductFromOrder(orderId, orderItemId) {
+        return await prisma.$transaction(async (tx) => {
+            const orderItem = await tx.order_item.findUnique({ where: { id: orderItemId } });
+            if (!orderItem) throw new Error("Order item not found");
+
+            await tx.order_item.delete({ where: { id: orderItemId } });
+
+            const remain = await tx.order_item.findMany({ where: { orderId } });
+            const newTotal = remain.reduce(
+                (sum, i) => sum + Number(i.price ?? 0) * Number(i.quantity ?? 0),
+                0
+            );
+
+            const updatedOrder = await tx.order.update({
+                where: { id: orderId },
+                data: { total_amount: newTotal },
+                include: {
+                    order_items: {
+                        include: {
+                            product: {
+                                select: { id: true, name: true, images: true, category: true }
+                            }
+                        }
+                    }
+                }
+            });
+
+            return updatedOrder;
+        });
+    }
 
 }
 

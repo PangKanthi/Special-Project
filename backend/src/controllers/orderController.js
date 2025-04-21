@@ -190,8 +190,8 @@ export const updateOrderItem = async (req, res, next) => {
 
 export const addProductToOrder = async (req, res) => {
     const { productId, quantity } = req.body;
-    const { id } = req.params;           // ← เปลี่ยนจาก orderId เป็น id
-    const orderId = Number(id);          // แปลงเป็นตัวเลขไว้เลยถ้าต้องใช้ Int
+    const { id } = req.params;
+    const orderId = Number(id);
 
     if (!orderId) {
         return res.status(400).json({ error: "Order ID is required" });
@@ -211,11 +211,14 @@ export const addProductToOrder = async (req, res) => {
 
 export const removeProductFromOrder = async (req, res, next) => {
     try {
-        const { orderItemId, orderId } = req.params;
-        console.log(`Removing product from order: orderId=${orderId}, orderItemId=${orderItemId}`); // Debugging line
-
-        const updatedOrder = await OrderService.removeProductFromOrder(orderId, orderItemId);
-        res.status(200).json({ message: "Product removed", orderItems: updatedOrder.order_items });
+        const { id, orderItemId } = req.params;
+        const orderId = Number(id);
+        const updatedOrder = await OrderService.removeProductFromOrder(orderId, Number(orderItemId));
+        res.status(200).json({
+            message: "Product removed",
+            orderItems: updatedOrder.order_items,
+            total_amount: updatedOrder.total_amount
+        });
     } catch (error) {
         next(error);
     }
@@ -225,8 +228,6 @@ export const checkPurchased = async (req, res, next) => {
     try {
         const productId = Number(req.params.productId);
 
-        // findFirst ดูว่า userId == req.user.id
-        // และ productId == productId หรือเปล่า
         const purchased = await prisma.order_item.findFirst({
             where: {
                 productId,
@@ -236,7 +237,6 @@ export const checkPurchased = async (req, res, next) => {
             },
         });
 
-        // ถ้า purchased เจอ (ไม่เป็น null/undefined) แสดงว่าเคยซื้อ
         const hasPurchased = !!purchased;
 
         return res.json({ hasPurchased });

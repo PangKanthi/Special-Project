@@ -52,7 +52,6 @@ const ManageOrders = () => {
           const res = await axios.get(
             `${process.env.REACT_APP_API}/api/products/${item.product.id}/bom`
           );
-          // ใช้ order item id เป็น key
           newBOMMap[item.id] = res.data;
         } catch (err) {
           console.error("Error loading BOM for product:", item.product.id, err);
@@ -130,6 +129,20 @@ const ManageOrders = () => {
     }
   };
 
+  const refreshCurrentOrder = async (orderId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const { data } = await axios.get(
+        `${process.env.REACT_APP_API}/api/orders/${orderId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setSelectedOrder(data.data);
+      setOrderItems(data.data.order_items);
+    } catch (err) {
+      console.error("Error refreshing order:", err);
+    }
+  };
+
   const addProductToOrder = async (productId, quantity) => {
     if (!selectedOrder || !selectedOrder.id) {
       alert("กรุณาเลือกคำสั่งซื้อลูกค้าก่อน");
@@ -149,22 +162,20 @@ const ManageOrders = () => {
         quantity,
       });
 
-      // ส่งข้อมูลไปที่ API
       const response = await axios.post(
         `${process.env.REACT_APP_API}/api/orders/${selectedOrder.id}/add-item`,
         { productId, quantity },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // รีเฟรชข้อมูลรายการสินค้า
       const { data } = await axios.get(
         `${process.env.REACT_APP_API}/api/orders/${selectedOrder.id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      setOrderItems(data.data.order_items); // อัพเดต orderItems ใหม่
-      setVisibleAddProductDialog(false); // ปิด Dialog หลังจากเพิ่มสินค้า
-      fetchOrders(); // อัพเดตข้อมูลคำสั่งซื้อ
+      setOrderItems(data.data.order_items);
+      setVisibleAddProductDialog(false);
+      fetchOrders();
     } catch (error) {
       console.error("Error adding product to order:", error);
     }
@@ -182,10 +193,9 @@ const ManageOrders = () => {
             `${process.env.REACT_APP_API}/api/orders/${selectedOrder.id}/remove-item/${orderItemId}`,
             { headers: { Authorization: `Bearer ${token}` } }
         );
-
-        // Assuming the backend returns updated order data
-        setOrderItems(response.data.orderItems); // Update order items in the UI
-        setSelectedOrder({ ...selectedOrder, total_amount: response.data.total_amount }); // Update the total amount
+        setOrderItems(response.data.orderItems);
+        setSelectedOrder({ ...selectedOrder, total_amount: response.data.total_amount });
+        fetchOrders();
     } catch (error) {
         console.error("Error removing product from order:", error);
     }
@@ -395,7 +405,6 @@ const ManageOrders = () => {
     );
   };
 
-  // Editor สำหรับความหนา โดยใช้ข้อมูลจาก productPriceTier
   const thicknessEditor = (options) => {
     const productId = options.rowData.product?.id;
     const tiers = productTierOptions[productId];
@@ -834,7 +843,6 @@ const ManageOrders = () => {
         onHide={() => setVisibleBOMDialog(false)}
       >
         <DataTable value={currentBOM} dataKey="partName">
-          {/* คอลัมน์ใหม่สำหรับแสดงรูปอะไหล่ */}
           <Column
             header="รูปอะไหล่"
             body={(data) => (
