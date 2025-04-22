@@ -330,7 +330,7 @@ export default function Homeadmin() {
               )}
 
               <Dialog
-                header="📦 รายการสินค้าคงคลัง"
+                header="รายการสินค้าคงคลัง"
                 visible={inventoryDialog}
                 style={{ width: "50vw" }}
                 onHide={() => setInventoryDialog(false)}
@@ -471,8 +471,8 @@ export default function Homeadmin() {
               <Dropdown
                 value={userChartMode}
                 options={[
-                  { label: "กราฟรายวัน", value: "daily" },
-                  { label: "กราฟรายเดือน", value: "monthly" }
+                  { label: "รายวัน", value: "daily" },
+                  { label: "รายเดือน", value: "monthly" }
                 ]}
                 onChange={(e) => setUserChartMode(e.value)}
                 placeholder="เลือกโหมดกราฟ"
