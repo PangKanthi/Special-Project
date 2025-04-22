@@ -6,23 +6,21 @@ export const createOrder = async (req, res, next) => {
         const { addressId, orderItems, totalAmount, firstname, lastname } = req.body;
         const userId = req.user.id;
 
-        // Validation เบื้องต้น
         if (!addressId || !orderItems || orderItems.length === 0) {
             return res.status(400).json({ error: 'ข้อมูลไม่ครบถ้วน' });
         }
 
-        // เรียกใช้ Service
         const order = await OrderService.createOrder(
             req.user.id,
             addressId,
-            orderItems,  // <-- array ของ { productId, quantity, price, color, width, ... }
+            orderItems,
             totalAmount
         );
 
         await prisma.notification.create({
             data: {
                 userId,
-                message: `📦 มีคำสั่งซื้อใหม่จากผู้ใช้ ${firstname} ${lastname} มูลค่า ${totalAmount}`
+                message: ` มีคำสั่งซื้อใหม่จากผู้ใช้ ${firstname} ${lastname} มูลค่า ${totalAmount}`
             }
         });
 
@@ -71,7 +69,7 @@ export const deleteOrder = async (req, res, next) => {
 
 export const getAllOrders = async (req, res, next) => {
     try {
-        const orders = await OrderService.getAllOrders(); // เรียกใช้ service ที่เราจะสร้าง
+        const orders = await OrderService.getAllOrders();
         res.status(200).json({ message: "Get all orders successfully", data: orders });
     } catch (error) {
         next(error);
@@ -162,7 +160,6 @@ export const updateOrderItem = async (req, res, next) => {
             installOption
         } = req.body;
 
-        // ถ้าต้องการ validate เบื้องต้นเพิ่มเติมก็สามารถใส่ได้
         if (!orderItemId || !productId || !quantity || !price) {
             return res.status(400).json({ error: "ข้อมูลไม่ครบถ้วน" });
         }

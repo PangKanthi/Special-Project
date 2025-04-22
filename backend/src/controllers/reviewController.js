@@ -8,7 +8,6 @@ export const createReview = async (req, res, next) => {
       return res.status(400).json({ error: "ข้อมูลไม่ครบถ้วน" });
     }
 
-    // แปลง productId เป็น number
     const productIdNum = Number(productId);
 
     const hasPurchased = await ReviewService.userHasPurchasedProduct(
@@ -33,29 +32,23 @@ export const createReview = async (req, res, next) => {
   }
 };
 
-// reviewController.js
 export const getProductReviews = async (req, res, next) => {
   try {
-    // 1) เช็ค param ที่ส่งเข้ามา
     console.log("==== [getProductReviews] productId param:", req.params.productId);
 
-    // แปลงให้เป็น number (กันพลาด)
     const prodId = Number(req.params.productId);
     console.log("==== [getProductReviews] productId (as number):", prodId);
 
-    // 2) เรียก service
     const reviews = await ReviewService.getProductReviews(prodId);
     console.log("==== [getProductReviews] Prisma result:", reviews);
 
     return res.status(200).json({ message: "Get data successfully", data: reviews });
   } catch (error) {
-    // 3) ถ้ามี error ก็ log เต็ม ๆ
     console.error("==== [getProductReviews] Error:", error);
     next(error);
   }
 };
 
-// ดึงรีวิวทั้งหมด (เฉพาะ admin)
 export const getAllReviews = async (req, res, next) => {
   try {
     if (req.user.role !== 'A') {
@@ -72,7 +65,7 @@ export const getAllReviews = async (req, res, next) => {
 
     res.status(200).json({ message: "ดึงรีวิวทั้งหมดสำเร็จ", data: reviews });
   } catch (error) {
-    console.error("❌ ERROR getAllReviews:", error);
+    console.error(" ERROR getAllReviews:", error);
     next(error);
   }
 };

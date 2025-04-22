@@ -28,7 +28,7 @@ class WorkSampleService {
     
         if (!workSample) throw new Error("Work Sample not found");
     
-        let updatedImages = newImages; // เขียนทับค่าเดิมด้วยรูปใหม่
+        let updatedImages = newImages;
     
         if (data.removeImages) {
             const removeList = JSON.parse(data.removeImages);

@@ -35,7 +35,7 @@ class UserService {
   }
 
   static async getUserPassById(id) {
-    console.log("🔍 Checking Database for User ID:", id);
+    console.log("Checking Database for User ID:", id);
     return await prisma.user.findUnique({
       where: { id: Number(id) },
       select: {

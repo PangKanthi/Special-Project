@@ -52,9 +52,9 @@ class ProductService {
         const fullPath = `.${imgPath}`;
         if (fs.existsSync(fullPath)) {
           fs.unlinkSync(fullPath);
-          console.log("🗑 ลบไฟล์:", fullPath);
+          console.log("ลบไฟล์:", fullPath);
         } else {
-          console.warn("⚠️ ไฟล์ไม่พบ:", fullPath);
+          console.warn("ไฟล์ไม่พบ:", fullPath);
         }
       });
       updatedImages = updatedImages.filter(img => !removeList.includes(img));
