@@ -97,14 +97,14 @@ export const resetPassword = async (req, res, next) => {
 export const getUserProfile = async (req, res) => {
 
   try {
-    console.log("🔍 req.user:", req.user);  // ✅ ตรวจสอบค่า user
+    console.log(" req.user:", req.user);
 
     if (!req.user || !req.user.id) {
       return res.status(400).json({ error: "User ID is missing in request" });
     }
 
     const userId = Number(req.user.id);
-    console.log("🆔 User ID:", userId);  // ✅ ตรวจสอบค่า ID
+    console.log("User ID:", userId);
 
     const user = await UserService.getUserById(userId);
     if (!user) {

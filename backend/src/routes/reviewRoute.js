@@ -14,8 +14,6 @@ router.post('/', authMiddleware.verifyToken, createReview);
 router.get('/product/:productId', getProductReviews);
 router.get('/me', authMiddleware.verifyToken, getUserReviews);
 router.delete('/:id', authMiddleware.verifyToken, deleteReview);
-
-// ✅ ดึงรีวิวทั้งหมด (Admin เท่านั้น)
 router.get('/admin/all', authMiddleware.verifyToken, getAllReviews);
 
 export default router;

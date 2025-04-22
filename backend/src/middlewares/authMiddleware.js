@@ -1,10 +1,10 @@
 import jwt from 'jsonwebtoken';
 
 const verifyToken = (req, res, next) => {
-    // console.log(req)
+
     const token = req.header('Authorization');
     if (!token) {
-        console.log("❌ No token provided");
+        console.log(" No token provided");
         return res.status(401).json({ error: 'Access Denied, Token Required' });
     }
 
@@ -15,7 +15,7 @@ const verifyToken = (req, res, next) => {
         req.user = verified;
         next();
     } catch (error) {
-        console.error("❌ Invalid Token:", error.message);
+        console.error(" Invalid Token:", error.message);
         res.status(400).json({ error: 'Invalid Token' });
     }
 };

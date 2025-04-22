@@ -1,8 +1,5 @@
-// controllers/cartController.js
-
 import CartService from '../services/cartService.js';
 
-// ดึงข้อมูลตะกร้า
 export const getCart = async (req, res, next) => {
     try {
         const cart = await CartService.getCart(req.user.id);
@@ -12,9 +9,8 @@ export const getCart = async (req, res, next) => {
     }
 };
 
-// เพิ่มสินค้า
 export const addToCart = async (req, res, next) => {
-    console.log("🛒 Adding to cart:", req.body);
+    console.log(" Adding to cart:", req.body);
     try {
         const { productId, quantity, price, color, width, length, thickness, installOption } = req.body;
 
@@ -39,7 +35,6 @@ export const addToCart = async (req, res, next) => {
     }
 };
 
-// (ใหม่) อัปเดตจำนวนสินค้าตาม cart_item.id
 export const updateCartItem = async (req, res, next) => {
     try {
         const { cartItemId, newQuantity } = req.body;
@@ -54,7 +49,6 @@ export const updateCartItem = async (req, res, next) => {
     }
 };
 
-// (แก้ใหม่) ลบสินค้าออกจากตะกร้าตาม cart_item.id
 export const removeFromCart = async (req, res, next) => {
     try {
         const { cartItemId } = req.body;
@@ -69,7 +63,6 @@ export const removeFromCart = async (req, res, next) => {
     }
 };
 
-// ลบสินค้าทั้งหมดออกจากตะกร้า
 export const clearCart = async (req, res, next) => {
     try {
         await CartService.clearCart(req.user.id);

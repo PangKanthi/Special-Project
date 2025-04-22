@@ -101,7 +101,6 @@ class RepairRequestService {
         for (const part of parts) {
           const { productId, quantity_used } = part;
   
-          // ✅ ตรวจสอบว่าสินค้ามีอยู่จริงก่อนอัปเดต
           const product = await tx.product.findUnique({ where: { id: productId } });
           if (!product) {
             throw new Error(`ไม่พบสินค้า ID: ${productId}`);
@@ -140,7 +139,6 @@ class RepairRequestService {
             });
           }
   
-          // ✅ อัปเดตสต็อกหลังจากเช็คว่าสินค้ามีอยู่จริง
           const updatedPart = await tx.product.update({
             where: { id: productId },
             data: { stock_quantity: { decrement: quantity_used } },
@@ -150,7 +148,7 @@ class RepairRequestService {
         return { message: "บันทึกการใช้อะไหล่สำเร็จ" };
       });
     } catch (error) {
-      console.error("❌ Error adding parts to repair:", error);
+      console.error(" Error adding parts to repair:", error);
       throw new Error(`เกิดข้อผิดพลาดในการบันทึกอะไหล่: ${error.message}`);
     }
   }  

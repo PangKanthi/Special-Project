@@ -19,7 +19,6 @@ export const createWorkSample = async (req, res, next) => {
 
 export const updateWorkSample = async (req, res, next) => {
     try {
-     // console.log("req.body.existingImages", req.body.existingImages)
 
         const oldFiles = req.body.existingImages 
         ? Array.isArray(req.body.existingImages) 
@@ -27,17 +26,9 @@ export const updateWorkSample = async (req, res, next) => {
             : [req.body.existingImages] 
         : [];
     
-    
-        // console.log("oldFiles", oldFiles)
-
-        // console.log("new files",req.files)
         const newImages = req.files ? req.files.map(file => `/uploads/work_samples/${file.filename}`) : [];
 
-        // console.log(newImages)
-
         const cleanedOldFiles = oldFiles.length > 0 ? oldFiles.map(file => file.replace('${process.env.REACT_APP_API}', '')) : null;
-
-        // console.log("cleanedOldFiles", cleanedOldFiles)
 
         let allfiles;
         if (cleanedOldFiles) {
@@ -46,15 +37,10 @@ export const updateWorkSample = async (req, res, next) => {
             allfiles = [...newImages]
         }
 
-
-        // console.log(allfiles)
-
-
         const updatedWorkSample = await WorkSampleService.updateWorkSample(
             req.params.id,
             req.body,
             allfiles
-            // newImages
         );
 
         res.json(updatedWorkSample);
@@ -65,7 +51,7 @@ export const updateWorkSample = async (req, res, next) => {
 
 export const deleteWorkSample = async (req, res) => {
     try {
-        console.log("Deleting work sample with ID:", req.params.id);  // ✅ ตรวจสอบว่า ID ที่ส่งมาตรงกับ Database หรือไม่
+        console.log("Deleting work sample with ID:", req.params.id);
 
         const workSample = await prisma.work_sample.findUnique({
             where: { id: Number(req.params.id) },
@@ -75,7 +61,6 @@ export const deleteWorkSample = async (req, res) => {
             return res.status(404).json({ message: "Work Sample not found" });
         }
 
-        // ✅ ลบไฟล์ภาพออกจากเซิร์ฟเวอร์
         workSample.images.forEach((imagePath) => {
             const filePath = `.${imagePath}`;
             if (fs.existsSync(filePath)) {
@@ -83,14 +68,13 @@ export const deleteWorkSample = async (req, res) => {
             }
         });
 
-        // ✅ ลบข้อมูลออกจาก Database
         await prisma.work_sample.delete({
             where: { id: Number(req.params.id) },
         });
 
         res.json({ message: "ลบผลงานและไฟล์รูปภาพเรียบร้อยแล้ว" });
     } catch (error) {
-        console.error("Error deleting work sample:", error); // ✅ แสดง Error ที่เกิดขึ้นใน Backend
+        console.error("Error deleting work sample:", error);
         res.status(500).json({ message: "Error deleting work sample", error });
     }
 };

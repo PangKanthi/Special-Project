@@ -5,7 +5,7 @@ export const getNotifications = async (req, res) => {
         const isAdmin = req.user.role === 'A';
 
         const notifications = await prisma.notification.findMany({
-            where: isAdmin ? {} : { userId: req.user.id }, // 👈 แอดมินเห็นทั้งหมด
+            where: isAdmin ? {} : { userId: req.user.id },
             orderBy: { createdAt: 'desc' }
         });
 
@@ -23,7 +23,7 @@ export const markNotificationAsRead = async (req, res) => {
         });
         res.json({ message: "อัปเดตสถานะเป็นอ่านแล้ว" });
     } catch (error) {
-        console.error("❌ Error updating notification:", error);
+        console.error(" Error updating notification:", error);
         res.status(500).json({ error: "ไม่สามารถอัปเดตการแจ้งเตือนได้" });
     }
 };
@@ -34,7 +34,7 @@ export const createOutOfStockNotifications = async () => {
             where: {
                 is_part: true,
                 stock_quantity: {
-                    lte: 0, // ✅ ครอบคลุม 0 และติดลบ
+                    lte: 0,
                 },
             },
         });
@@ -45,7 +45,7 @@ export const createOutOfStockNotifications = async () => {
 
         for (const product of outOfStockParts) {
             for (const admin of adminUsers) {
-                const messageText = `🔴 อะไหล่ "${product.name}" หมดสต็อก`;
+                const messageText = ` อะไหล่ "${product.name}" หมดสต็อก`;
 
                 const existing = await prisma.notification.findFirst({
                     where: {
@@ -60,7 +60,7 @@ export const createOutOfStockNotifications = async () => {
                         data: {
                             userId: admin.id,
                             productId: product.id,
-                            message: `🔴 อะไหล่ "${product.name}" หมดสต็อก`,
+                            message: ` อะไหล่ "${product.name}" หมดสต็อก`,
                             isRead: false,
                         },
                     });

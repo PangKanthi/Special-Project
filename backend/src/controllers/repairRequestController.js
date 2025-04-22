@@ -23,10 +23,9 @@ export const createRepairRequest = async (req, res, next) => {
             repair_price
         } = req.body;
         const userId = req.user.id;
-        let addressData = req.body.address ? JSON.parse(req.body.address) : null; // 👈 ต้องแปลงจาก JSON string
+        let addressData = req.body.address ? JSON.parse(req.body.address) : null;
         let finalAddressId = req.body.addressId ? parseInt(req.body.addressId, 10) : null;
 
-        // 📌 PostgreSQL รองรับ String[] ดังนั้นเก็บ URL ของรูปภาพเป็น Array
         const imagePaths = req.files ? req.files.map(file => `/uploads/repair_requests/${file.filename}`) : [];
         const product_image = req.body.product_image;
         const parsedProductImage = Array.isArray(product_image)
@@ -34,14 +33,12 @@ export const createRepairRequest = async (req, res, next) => {
             : product_image
                 ? [product_image]
                 : [];
-        // ดึงราคาซ่อมเริ่มต้นจากตารางก่อน
         const config = await prisma.repair_price.findUnique({
             where: { key: "default_repair_price" },
         });
 
-        const defaultRepairPrice = config ? parseFloat(config.value) : 3000; // fallback ถ้าไม่เจอ
+        const defaultRepairPrice = config ? parseFloat(config.value) : 3000;
 
-        // ถ้าไม่มี addressId ให้สร้างที่อยู่ใหม่
         if (!finalAddressId && addressData) {
             const newAddress = await prisma.address.create({
                 data: {
@@ -59,7 +56,6 @@ export const createRepairRequest = async (req, res, next) => {
             finalAddressId = newAddress.id;
         }
 
-        // ✅ บันทึกข้อมูล `images` เป็น Array ใน PostgreSQL
         const repairRequest = await prisma.repair_request.create({
             data: {
                 orderId: orderId ? parseInt(orderId, 10) : null, 
@@ -68,7 +64,7 @@ export const createRepairRequest = async (req, res, next) => {
                 problem_description: problemDescription,
                 service_type: serviceType,
                 status: 'pending',
-                images: imagePaths, // 📌 PostgreSQL รองรับ `String[]`
+                images: imagePaths,
                 product_name,
                 product_image: parsedProductImage,
                 color,
@@ -90,7 +86,7 @@ export const createRepairRequest = async (req, res, next) => {
 
         res.status(201).json({ message: "สร้างคำขอซ่อมสำเร็จ", data: repairRequest });
     } catch (error) {
-        console.error("❌ Error creating repair request:", error);
+        console.error(" Error creating repair request:", error);
         res.status(500).json({ error: "เกิดข้อผิดพลาดในการสร้างคำขอซ่อม" });
     }
 };
@@ -138,7 +134,7 @@ export const getAllRepairRequests = async (req, res) => {
 
         return res.status(200).json({ message: "ok", data: enriched });
     } catch (err) {
-        console.error("❌ getAllRepairRequests error:", err);
+        console.error(" getAllRepairRequests error:", err);
         return res.status(500).json({ error: "server error" });
     }
 };
@@ -164,7 +160,6 @@ export const updateRepairRequest = async (req, res, next) => {
 
             imageUrls = req.files.map(file => `/uploads/repair_requests/${file.filename}`);
         } else {
-            // ไม่มีไฟล์แนบ => คงรูปเก่าไว้เหมือนเดิม
             imageUrls = existingRequest.images;
         }
 
@@ -207,7 +202,7 @@ export const addPartsToRepairRequest = async (req, res, next) => {
 
         res.status(200).json({ message: response.message });
     } catch (error) {
-        console.error("❌ Error adding parts to repair:", error);
+        console.error(" Error adding parts to repair:", error);
         res.status(500).json({ error: "เกิดข้อผิดพลาดในการเพิ่มอะไหล่" });
     }
 };
@@ -233,7 +228,7 @@ export const getUserCompletedProducts = async (req, res) => {
                 "ล็อก", "รอก", "กล่อง", "คอนโทรล", "ฟือง", "มอเตอร์", "แผ่น", "เสา", "สวิตช์", "อะไหล่"
             ];
 
-            if (!category) return "shutter"; // fallback
+            if (!category) return "shutter";
 
             const matched = partKeywords.some(keyword => category.includes(keyword));
             return matched ? "shutter_parts" : "shutter";
@@ -271,7 +266,7 @@ export const getUserCompletedProducts = async (req, res) => {
 
         return res.status(200).json({ message: 'ดึงสินค้าสำเร็จ', data: products });
     } catch (err) {
-        console.error("🔥 ERROR in getUserCompletedProducts:", err);
+        console.error(" ERROR in getUserCompletedProducts:", err);
         return res.status(500).json({ error: 'ไม่สามารถดึงสินค้าที่สั่งซื้อได้', detail: err.message });
     }
 };
@@ -288,7 +283,7 @@ export const getDefaultRepairPrice = async (req, res) => {
 
         res.status(200).json({ price: parseFloat(config.value) });
     } catch (error) {
-        console.error("❌ Error fetching repair price:", error);
+        console.error(" Error fetching repair price:", error);
         res.status(500).json({ message: "เกิดข้อผิดพลาดในการดึงราคาซ่อมเริ่มต้น" });
     }
 };
@@ -308,7 +303,7 @@ export const updateDefaultRepairPrice = async (req, res) => {
         });
         return res.status(200).json({ message: "อัปเดตราคาซ่อมเรียบร้อย", data: updated });
     } catch (error) {
-        console.error("❌ Error updating default repair price:", error);
+        console.error(" Error updating default repair price:", error);
         return res.status(500).json({ message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
     }
 };

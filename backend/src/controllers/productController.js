@@ -13,12 +13,11 @@ export const createProduct = async (req, res, next) => {
       return Number.isNaN(n) ? null : n;
     };
 
-    const price = toNumberOrNull(req.body.price, parseFloat);      // Decimal?
+    const price = toNumberOrNull(req.body.price, parseFloat);
     const stock_quantity = toNumberOrNull(req.body.stock_quantity, parseInt);
-    const warranty = toNumberOrNull(req.body.warranty, parseInt);     // Int?
+    const warranty = toNumberOrNull(req.body.warranty, parseInt);
     const isPart = req.body.is_part === "true" || req.body.is_part === true;
     const statusFlag = req.body.status === "true" || req.body.status === true;
-    //-------------------------------------------------------------
     const newProduct = await ProductService.createProduct(
       {
         name: req.body.name,
@@ -74,7 +73,7 @@ export const updateProduct = async (req, res, next) => {
 
     res.json(updatedProduct);
   } catch (error) {
-    console.error("❌ Error updating product:", error);
+    console.error(" Error updating product:", error);
     res.status(500).json({ message: "เกิดข้อผิดพลาดในเซิร์ฟเวอร์", error: error.message });
   }
 };
@@ -180,7 +179,6 @@ export const getBomItems = async (req, res, next) => {
     const productId = Number(req.params.id);
     console.log("Fetching BOM items for product:", productId);
 
-    // ดึงข้อมูล BOM จากตาราง bom_item โดยใช้ productId
     const bomItems = await prisma.bom_item.findMany({
       where: { productId },
       include: {
@@ -191,7 +189,6 @@ export const getBomItems = async (req, res, next) => {
     res.status(200).json(bomItems);
   } catch (error) {
     console.error("Error fetching BOM items:", error);
-    // ส่งข้อผิดพลาดกลับไปพร้อมรายละเอียด
     res.status(500).json({ error: error.message });
   }
 };
