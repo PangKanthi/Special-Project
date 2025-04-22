@@ -129,7 +129,7 @@ const ProductForm = ({
               <FileUpload
                 ref={fileUploadRef}
                 accept="image/png, image/jpeg"
-                maxFileSize={1000000}
+                maxFileSize={5000000}
                 multiple
                 auto
                 customUpload
@@ -238,19 +238,6 @@ const ProductForm = ({
               />
             </div>
           )}
-          {/* <div className="pt-3">
-            <label className="block">สี</label>
-            <MultiSelect
-              name="colors"
-              value={newProduct.colors}
-              options={colorOptions}
-              onChange={handleInputChange}
-              optionLabel="label"
-              className="w-full"
-              placeholder="เลือก สี"
-              display="chip"
-            />
-          </div> */}
 
           <div className="pt-3">
             <label className="block">คำอธิบาย</label>

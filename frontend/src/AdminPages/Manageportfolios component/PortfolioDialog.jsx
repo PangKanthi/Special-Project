@@ -226,7 +226,7 @@ const PortfolioDialog = ({
           <FileUpload
             multiple
             accept="image/*"
-            maxFileSize={1000000}
+            maxFileSize={5000000}
             auto
             customUpload
             uploadHandler={onImageSelect}

@@ -16,15 +16,15 @@ const Repair = () => {
     problemDescription: "",
     serviceType: "",
     images: [],
-    product_name: "", // ชื่อสินค้า
-    product_image: [], // รูปภาพสินค้า
-    color: "", // สี
-    width: "", // ความกว้าง
-    length: "", // ความยาว
-    thickness: "", // ความหนา
-    installOption: "", // ตัวเลือกติดตั้ง
-    quantity: "", // จำนวน
-    price: "", // ราคาต่อชิ้น
+    product_name: "",
+    product_image: [],
+    color: "",
+    width: "",
+    length: "",
+    thickness: "",
+    installOption: "",
+    quantity: "",
+    price: "",
     warranty: "",
     completedAt: "",
   });
@@ -32,13 +32,10 @@ const Repair = () => {
   const [errors, setErrors] = useState({});
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // ✅ เก็บรายการที่อยู่ทั้งหมดใน state
   const [addresses, setAddresses] = useState([]);
 
-  // ✅ เก็บที่อยู่ที่เลือกจาก Dropdown
   const [selectedAddress, setSelectedAddress] = useState(null);
 
-  // ✅ เก็บข้อมูล user (ชื่อ, นามสกุล, เบอร์) เพื่อแสดงในหน้า
   const [user, setUser] = useState(null);
 
   const [completedProducts, setCompletedProducts] = useState([]);
@@ -48,12 +45,10 @@ const Repair = () => {
   const fileUploadRef = useRef(null);
   const toast = useRef(null);
 
-  // ✅ ดึง Token เพื่อเช็คว่า login อยู่หรือไม่
   useEffect(() => {
     const token = localStorage.getItem("token");
     setIsLoggedIn(!!token);
 
-    // 📌 ฟังก์ชันดึงข้อมูลที่อยู่
     const fetchAddresses = async () => {
       try {
         const res = await fetch(`${process.env.REACT_APP_API}/api/addresses`, {
@@ -67,7 +62,7 @@ const Repair = () => {
         console.error("เกิดข้อผิดพลาดในการดึงที่อยู่:", err);
       }
     };
-    // 📌 ฟังก์ชันดึงข้อมูลผู้ใช้
+
     const fetchUser = async () => {
       try {
         const res = await fetch(`${process.env.REACT_APP_API}/api/users/me`, {
@@ -106,7 +101,6 @@ const Repair = () => {
     if (token) fetchCompletedProducts();
   }, []);
 
-  // ✅ ฟังก์ชัน handleAddressSelection สำหรับเลือกที่อยู่จาก Dropdown
   const handleAddressSelection = (selected) => {
     if (selected) {
       setSelectedAddress(selected);
@@ -119,7 +113,6 @@ const Repair = () => {
         postcode: selected.postalCode,
       }));
     } else {
-      // ถ้า user กลับมาเลือกเป็น "null" (ไม่มีที่อยู่)
       setSelectedAddress(null);
       setForm((prevForm) => ({
         ...prevForm,
@@ -132,16 +125,13 @@ const Repair = () => {
     }
   };
 
-  // ✅ ประเภทการซ่อม
   const serviceTypes = [
     { label: "ประตูม้วน", value: "shutter" },
     { label: "อะไหล่ประตูม้วน", value: "shutter_parts" },
   ];
 
-  // ✅ ฟังก์ชัน validate ฟิลด์ว่าง
   const validateNotEmpty = (value) => value.trim() !== "";
 
-  // ✅ ฟังก์ชัน handleInputChange
   const handleInputChange = (e, field) => {
     const value = e.target.value;
     setForm((prevForm) => ({
@@ -154,7 +144,6 @@ const Repair = () => {
     }));
   };
 
-  // ✅ ฟังก์ชัน validate ฟิลด์ซ่อม
   const validateRepairField = (field, value) => {
     switch (field) {
       case "addressLine":
@@ -166,7 +155,6 @@ const Repair = () => {
     }
   };
 
-  // ✅ ฟังก์ชันเพิ่มไฟล์ลง state
   const handleImageUpload = (event) => {
     setForm((prevForm) => {
       const newFiles = [];
@@ -185,7 +173,6 @@ const Repair = () => {
     });
   };
 
-  // ✅ ฟังก์ชันลบรูปภาพออกจาก state
   const handleRemoveImage = (event) => {
     setForm((prevForm) => {
       const updatedImages = prevForm.images.filter(
@@ -195,7 +182,6 @@ const Repair = () => {
     });
   };
 
-  // ✅ ฟังก์ชัน handleSubmit
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -243,7 +229,6 @@ const Repair = () => {
         })
       );
     } else {
-      // ถ้า user ไม่ได้เลือก -> ใช้ค่าที่กรอกเอง
       formData.append(
         "address",
         JSON.stringify({
@@ -273,9 +258,8 @@ const Repair = () => {
           severity: "success",
           summary: "สำเร็จ",
           detail: "แจ้งซ่อมสำเร็จ",
-          life: 3000, // แสดงผล 3 วินาที
+          life: 3000,
         });
-        // ✅ รอ 1.5 วินาทีก่อนเปลี่ยนหน้า
         setTimeout(() => {
           navigate("/profile");
         }, 1500);
@@ -308,7 +292,6 @@ const Repair = () => {
     }
   };
 
-  // ✅ เช็ค token อีกครั้งเผื่อ user logout ไป
   useEffect(() => {
     const token = localStorage.getItem("token");
     setIsLoggedIn(!!token);
@@ -316,7 +299,6 @@ const Repair = () => {
 
   useEffect(() => {
     if (selectedProduct) {
-      // ✅ ตั้งค่าที่อยู่ตาม order เดิม
       if (selectedProduct.address) {
         setSelectedAddress(selectedProduct.address);
         setForm((prevForm) => ({
@@ -329,12 +311,10 @@ const Repair = () => {
         }));
       }
 
-      // ✅ ตั้งค่า product snapshot + serviceType
       setForm((prev) => ({
         ...prev,
         serviceType: selectedProduct.service_type ?? "",
 
-        // 🔁 กรอกข้อมูลสินค้าที่เลือก
         product_name: selectedProduct.name ?? "",
         product_image: selectedProduct.product_image || [],
         color: selectedProduct.color ?? "",
@@ -395,7 +375,6 @@ const Repair = () => {
           setSelectedProduct={setSelectedProduct}
         />
 
-        {/* ✅ ส่วนอัปโหลดรูปภาพ */}
         <div className="p-field p-col-12 pt-2">
           <label>เพิ่มรูปภาพ</label>
           <div className="pt-2">
@@ -404,7 +383,7 @@ const Repair = () => {
               name="images"
               mode="advanced"
               accept="image/*"
-              maxFileSize={1000000}
+              maxFileSize={5000000}
               multiple
               customUpload
               uploadHandler={handleImageUpload}

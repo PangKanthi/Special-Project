@@ -18,7 +18,7 @@ export default function NotificationButton() {
 
   useEffect(() => {
     if (dialogVisible) {
-      fetchNotifications(); // โหลดใหม่ทุกครั้งที่เปิด Dialog
+      fetchNotifications();
     }
   }, [dialogVisible]);
 
@@ -34,7 +34,6 @@ export default function NotificationButton() {
 
       const allNotifications = response.data || [];
 
-      // ✅ แสดงเฉพาะที่ยังไม่ได้อ่าน
       const unread = allNotifications.filter((n) => !n.isRead);
 
       setNotifications(unread);
@@ -55,13 +54,12 @@ export default function NotificationButton() {
         }
       );
 
-      // 👉 เช็คประเภทข้อความ แล้วนำทาง
       if (message.includes("คำสั่งซื้อ")) {
         navigate("/manageorders");
       } else if (message.includes("คำขอซ่อม")) {
         navigate("/managerepairrequests");
       } else if (message.includes("หมดสต็อก")) {
-        navigate("/manageproducts"); // ✅ ไปที่หน้าอะไหล่
+        navigate("/manageproducts");
       }
     } catch (error) {
       console.error("Error marking notification as read", error);
@@ -116,7 +114,7 @@ export default function NotificationButton() {
       )}
 
       <Dialog
-        header="📢 การแจ้งเตือน"
+        header="การแจ้งเตือน"
         visible={dialogVisible}
         style={{ width: "50vw" }}
         onHide={() => setDialogVisible(false)}

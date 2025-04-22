@@ -9,14 +9,12 @@ function SlipPayment({ grandTotal, handleOrderConfirmation }) {
   const [error, setError] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
 
-  // ✅ ฟังก์ชันจัดเก็บไฟล์ที่อัปโหลด
   const handleImageUpload = (event) => {
     const file = event.files[0];
     if (!file) return;
     setSelectedFile(file);
   };
 
-  // ✅ ฟังก์ชันส่งรูปไป Backend เพื่อตรวจสอบสลิป
   const checkSlip = async () => {
     if (!selectedFile) {
       alert("กรุณาอัปโหลดสลิปก่อนตรวจสอบ");
@@ -28,7 +26,7 @@ function SlipPayment({ grandTotal, handleOrderConfirmation }) {
 
     try {
       const formData = new FormData();
-      formData.append("slip", selectedFile); // ✅ เปลี่ยนจาก "file" เป็น "slip"
+      formData.append("slip", selectedFile);
 
       const response = await fetch(`${process.env.REACT_APP_API}/api/check-slip`, {
         method: "POST",
@@ -45,7 +43,7 @@ function SlipPayment({ grandTotal, handleOrderConfirmation }) {
 
       if (slipAmount !== grandTotal) {
         setError(
-          `❌ จำนวนเงินในสลิป (${slipAmount} บาท) ไม่ตรงกับยอดรวม (${grandTotal} บาท)`
+          `จำนวนเงินในสลิป (${slipAmount} บาท) ไม่ตรงกับยอดรวม (${grandTotal} บาท)`
         );
       }
     } catch (err) {
@@ -63,7 +61,7 @@ function SlipPayment({ grandTotal, handleOrderConfirmation }) {
 
     if (slipAmount !== grandTotal) {
       alert(
-        `❌ จำนวนเงินที่โอน (${slipAmount} บาท) ไม่ตรงกับยอดรวมที่ต้องจ่าย (${grandTotal} บาท)`
+        `จำนวนเงินที่โอน (${slipAmount} บาท) ไม่ตรงกับยอดรวมที่ต้องจ่าย (${grandTotal} บาท)`
       );
       return;
     }
@@ -80,7 +78,7 @@ function SlipPayment({ grandTotal, handleOrderConfirmation }) {
             name="file"
             mode="advanced"
             accept="image/*"
-            maxFileSize={1000000}
+            maxFileSize={5000000}
             customUpload
             uploadHandler={handleImageUpload}
             chooseLabel="เลือกไฟล์"
@@ -97,10 +95,10 @@ function SlipPayment({ grandTotal, handleOrderConfirmation }) {
           />
         </div>
 
-        {loading && <p>🔄 กำลังตรวจสอบสลิป...</p>}
+        {loading && <p>กำลังตรวจสอบสลิป...</p>}
         {slipAmount !== null && (
           <p className="mt-2 text-green-600">
-            ✅ ยอดเงิน: {slipAmount} บาท
+            ยอดเงิน: {slipAmount} บาท
           </p>
         )}
         {error && <p className="text-red-500">{error}</p>}

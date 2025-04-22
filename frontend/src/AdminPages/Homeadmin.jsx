@@ -9,10 +9,8 @@ import { Column } from "primereact/column";
 import { Dropdown } from "primereact/dropdown";
 import { getBangkokTime } from "../utils/timeUtils";
 
-// ----- Hook สำหรับยอดขาย (ที่เราแยกไฟล์) -----
 import useSalesDataSeparate from "./Homeadmin component/useSalesDataSeparate";
 
-// ----- Hook อื่น ๆ ของคุณ -----
 import useCompletedOrders from "./Homeadmin component/useCompletedOrders";
 import useFailedOrders from "./Homeadmin component/useFailedOrders";
 import useCompletedRepairs from "./Homeadmin component/useCompletedRepairs";
@@ -43,7 +41,6 @@ const unitMap = {
 };
 
 export default function Homeadmin() {
-  // ============== Hook dashboard ด้านซ้าย ==============
   const completedOrders = useCompletedOrders();
   const failedOrders = useFailedOrders();
   const completedRepairs = useCompletedRepairs();
@@ -52,7 +49,6 @@ export default function Homeadmin() {
   const userCount = useUserCount();
   const [inventoryDialog, setInventoryDialog] = useState(false);
 
-  // ============== เรียกใช้ Hook แยก ==============
   const {
     yearData,
     totalYearSales,
@@ -71,21 +67,16 @@ export default function Homeadmin() {
     loadMonthData: loadRepairMonth,
   } = useRepairSalesData();
 
-  // ============== State เกี่ยวกับกราฟ ==============
-  const [chartMode, setChartMode] = useState("year"); // "year" | "month"
+  const [chartMode, setChartMode] = useState("year");
   const [chartData, setChartData] = useState({ labels: [], datasets: [] });
   const [selectedMonth, setSelectedMonth] = useState(null);
   const { summaryData, loadSummary, loading } = useUserSummaryData();
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [userChartMode, setUserChartMode] = useState("daily");
   const [selectedYear, setSelectedYear] = useState(getBangkokTime().getFullYear());
-  const [chartCategory, setChartCategory] = useState("sales"); // "sales" หรือ "repairs"
 
-
-  // ============== Dialog ตัวอย่าง: แสดงรายการรายเดือน ==============
   const [showMonthDialog, setShowMonthDialog] = useState(false);
 
-  // เมื่อ mount ครั้งแรก -> โหลดยอดขายรายปี (เพื่อทำกราฟเป็นค่า default)
   useEffect(() => {
     loadYearData().then(() => {
       updateChartData("year");
@@ -111,12 +102,10 @@ export default function Homeadmin() {
     }
   }, [chartMode]);
 
-  // เมื่อ monthData หรือ yearData เปลี่ยน -> อัปเดต chart
   useEffect(() => {
     updateChartData(chartMode);
   }, [yearData, monthData]);
 
-  // ฟังก์ชันเปลี่ยน chartData ตามโหมด
   function updateChartData(mode) {
     if (mode === "year" && yearData.length) {
       const labels = yearData.map((item) => item.name);
@@ -151,12 +140,10 @@ export default function Homeadmin() {
         ],
       });
     } else {
-      // ยังไม่มีข้อมูล (เช่น ยังไม่ได้เลือกเดือน)
       setChartData({ labels: [], datasets: [] });
     }
   }
 
-  // เมื่อเปลี่ยนเดือนใน Dropdown -> loadMonthData -> update chart
   function handleSelectMonth(e) {
     const mon = e.value;
     setSelectedMonth(mon);
@@ -197,7 +184,7 @@ export default function Homeadmin() {
       {/* Header */}
       <div className="flex justify-content-between align-items-center mb-4">
         <h2 className="text-2xl flex align-items-center">
-          📊 Dashboard ผู้ดูแลระบบ
+          Dashboard ผู้ดูแลระบบ
         </h2>
         <NotificationButton />
       </div>
@@ -212,21 +199,18 @@ export default function Homeadmin() {
                   value: completedOrders.length,
                   color: "text-green-500",
                   unit: "รายการ",
-                  icon: "✅",
                 },
                 {
                   title: "คำสั่งซื้อไม่สำเร็จ",
                   value: failedOrders.length,
                   color: "text-red-500",
                   unit: "รายการ",
-                  icon: "❌",
                 },
                 {
                   title: "สินค้าคงคลัง",
                   value: totalStock,
                   color: "text-blue-500",
                   unit: "ชิ้น",
-                  icon: "📦",
                   onClick: () => setInventoryDialog(true),
                 },
                 {
@@ -234,21 +218,18 @@ export default function Homeadmin() {
                   value: userCount,
                   color: "text-purple-500",
                   unit: "คน",
-                  icon: "👤",
                 },
                 {
                   title: "คำขอซ่อมสำเร็จ",
                   value: completedRepairs,
                   color: "text-teal-500",
                   unit: "รายการ",
-                  icon: "🛠️",
                 },
                 {
                   title: "คำขอซ่อมไม่สำเร็จ",
                   value: failedRepairs,
                   color: "text-orange-500",
                   unit: "รายการ",
-                  icon: "⚠️",
                 },
               ].map((item, idx) => (
                 <div className="col-6 p-2" key={idx}>
@@ -379,7 +360,6 @@ export default function Homeadmin() {
           </div>
         </div>
 
-        {/* ======== Dialog รายเดือน (ตัวอย่าง) ======== */}
         <Dialog
           header="รายละเอียดคำสั่งซื้อรายเดือน"
           visible={showMonthDialog}
