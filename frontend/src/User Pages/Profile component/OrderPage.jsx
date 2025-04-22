@@ -178,7 +178,7 @@ const OrderPage = () => {
               value={filterOrdersByStatus(tab.value)}
               dataKey="id"
               paginator
-              rows={10}
+              rows={9}
             >
               <Column header="ID" body={(rowData) => rowData.user?.id || "-"} />
               <Column

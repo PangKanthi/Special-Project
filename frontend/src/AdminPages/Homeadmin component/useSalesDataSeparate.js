@@ -1,98 +1,100 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import axios from "axios";
 
 export default function useSalesDataSeparate() {
-  // เก็บข้อมูลยอดขายรายปี
   const [yearData, setYearData] = useState([]);
   const [totalYearSales, setTotalYearSales] = useState(0);
-
-  // เก็บข้อมูลยอดขายรายเดือน
   const [monthData, setMonthData] = useState([]);
   const [totalMonthSales, setTotalMonthSales] = useState(0);
 
-  // ตัวอย่าง: loadYearData() -> ดึงข้อมูลปี
-  async function loadYearData() {
+  const monthOrder = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+  ];
+
+  async function loadYearData(selectedYear = new Date().getFullYear()) {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(`${process.env.REACT_APP_API}/api/orders`, {
+      const res = await axios.get(`${process.env.REACT_APP_API}/api/orders`, {
         headers: { Authorization: `Bearer ${token}` },
-    });
+      });
 
-      const completedOrders = response.data.data.filter(o => o.status === "complete");
+      const completed = res.data.data.filter((o) => {
+        if (o.status !== "complete") return false;
+        const dt = new Date(o.order_date);
+        return dt.toString() !== "Invalid Date" && dt.getFullYear() === selectedYear;
+      });
+
       const salesByMonth = {};
       let yearlyTotal = 0;
-      const monthOrder = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
-      completedOrders.forEach(order => {
-        const dt = new Date(order.order_date);
-        if (dt.toString() !== "Invalid Date") {
-          const shortMonth = dt.toLocaleString("en-US", { month: "short" });
-          const amount = parseFloat(order.total_amount) || 0;
-          salesByMonth[shortMonth] = (salesByMonth[shortMonth] || 0) + amount;
-          yearlyTotal += amount;
-        }
+      completed.forEach((o) => {
+        const dt = new Date(o.order_date);
+        const m = dt.toLocaleString("en-US", { month: "short" });
+        const amt = parseFloat(o.total_amount) || 0;
+        salesByMonth[m] = (salesByMonth[m] || 0) + amt;
+        yearlyTotal += amt;
       });
 
       setTotalYearSales(yearlyTotal);
-
-      const mappedYearData = monthOrder.map(m => ({
-        name: m,
-        sales: salesByMonth[m] || 0
-      }));
-      setYearData(mappedYearData);
-
-    } catch (error) {
-      console.error("❌ loadYearData failed:", error);
+      setYearData(
+        monthOrder.map((m) => ({ name: m, sales: salesByMonth[m] || 0 }))
+      );
+    } catch (err) {
+      console.error(" loadYearData failed:", err);
       setYearData([]);
       setTotalYearSales(0);
     }
   }
 
-  // ตัวอย่าง: loadMonthData(month) -> ดึงข้อมูลเดือน
-  async function loadMonthData(selectedMonth) {
+  async function loadMonthData(
+    selectedMonth,
+    selectedYear = new Date().getFullYear()
+  ) {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(`${process.env.REACT_APP_API}/api/orders`, {
+      const res = await axios.get(`${process.env.REACT_APP_API}/api/orders`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const completedOrders = response.data.data.filter(o => o.status === "complete");
 
-      const filtered = completedOrders.filter(order => {
-        const dt = new Date(order.order_date);
-        if (dt.toString() === "Invalid Date") return false;
-        const shortMonth = dt.toLocaleString("en-US", { month: "short" });
-        return shortMonth === selectedMonth;
+      const completed = res.data.data.filter((o) => {
+        if (o.status !== "complete") return false;
+        const dt = new Date(o.order_date);
+        return dt.toString() !== "Invalid Date" && dt.getFullYear() === selectedYear;
       });
 
-      let sum = 0;
-      const mappedMonthData = filtered.map(o => {
-        const amount = parseFloat(o.total_amount) || 0;
-        sum += amount;
+      const filtered = completed.filter((o) => {
+        const m = new Date(o.order_date).toLocaleString("en-US", { month: "short" });
+        return m === selectedMonth;
+      });
+
+      let monthSum = 0;
+      const mapped = filtered.map((o) => {
+        const amt = parseFloat(o.total_amount) || 0;
+        monthSum += amt;
         return {
           id: o.id,
           name: `คำสั่งซื้อ #${o.id}`,
           order_date: new Date(o.order_date).toLocaleDateString("th-TH"),
-          total: amount
+          total: amt,
         };
       });
 
-      setMonthData(mappedMonthData);
-      setTotalMonthSales(sum);
-
-    } catch (error) {
-      console.error("❌ loadMonthData failed:", error);
+      setMonthData(mapped);
+      setTotalMonthSales(monthSum);
+    } catch (err) {
+      console.error("loadMonthData failed:", err);
       setMonthData([]);
       setTotalMonthSales(0);
     }
   }
 
-  // รีเทิร์นฟังก์ชัน + สเตตที่จำเป็น
   return {
     yearData,
     totalYearSales,
     monthData,
     totalMonthSales,
     loadYearData,
-    loadMonthData
+    loadMonthData,
   };
 }

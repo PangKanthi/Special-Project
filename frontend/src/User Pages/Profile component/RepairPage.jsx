@@ -13,7 +13,7 @@ const RepairPage = () => {
     const [activeIndex, setActiveIndex] = useState(0);
     const [filteredRepairs, setFilteredRepairs] = useState([]);
     const [first, setFirst] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [rowsPerPage, setRowsPerPage] = useState(7);
     const [visibleItems, setVisibleItems] = useState(false);
     const [selectedRepairItem, setSelectedRepairItem] = useState(null);
     const [visibleAddressDialog, setVisibleAddressDialog] = useState(false);

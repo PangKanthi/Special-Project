@@ -8,70 +8,81 @@ export default function useRepairSalesData() {
   const [monthData, setMonthData] = useState([]);
   const [totalMonthSales, setTotalMonthSales] = useState(0);
 
-  const monthOrder = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const monthOrder = [
+    "Jan","Feb","Mar","Apr","May","Jun",
+    "Jul","Aug","Sep","Oct","Nov","Dec"
+  ];
 
-  async function loadYearData() {
+  async function loadYearData(selectedYear = new Date().getFullYear()) {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get(`${process.env.REACT_APP_API}/api/repair-requests/all`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await axios.get(
+        `${process.env.REACT_APP_API}/api/repair-requests/all`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-      const completedRepairs = res.data.data.filter(r => r.status === "complete");
-      const salesByMonth = {};
-      let yearlyTotal = 0;
-
-      completedRepairs.forEach(r => {
+      const completed = res.data.data.filter((r) => {
+        if (r.status !== "complete") return false;
         const dt = new Date(r.request_date);
-        const shortMonth = dt.toLocaleString("en-US", { month: "short" });
-        const price = parseFloat(r.repair_price) || 0;
-        salesByMonth[shortMonth] = (salesByMonth[shortMonth] || 0) + price;
-        yearlyTotal += price;
+        return dt.toString() !== "Invalid Date" && dt.getFullYear() === selectedYear;
       });
 
-      const mapped = monthOrder.map(m => ({
-        name: m,
-        sales: salesByMonth[m] || 0
-      }));
+      const salesByMonth = {};
+      let yearSum = 0;
 
-      setYearData(mapped);
-      setTotalYearSales(yearlyTotal);
+      completed.forEach((r) => {
+        const dt    = new Date(r.request_date);
+        const month = dt.toLocaleString("en-US", { month: "short" });
+        const price = parseFloat(r.repair_price) || 0;
+        salesByMonth[month] = (salesByMonth[month] || 0) + price;
+        yearSum += price;
+      });
+
+      setTotalYearSales(yearSum);
+      setYearData(monthOrder.map((m) => ({ name: m, sales: salesByMonth[m] || 0 })));
     } catch (err) {
-      console.error("\u274C loadRepairYearData failed:", err);
       setYearData([]);
       setTotalYearSales(0);
     }
   }
 
-  async function loadMonthData(monthStr) {
+  async function loadMonthData(
+    selectedMonth,
+    selectedYear = new Date().getFullYear()
+  ) {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get(`${process.env.REACT_APP_API}/api/repair-requests/all`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await axios.get(
+        `${process.env.REACT_APP_API}/api/repair-requests/all`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-      const completedRepairs = res.data.data.filter(r => r.status === "complete");
-      const filtered = completedRepairs.filter(r => {
+      const completed = res.data.data.filter((r) => {
+        if (r.status !== "complete") return false;
         const dt = new Date(r.request_date);
-        const shortMonth = dt.toLocaleString("en-US", { month: "short" });
-        return shortMonth === monthStr;
+        return dt.toString() !== "Invalid Date" && dt.getFullYear() === selectedYear;
       });
 
-      let total = 0;
-      const mapped = filtered.map(r => {
+      const filtered = completed.filter((r) => {
+        const month = new Date(r.request_date).toLocaleString("en-US", { month: "short" });
+        return month === selectedMonth;
+      });
+
+      let monthSum = 0;
+      const mapped = filtered.map((r) => {
         const price = parseFloat(r.repair_price) || 0;
-        total += price;
+        monthSum += price;
         return {
           name: `ซ่อม #${r.id}`,
-          total: price,
           request_date: new Date(r.request_date).toLocaleDateString("th-TH"),
+          total: price,
         };
       });
 
       setMonthData(mapped);
-      setTotalMonthSales(total);
+      setTotalMonthSales(monthSum);
     } catch (err) {
-      console.error("\u274C loadRepairMonthData failed:", err);
+      console.error(" loadRepairMonthData failed:", err);
       setMonthData([]);
       setTotalMonthSales(0);
     }
@@ -83,6 +94,6 @@ export default function useRepairSalesData() {
     monthData,
     totalMonthSales,
     loadYearData,
-    loadMonthData
+    loadMonthData,
   };
 }

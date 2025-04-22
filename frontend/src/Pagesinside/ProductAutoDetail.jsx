@@ -102,30 +102,10 @@ const ProductAutoDetail = () => {
     fetchProduct();
   }, [id]);
 
-  // useEffect(() => {
-  //   const loadConfig = async () => {
-  //     try {
-  //       if (!product?.category) return;
-
-  //       const data = await fetchDoorConfig();
-  //       if (data[product.category]) {
-  //         const allThickness = new Set();
-
-  //         data[product.category].priceTiers?.forEach((tier) => {
-  //           allThickness.add(tier.thickness);
-  //         });
-
-  //         setThicknessOptions([...allThickness]);
-  //       } else {
-  //         setThicknessOptions([]);
-  //       }
-  //     } catch (error) {
-  //       console.error("Error fetching door config:", error);
-  //     }
-  //   };
-
-  //   loadConfig();
-  // }, [product?.category]);
+  useEffect(() => {
+    // รีเซ็ต total price เมื่อความหนาเปลี่ยน
+    setTotalPrice(null);
+  }, [selectedThickness]);
 
   useEffect(() => {
     const fetchTiers = async () => {

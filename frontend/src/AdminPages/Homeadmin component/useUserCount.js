@@ -15,7 +15,6 @@ const useUserCount = () => {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
-            // ✅ กรองเฉพาะผู้ใช้ที่ role เป็น "U" (ไม่นับ Admin)
             const users = response.data.filter(user => user.role === "U");
             setUserCount(users.length);
         } catch (error) {

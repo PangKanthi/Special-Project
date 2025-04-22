@@ -60,8 +60,8 @@ const useUserSummaryData = () => {
         if (!userId) return;
 
         const date = new Date(repair.request_date);
-        const dayKey = date.toISOString().slice(0, 10);      // YYYY-MM-DD
-        const monthKey = date.toISOString().slice(0, 7);     // YYYY-MM
+        const dayKey = date.toISOString().slice(0, 10);
+        const monthKey = date.toISOString().slice(0, 7);
 
         if (!userMap[userId]) {
           userMap[userId] = {

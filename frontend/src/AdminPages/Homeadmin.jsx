@@ -34,7 +34,7 @@ const unitMap = {
   ตัวล็อคโซ่สาว: "ตัว",
   ชุดมอเตอร์ประตูม้วน: "ชุด",
   สวิตช์กดควบคุม: "ชุด",
-  อื่นๆ:"ชุด",
+  อื่นๆ: "ชุด",
   manual_rolling_shutter: "ชุด",
   chain_electric_shutter: "ชุด",
   electric_rolling_shutter: "ชุด",
@@ -74,22 +74,31 @@ export default function Homeadmin() {
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [userChartMode, setUserChartMode] = useState("daily");
   const [selectedYear, setSelectedYear] = useState(getBangkokTime().getFullYear());
+  const currentYear = getBangkokTime().getFullYear();
+  const [salesYear, setSalesYear] = useState(currentYear);
+
+  const salesYearOptions = [...Array(5)].map((_, idx) => {
+    const y = currentYear - idx;
+    return { label: `ปี ${y}`, value: y };
+  });
 
   const [showMonthDialog, setShowMonthDialog] = useState(false);
 
   useEffect(() => {
-    loadYearData().then(() => {
-      updateChartData("year");
-    });
-  }, []);
+    loadYearData(salesYear).then(() => updateChartData("year"));
+  }, [salesYear]);
 
   useEffect(() => {
     loadSummary();
   }, []);
 
   useEffect(() => {
-    loadRepairYear();
-  }, []);
+    loadRepairYear(salesYear);
+    if (chartMode === "month" && selectedMonth) {
+      loadRepairMonth(selectedMonth, salesYear);
+    }
+  }, [salesYear]);
+
 
 
   useEffect(() => {
@@ -124,8 +133,8 @@ export default function Homeadmin() {
         ],
       });
     } else if (mode === "month" && monthData.length) {
-      const labels = monthData.map((item) => item.name); // "คำสั่งซื้อ #1" ...
-      const dataset = monthData.map((item) => item.total); // total บาท
+      const labels = monthData.map((item) => item.name);
+      const dataset = monthData.map((item) => item.total);
 
       setChartData({
         labels,
@@ -150,6 +159,7 @@ export default function Homeadmin() {
     loadMonthData(mon).then(() => {
       updateChartData("month");
     });
+    loadMonthData(mon, salesYear).then(() => updateChartData("month"));
   }
 
   const selectedUser = summaryData.find((u) => u.userId === selectedUserId);
@@ -252,7 +262,6 @@ export default function Homeadmin() {
           {/* ======== ฝั่งขวา: Chart ที่สลับได้ (ปี/เดือน) ======== */}
           <div className="col-12 md:col-7">
             <Card title="ยอดขายสินค้า" className="shadow-3 p-2 relative">
-              {/* Dropdown เลือกโหมด (year / month) */}
               <div className="mb-2 flex gap-2">
                 <Dropdown
                   value={chartMode}
@@ -264,23 +273,18 @@ export default function Homeadmin() {
                   placeholder="เลือกโหมดกราฟ"
                   className="mr-2"
                 />
+                <Dropdown
+                  value={salesYear}
+                  options={salesYearOptions}
+                  onChange={(e) => setSalesYear(e.value)}
+                />
 
                 {chartMode === "month" && (
                   <Dropdown
                     value={selectedMonth}
                     options={[
-                      "Jan",
-                      "Feb",
-                      "Mar",
-                      "Apr",
-                      "May",
-                      "Jun",
-                      "Jul",
-                      "Aug",
-                      "Sep",
-                      "Oct",
-                      "Nov",
-                      "Dec",
+                      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
                     ]}
                     onChange={handleSelectMonth}
                     placeholder="เลือกเดือน"
@@ -390,6 +394,11 @@ export default function Homeadmin() {
                 ]}
                 onChange={(e) => setChartMode(e.value)}
               />
+              <Dropdown
+                value={salesYear}
+                options={salesYearOptions}
+                onChange={(e) => setSalesYear(e.value)}
+              />
               {chartMode === "month" && (
                 <Dropdown
                   value={selectedMonth}
@@ -397,9 +406,10 @@ export default function Homeadmin() {
                     "Jan", "Feb", "Mar", "Apr", "May", "Jun",
                     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
                   ]}
+                  placeholder="เลือกเดือน"
                   onChange={(e) => {
                     setSelectedMonth(e.value);
-                    loadRepairMonth(e.value);
+                    loadRepairMonth(e.value, salesYear);
                   }}
                 />
               )}

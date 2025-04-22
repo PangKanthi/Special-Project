@@ -143,12 +143,12 @@ export default function ManageProductPriceTier() {
 
   const addTier = async () => {
     const { min_area, max_area, productId } = newTier;
-    const overlaps = checkOverlap(min_area, max_area, productId);
+    // const overlaps = checkOverlap(min_area, max_area, productId);
 
-    if (overlaps) {
-      toast.current.show({ severity: "error", summary: "พื้นที่ซ้ำกัน" });
-      return;
-    }
+    // if (overlaps) {
+    //   toast.current.show({ severity: "error", summary: "พื้นที่ซ้ำกัน" });
+    //   return;
+    // }
 
     try {
       await api.post(`/api/products/${newTier.productId}/price-tiers`, newTier);
