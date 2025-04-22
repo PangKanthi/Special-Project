@@ -13,7 +13,9 @@ const OrderSummaryDialog = ({
   bomDetailsMap,
 }) => {
   const [expandedRows, setExpandedRows] = useState(null);
-  const isOnlyParts = selectedOrder.order_items.every(item => item.product.is_part);
+  const isOnlyParts = selectedOrder.order_items.every(
+    (item) => item.product.is_part
+  );
   const rowExpansionTemplate = (data) => {
     if (data.product.is_part) return null;
     const bomDetails =
@@ -121,6 +123,7 @@ const OrderSummaryDialog = ({
               objectFit: "contain",
             }}
           />
+
           {/* ข้อความบริษัทจัดกลาง */}
           <div
             style={{
@@ -137,21 +140,52 @@ const OrderSummaryDialog = ({
                 fontSize: "36px",
                 fontWeight: "bold",
                 lineHeight: "1.2",
-                marginTop: "10px",
+                marginTop: "50px",
               }}
             >
               ห้างหุ้นส่วนจำกัด ดี เดย์ ประตูม้วน
             </div>
             <div
-              style={{ fontSize: "26px", lineHeight: "1.2", marginTop: "5px" }}
+              style={{ fontSize: "26px", lineHeight: "1.2", marginTop: "10px" }}
             >
               422/63 หมู่ที่ 5 ตำบลเขาคันทรง
               <br />
               อำเภอศรีราชา จังหวัดชลบุรี 20110
               <br />
               โทร 083-015-1893, 086-033-5224
+              <br />
+              เลขประจำตัวผู้เสียภาษี 0203551006260
+            </div>
+            <br />
+            <div
+              style={{
+                fontSize: "36px",
+                fontWeight: "bold",
+                lineHeight: "1.2",
+                marginTop: "10px",
+              }}
+            >
+              ใบประเมินราคาเบื้องต้น
+              <br />
+              Preliminary Price Estimate
             </div>
           </div>
+        </div>
+
+        <div
+          style={{
+            position: "absolute",
+            top: "10px",
+            right: "10px",
+            color: "red",
+            fontSize: "24px",
+            fontWeight: "bold",
+            whiteSpace: "nowrap",
+            textAlign: "right",
+          }}
+        >
+          *หมายเหตุ: ราคาที่ปรากฎเป็นเพียงการประเมินราคาเบื้องต้น
+          ซึ่งอาจมีการเปลี่ยนแปลงราคาในภายหลัง
         </div>
 
         {/* แสดง Order Id */}
@@ -160,6 +194,7 @@ const OrderSummaryDialog = ({
             textAlign: "right",
             fontSize: "24px",
             fontWeight: "bold",
+            marginTop: "70mm",
           }}
         >
           หมายเลขคำสั่งซื้อ: {selectedOrder.id}
@@ -181,7 +216,7 @@ const OrderSummaryDialog = ({
         </div>
 
         {/* ข้อมูลลูกค้า */}
-        <div style={{ marginBottom: "10mm" }}>
+        <div style={{ marginBottom: "10mm", marginTop: "20mm" }}>
           <h3 style={{ fontSize: "26px", marginBottom: "5mm" }}>
             ข้อมูลลูกค้า
           </h3>
@@ -286,10 +321,11 @@ const OrderSummaryDialog = ({
             />
           </DataTable>
         </div>
-
-        <div style={{ marginTop: "10mm", textAlign: "right", fontSize: "22px" }}>
+        <div
+          style={{ marginTop: "10mm", textAlign: "right", fontSize: "22px" }}
+        >
           <strong>
-            VAT 7%: {Number(vatAmount).toLocaleString()} บาท
+            ยอดรวมก่อน VAT : {Number(totalBeforeVAT).toLocaleString()} บาท
           </strong>
         </div>
 
@@ -297,8 +333,16 @@ const OrderSummaryDialog = ({
           style={{ marginTop: "10mm", textAlign: "right", fontSize: "22px" }}
         >
           <strong>
-            ยอดรวมทั้งหมด: {Number(selectedOrder.total_amount).toLocaleString()}{" "}
-            บาท
+            ภาษีมูลค่าเพิ่ม 7% : {Number(vatAmount).toLocaleString()} บาท
+          </strong>
+        </div>
+
+        <div
+          style={{ marginTop: "10mm", textAlign: "right", fontSize: "22px" }}
+        >
+          <strong>
+            ยอดรวมทั้งหมด :{" "}
+            {Number(selectedOrder.total_amount).toLocaleString()} บาท
           </strong>
         </div>
       </div>
