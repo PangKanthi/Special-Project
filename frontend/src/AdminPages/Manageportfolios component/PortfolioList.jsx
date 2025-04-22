@@ -11,7 +11,7 @@ const PortfolioList = ({ portfolios, onDelete, onEdit }) => {
     const token = localStorage.getItem("token");
 
     try {
-        onDelete(id);
+      onDelete(id);
     } catch (error) {
       console.error("Error deleting work sample:", error);
       toast.current.show({
@@ -52,7 +52,11 @@ const PortfolioList = ({ portfolios, onDelete, onEdit }) => {
             >
               {portfolio.images && portfolio.images.length > 0 ? (
                 <img
-                src={`${process.env.REACT_APP_API}${portfolio.images[0]}`}
+                  src={
+                    portfolio.images[0].startsWith('http')
+                      ? portfolio.images[0]
+                      : `${process.env.REACT_APP_API}${portfolio.images[0]}`
+                  }
                   alt="work"
                   className="w-full h-full object-cover"
                 />

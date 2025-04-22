@@ -137,10 +137,11 @@ const Portfolio = () => {
                     alt={item.title}
                     src={firstImage}
                     style={{
-                      width: '100%',
-                      height: '325px',
-                      borderRadius: '10px',
-                      objectFit: 'cover',
+                      width: "270px",
+                      height: "250px",
+                      objectFit: "contain",
+                      display: "block",
+                      margin: "0 auto",
                     }}
                   />
                 }
@@ -178,10 +179,11 @@ const Portfolio = () => {
                   src={`${process.env.REACT_APP_API}${imgPath}`}
                   alt={`img-${index}`}
                   style={{
-                    width: '230px',
-                    height: '230px',
-                    objectFit: 'cover',
-                    borderRadius: '8px',
+                    width: "400px",
+                    height: "250px",
+                    objectFit: "contain",
+                    display: "block",
+                    margin: "0 auto",
                   }}
                 />
               ))}

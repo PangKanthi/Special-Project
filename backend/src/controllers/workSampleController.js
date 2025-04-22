@@ -19,7 +19,6 @@ export const createWorkSample = async (req, res, next) => {
 
 export const updateWorkSample = async (req, res, next) => {
     try {
-     // console.log("req.body.existingImages", req.body.existingImages)
 
         const oldFiles = req.body.existingImages 
         ? Array.isArray(req.body.existingImages) 
@@ -27,17 +26,11 @@ export const updateWorkSample = async (req, res, next) => {
             : [req.body.existingImages] 
         : [];
     
-    
-        // console.log("oldFiles", oldFiles)
-
-        // console.log("new files",req.files)
         const newImages = req.files ? req.files.map(file => `/uploads/work_samples/${file.filename}`) : [];
 
-        // console.log(newImages)
-
-        const cleanedOldFiles = oldFiles.length > 0 ? oldFiles.map(file => file.replace('${process.env.REACT_APP_API}', '')) : null;
-
-        // console.log("cleanedOldFiles", cleanedOldFiles)
+        const cleanedOldFiles = oldFiles.map(f =>
+           f.replace(process.env.REACT_APP_API, '')
+        );
 
         let allfiles;
         if (cleanedOldFiles) {
@@ -45,10 +38,6 @@ export const updateWorkSample = async (req, res, next) => {
         } else {
             allfiles = [...newImages]
         }
-
-
-        // console.log(allfiles)
-
 
         const updatedWorkSample = await WorkSampleService.updateWorkSample(
             req.params.id,

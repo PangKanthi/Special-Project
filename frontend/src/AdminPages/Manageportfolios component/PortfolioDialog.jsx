@@ -51,7 +51,6 @@ const PortfolioDialog = ({
       file,
       previewUrl: URL.createObjectURL(file),
     }));
-
     setUploadedFiles(newFiles);
   };
 
@@ -83,12 +82,10 @@ const PortfolioDialog = ({
     formData.append("description", description);
 
     images.forEach((img) => {
-      if (typeof img === "string") {
-        formData.append("existingImages", img);
+      if (typeof img === "string" && img.trim() !== "") {
+        formData.append("existingImages", img.replace(process.env.REACT_APP_API, ""));
       }
     });
-
-
 
     uploadedFiles.forEach((file) => {
       formData.append("images", file.file);
@@ -125,7 +122,7 @@ const PortfolioDialog = ({
           },
           body: formData,
         });
-        if(response.status === 201){
+        if (response.status === 201) {
           // const data = await response.json();
           // onWorkSampleAdded(data)
           fetchPortfolios();
