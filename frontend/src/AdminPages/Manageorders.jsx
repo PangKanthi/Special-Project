@@ -10,6 +10,7 @@ import { InputNumber } from "primereact/inputnumber";
 import { InputText } from "primereact/inputtext";
 import { TabView, TabPanel } from "primereact/tabview";
 import OrderSummaryDialog from "../Component/OrderSummaryDialog";
+import { confirmDialog, ConfirmDialog } from 'primereact/confirmdialog';
 import axios from "axios";
 
 const ManageOrders = () => {
@@ -738,8 +739,8 @@ const ManageOrders = () => {
               rowData.color === "default"
                 ? "-"
                 : rowData.width != null
-                ? rowData.width
-                : "-"
+                  ? rowData.width
+                  : "-"
             }
           />
           <Column
@@ -750,8 +751,8 @@ const ManageOrders = () => {
               rowData.color === "default"
                 ? "-"
                 : rowData.length != null
-                ? rowData.length
-                : "-"
+                  ? rowData.length
+                  : "-"
             }
           />
           <Column
@@ -878,44 +879,47 @@ const ManageOrders = () => {
       <Dialog
         header="เพิ่มอะไหล่ไปยังออเดอร์"
         visible={visibleAddProductDialog}
-        style={{ width: "50vw" }}
+        style={{ width: "40vw" }}
         onHide={() => setVisibleAddProductDialog(false)}
       >
-        <Dropdown
-          options={products.map((product) => ({
-            label: product.name,
-            value: product.id,
-          }))}
-          placeholder="เลือกอะไหล่"
-          value={selectedProduct}
-          onChange={(e) => {
-            console.log("Product selected:", e.value);
-            setSelectedProduct(e.value);
-          }}
-          style={{ width: "100%" }}
-        />
-        <InputNumber
-          value={quantity}
-          onValueChange={(e) => setQuantity(e.value)}
-          min={1}
-          style={{ width: "100%", marginTop: "1rem" }}
-          placeholder="จำนวน"
-        />
-        <Button
-          label="เพิ่มอะไหล่"
-          icon="pi pi-plus"
-          className="p-button-success"
-          onClick={() => {
-            console.log("Selected product id before adding:", selectedProduct);
-            if (selectedProduct && quantity > 0) {
-              addProductToOrder(selectedProduct, quantity);
-            } else {
-              alert("กรุณาเลือกสินค้าและจำนวนสินค้า");
-            }
-          }}
-        />
-      </Dialog>
+        <div className="flex flex-column gap-3">
+          <Dropdown
+            options={products.map((product) => ({
+              label: product.name,
+              value: product.id,
+            }))}
+            placeholder="เลือกอะไหล่"
+            value={selectedProduct}
+            onChange={(e) => {
+              console.log("Product selected:", e.value);
+              setSelectedProduct(e.value);
+            }}
+            className="w-full"
+          />
 
+          <div className="flex gap-3 align-items-center">
+            <InputNumber
+              value={quantity}
+              onValueChange={(e) => setQuantity(e.value)}
+              min={1}
+              className="w-4"
+              placeholder="จำนวน"
+            />
+            <Button
+              label="เพิ่มอะไหล่"
+              icon="pi pi-plus"
+              className="p-button-success"
+              onClick={() => {
+                if (selectedProduct && quantity > 0) {
+                  addProductToOrder(selectedProduct, quantity);
+                } else {
+                  alert("กรุณาเลือกสินค้าและจำนวนสินค้า");
+                }
+              }}
+            />
+          </div>
+        </div>
+      </Dialog>
       {selectedOrder && (
         <OrderSummaryDialog
           visible={visibleSummary}
